@@ -1,0 +1,38 @@
+/node_modules
+/vendor
+
+.env
+.env.backup
+composer.lock
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+npm-debug.log
+yarn-error.log
+# IDE / Editor
+.idea
+
+# Service worker
+sw.*
+
+# macOS
+.DS_Store
+
+# Vim swap files
+*.swp
+
+# Vscode file
+.vscode
+
+.vscode/*
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+# User-specific stuff
+.idea/*
+storage/logs/*
+
