@@ -3,7 +3,6 @@
 
 .env
 .env.backup
-composer.lock
 .phpunit.result.cache
 Homestead.json
 Homestead.yaml
