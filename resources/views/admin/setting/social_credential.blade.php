@@ -125,13 +125,13 @@
             $(document).on('click', '.editBtn', function() {
                 let modal = $('#editModal');
                 let data = $(this).data();
-                let route = "{{ route('admin.setting.socialite.credentials.update', '') }}";
-                let callbackUrl = "{{ route('user.social.login.callback', '') }}";
-                modal.find('form').attr('action', `${route}/${data.key}`);
+                let route = "{{ route('admin.setting.socialite.credentials.update', ':key') }}";
+                let callbackUrl = "{{ route('user.social.login.callback', ':provider') }}";
+                modal.find('form').attr('action', route.replace(':key', data.key));
                 modal.find('.credential-name').text(data.key);
                 modal.find('[name=client_id]').val(data.client_id);
                 modal.find('[name=client_secret]').val(data.client_secret);
-                modal.find('.callback').val(`${callbackUrl}/${data.key}`);
+                modal.find('.callback').val(callbackUrl.replace(':provider', data.key));
                 modal.modal('show');
             });
             $('.copyInput').on('click', function(e) {
