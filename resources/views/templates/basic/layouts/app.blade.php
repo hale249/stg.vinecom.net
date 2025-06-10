@@ -14,12 +14,12 @@
 
     @stack('style-lib')
     <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/jquery-ui.min.css') }}">
-    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/main.css') }}">
+    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/main.css') }}?v={{ time() }}">
     <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/custom.css') }}">
 
     @stack('style')
 
-    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/color.php') }}?color={{ gs('base_color') }}">
+    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/color.php') }}?color=E7B53B">
 </head>
 
 @php echo loadExtension('google-analytics') @endphp
