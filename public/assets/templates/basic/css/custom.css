@@ -780,3 +780,27 @@ label.required:after {
 .select2-container:has(.select2-selection--single) {
     width: 100% !important;
 }
+
+/* Custom styles for logo size */
+.navbar-brand.logo img {
+    max-width: 300px !important;
+    max-height: 80px !important;
+}
+
+@media screen and (max-width: 991px) {
+    .navbar-brand.logo img {
+        max-width: 250px !important;
+    }
+}
+
+@media screen and (max-width: 424px) {
+    .navbar-brand.logo img {
+        max-width: 200px !important;
+    }
+}
+
+@media screen and (max-width: 374px) {
+    .navbar-brand.logo img {
+        max-width: 180px !important;
+    }
+}
