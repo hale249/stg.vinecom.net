@@ -93,7 +93,7 @@
 
                     <div class="dashboard-analytics-card__content">
                         <span class="dashboard-analytics-card__name">@lang('Total Invested Projects')</span>
-                        <h5 class="dashboard-analytics-card__total">{{ __($investData['invest_count']) }}</h5>
+                        <h5 class="dashboard-analytics-card__total">{{ $investData['invest_count'] }}</h5>
                     </div>
 
                     <div class="dashboard-analytics-card__overlay-icon">

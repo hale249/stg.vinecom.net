@@ -196,7 +196,7 @@
             </label>
             <div class="input-group">
                 <input type="number" class="form-control return_timespan" id="repeat_times" name="repeat_times"
-                    value="{{ old('repeat_times', @$project->repeat_times) }}" step="0">
+                    value="{{ old('repeat_times', @$project->repeat_times) }}" step="0" required>
             </div>
         </div>
     </div>

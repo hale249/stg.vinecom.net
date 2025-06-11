@@ -38,11 +38,25 @@ class UserController extends Controller
     public function home()
     {
         $user = auth()->user();
+        
+        // Debug information
+        $allInvests = $user->invests()->get();
+        $runningInvests = $user->invests()->where('status', Status::INVEST_RUNNING)->get();
+        $completedInvests = $user->invests()->where('status', Status::INVEST_COMPLETED)->get();
+        
+        \Log::info('Debug Invest Counts', [
+            'user_id' => $user->id,
+            'all_invests_count' => $allInvests->count(),
+            'running_invests_count' => $runningInvests->count(),
+            'completed_invests_count' => $completedInvests->count(),
+            'unique_projects' => $allInvests->pluck('project_id')->unique()->count()
+        ]);
+
         $investData = [
             'completed' => $user->invests()->completed()->count(),
             'total_invest' => $user->invests()->totalInvest(),
             'total_earning' => $user->invests()->totalEarn(),
-            'invest_count' => $user->invests()->count(),
+            'invest_count' => $user->invests()->where('status', Status::INVEST_RUNNING)->select('project_id')->distinct()->count(),
             'total_deposit' => $user->deposits()->directDeposit()->sum('amount'),
             'total_withdraw' => $user->withdrawals()->approved()->sum('amount')
         ];

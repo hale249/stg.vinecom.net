@@ -16,6 +16,30 @@ class Project extends Model
         'seo_content' => 'object',
     ];
 
+    protected $fillable = [
+        'title',
+        'slug',
+        'goal',
+        'share_amount',
+        'roi_percentage',
+        'roi_amount',
+        'start_date',
+        'end_date',
+        'maturity_time',
+        'maturity_date',
+        'time_id',
+        'repeat_times',
+        'return_type',
+        'capital_back',
+        'category_id',
+        'map_url',
+        'description',
+        'contract_content',
+        'gallery',
+        'featured',
+        'status'
+    ];
+
     public function time()
     {
         return $this->belongsTo(Time::class);

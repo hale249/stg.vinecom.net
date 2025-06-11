@@ -72,7 +72,9 @@ class ManageProjectController extends Controller
         ]);
 
         if ($request->return_type == Status::REPEAT) {
-            $request->validate(['repeat_times'   => 'required_if:return_type,' . Status::REPEAT . '|numeric|gt:0']);
+            $request->validate([
+                'repeat_times' => 'required|numeric|gt:0'
+            ]);
         }
 
         if ($id) {
@@ -136,7 +138,7 @@ class ManageProjectController extends Controller
         $project->maturity_time = $request->maturity_time;
         $project->maturity_date = $matureDate;
         $project->time_id = $request->time_id;
-        $project->repeat_times = $request->repeat_times;
+        $project->repeat_times = $request->return_type == Status::REPEAT ? $request->repeat_times : 0;
         $project->return_type = @$request->return_type == Status::REPEAT ? Status::REPEAT : Status::LIFETIME;
 
         if ($project->return_type == Status::REPEAT) {
