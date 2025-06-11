@@ -5,6 +5,7 @@ namespace App\Http\Controllers\User\Auth;
 use App\Constants\Status;
 use App\Http\Controllers\Controller;
 use App\Lib\Intended;
+use App\Lib\ReferralCodeGenerator;
 use App\Models\AdminNotification;
 use App\Models\User;
 use App\Models\UserLogin;
@@ -46,7 +47,6 @@ class RegisterController extends Controller
             $notify[] = ['error', 'Invalid captcha provided'];
             return back()->withNotify($notify);
         }
-
 
         event(new Registered($user = $this->create($request->all())));
 
@@ -98,6 +98,10 @@ class RegisterController extends Controller
         $user->sv = gs('sv') ? Status::NO : Status::YES;
         $user->ts = Status::DISABLE;
         $user->tv = Status::ENABLE;
+
+        $referralCode = ReferralCodeGenerator::generateUniqueReferralCode();
+        $user->referral_code = $referralCode;
+        // Generate unique referral code
         $user->save();
 
         $adminNotification = new AdminNotification();

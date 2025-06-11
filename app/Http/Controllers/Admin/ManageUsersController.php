@@ -14,6 +14,8 @@ use App\Models\Withdrawal;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Rules\FileTypeValidate;
+use Illuminate\Support\Facades\Hash;
+use App\Lib\ReferralCodeGenerator;
 
 class ManageUsersController extends Controller
 {
@@ -493,5 +495,60 @@ class ManageUsersController extends Controller
         $pageTitle = 'Notifications Sent to ' . $user->username;
         $logs = NotificationLog::where('user_id', $id)->with('user')->orderBy('id', 'desc')->paginate(getPaginate());
         return view('admin.reports.notification_history', compact('pageTitle', 'logs', 'user'));
+    }
+
+    public function createStaff(Request $request)
+    {
+        try {
+            $request->validate([
+                'firstname' => 'required|string',
+                'lastname' => 'required|string',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|string|min:6'
+            ]);
+            $referralCode = ReferralCodeGenerator::generateUniqueReferralCode();
+
+            $user = new User();
+            $user->firstname = $request->firstname;
+            $user->lastname = $request->lastname;
+            $user->email = $request->email;
+            $user->password = Hash::make($request->password);
+            $user->is_staff = 1;
+            $user->referral_code = $referralCode;
+            $user->ev = 0; // Email verified
+            $user->sv = 0; // SMS verified
+            $user->ts = 0; // 2FA status
+            $user->tv = 0; // 2FA verified
+            $user->kv = 0; // KYC verified
+            $user->save();
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Staff user created successfully'
+                ]);
+            }
+
+            $notify[] = ['success', 'Staff user created successfully'];
+            return back()->withNotify($notify);
+
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $e->errors()
+                ], 422);
+            }
+            throw $e;
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'An error occurred while creating staff user'
+                ], 500);
+            }
+            throw $e;
+        }
+        return back()->withNotify($notify);
     }
 }
