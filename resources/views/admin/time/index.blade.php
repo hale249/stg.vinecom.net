@@ -85,7 +85,7 @@
                                 placeholder="@lang(' Name')" autocomplete="off" required>
                         </div>
                         <div class="form-group">
-                            <label>@lang('Time in Hours')</label>
+                            <label>@lang('Time in Months')</label>
                             <div class="input-group">
                                 <input name="hours" type="text" class="form-control bg--white pe-2"
                                     placeholder="@lang('Hours')" autocomplete="off" required>

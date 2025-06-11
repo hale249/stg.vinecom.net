@@ -16,8 +16,8 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 
 function systemDetails() {
-    $system['name']          = 'agrivest';
-    $system['version']       = '1.1';
+    $system['name']          = 'Bắc Hải Group';
+    $system['version']       = '1.0';
     $system['build_version'] = '5.0.10';
     return $system;
 }
@@ -158,15 +158,7 @@ function osBrowser() {
 }
 
 function getTemplates() {
-    $param['purchasecode'] = env("PURCHASECODE");
-    $param['website']      = @$_SERVER['HTTP_HOST'] . @$_SERVER['REQUEST_URI'] . ' - ' . env("APP_URL");
-    $url                   = VugiChugi::gttmp() . systemDetails()['name'];
-    $response              = CurlRequest::curlPostContent($url, $param);
-    if ($response) {
-        return $response;
-    } else {
-        return null;
-    }
+    return null;
 }
 
 function getPageSections($arr = false) {

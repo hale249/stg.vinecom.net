@@ -136,7 +136,7 @@ class ManageProjectController extends Controller
         $project->maturity_time = $request->maturity_time;
         $project->maturity_date = $matureDate;
         $project->time_id = $request->time_id;
-        $project->repeat_times = $request->repeat_times;
+        $project->repeat_times = $request->repeat_times ?? 0;
         $project->return_type = @$request->return_type == Status::REPEAT ? Status::REPEAT : Status::LIFETIME;
 
         if ($project->return_type == Status::REPEAT) {

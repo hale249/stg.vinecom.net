@@ -306,7 +306,7 @@
     "Are you sure to disable this time?": "Bạn có chắc chắn muốn vô hiệu hóa thời gian này?",
     "Are you sure to enable this time?": "Bạn có chắc chắn muốn kích hoạt thời gian này?",
     "Add Time": "Thêm thời gian",
-    "Time in Hours": "Thời gian tính bằng giờ",
+    "Time in Months": "Thời gian tính bằng tháng",
     "Interest will be given after this time.": "Lãi suất sẽ được tính sau thời gian này.",
     "Create New Time": "Tạo thời gian mới",
     "Title": "Tiêu đề",
@@ -1019,7 +1019,7 @@
     "If you want to get push notification then you have to allow notification from your browser": "Nếu bạn muốn nhận thông báo đẩy, bạn cần bật thông báo từ trình duyệt của mình",
     "Latest News": "Tin tức mới nhất",
     "Register New Account": "Đăng ký tài khoản mới",
-    "fdg sdfgsdf g ggg": "fdg sdfgsdf g ggg", 
+    "fdg sdfgsdf g ggg": "fdg sdfgsdf g ggg",
     "Blog Post": "Bài viết blog",
     "Our Latest Update": "Cập nhật mới nhất của chúng tôi",
     "Leverage this compelling long-term investment with historically attractive risk-adjusted returns.": "Tận dụng khoản đầu tư dài hạn hấp dẫn này với tỷ suất lợi nhuận đã điều chỉnh rủi ro theo lịch sử đầy ấn tượng.",
@@ -1143,4 +1143,4 @@
     "Unlocking the Future of Sustainable Agriculture: Investing in a Greener Tomorrow": "Mở khóa tương lai nông nghiệp bền vững: Đầu tư cho một ngày mai xanh",
     "Data Protection Policy": "Chính sách bảo vệ dữ liệu",
     "Refund Policy": "Chính sách hoàn tiền"
-  } 
+  }
