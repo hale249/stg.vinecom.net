@@ -51,7 +51,8 @@
             "admin.invest.index",
             "admin.invest.running",
             "admin.invest.details",
-            "admin.invest.completed"
+            "admin.invest.completed",
+            "admin.invest.review"
         ],
         "submenu": [
             {
@@ -66,6 +67,19 @@
                 "title": "All Investments",
                 "route_name": "admin.invest.index",
                 "menu_active": "admin.invest.index*"
+            },
+            {
+                "keyword": [
+                    "review investments",
+                    "Review Investment management",
+                    "Investment review",
+                    "Investment control",
+                    "Review Investment",
+                    "Investment activity"
+                ],
+                "title": "Review",
+                "route_name": "admin.invest.review",
+                "menu_active": "admin.invest.review*"
             },
             {
                 "keyword": [

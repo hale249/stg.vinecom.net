@@ -73,6 +73,9 @@ Route::middleware('auth')->name('user.')->group(function () {
 
                 Route::get('projects', 'projects')->name('projects');
                 Route::get('projects/transactions/{id}', 'projectsTransactions')->name('projects.transactions');
+                
+                // Investment Contract
+                Route::get('investment/contract', 'investmentContract')->name('investment.contract');
             });
 
             //Profile setting
@@ -100,6 +103,7 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::get('/contract/{id}', 'showContract')->name('contract');
                 Route::post('/confirm/{id}', 'confirm')->name('confirm');
                 Route::get('/contract/{id}/download', 'downloadContract')->name('contract.download');
+                Route::get('/history', 'history')->name('history');
             });
 
             // Comment

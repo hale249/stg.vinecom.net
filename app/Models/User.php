@@ -45,6 +45,15 @@ class User extends Authenticatable
         'remember_token',
         'provider',
         'provider_id',
+        'date_of_birth',
+        'id_number',
+        'id_issue_date',
+        'id_issue_place',
+        'bank_account_number',
+        'bank_name',
+        'bank_branch',
+        'bank_account_holder',
+        'tax_number'
     ];
 
     /**
@@ -66,6 +75,8 @@ class User extends Authenticatable
         'kyc_data' => 'object',
         'ver_code_send_at' => 'datetime',
         'is_staff' => 'boolean',
+        'id_issue_date' => 'date',
+        'date_of_birth' => 'date',
     ];
 
 
@@ -99,16 +110,14 @@ class User extends Authenticatable
         return $this->hasMany(SupportTicket::class);
     }
 
-    public function fullname()
-    : Attribute
+    public function fullname(): Attribute
     {
         return new Attribute(
             get: fn () => $this->firstname . ' ' . $this->lastname,
         );
     }
 
-    public function mobileNumber()
-    : Attribute
+    public function mobileNumber(): Attribute
     {
         return new Attribute(
             get: fn () => $this->dial_code . $this->mobile,

@@ -106,4 +106,64 @@ class ManageInvestController extends Controller
         $notify[] = ['success', 'Returns have been started successfully.'];
         return back()->withNotify($notify);
     }
+
+    public function review()
+    {
+        $pageTitle = 'Review Investments';
+        $invests = Invest::where('status', Status::INVEST_PENDING_ADMIN_REVIEW)
+            ->with(['user', 'project'])
+            ->latest()
+            ->searchable(['invest_no', 'project:title'])
+            ->paginate(getPaginate());
+
+        return view('admin.invest.review', compact('pageTitle', 'invests'));
+    }
+
+    public function viewContract($id)
+    {
+        $pageTitle = 'Investment Contract';
+        $invest = Invest::where('status', Status::INVEST_PENDING_ADMIN_REVIEW)
+            ->with(['user', 'project'])
+            ->findOrFail($id);
+
+        return view('admin.invest.contract', compact('pageTitle', 'invest'));
+    }
+
+    public function approve($id)
+    {
+        $invest = Invest::where('status', Status::INVEST_PENDING_ADMIN_REVIEW)
+            ->findOrFail($id);
+
+        $invest->status = Status::INVEST_ACCEPT;
+        $invest->save();
+
+        notify($invest->user, 'INVEST_APPROVED', [
+            'invest_id' => $invest->invest_no,
+            'project_title' => $invest->project->title,
+            'invest_amount' => showAmount($invest->total_price),
+            'quantity' => $invest->quantity,
+        ]);
+
+        $notify[] = ['success', 'Investment approved successfully.'];
+        return back()->withNotify($notify);
+    }
+
+    public function reject($id)
+    {
+        $invest = Invest::where('status', Status::INVEST_PENDING_ADMIN_REVIEW)
+            ->findOrFail($id);
+
+        $invest->status = Status::INVEST_CANCELED;
+        $invest->save();
+
+        notify($invest->user, 'INVEST_REJECTED', [
+            'invest_id' => $invest->invest_no,
+            'project_title' => $invest->project->title,
+            'invest_amount' => showAmount($invest->total_price),
+            'quantity' => $invest->quantity,
+        ]);
+
+        $notify[] = ['success', 'Investment rejected successfully.'];
+        return back()->withNotify($notify);
+    }
 }

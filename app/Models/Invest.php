@@ -88,6 +88,8 @@ class Invest extends Model
         $html = '';
         if ($this->status == Status::INVEST_PENDING) {
             $html = '<span class="badge badge--status badge--warning">' . trans('Pending') . '</span>';
+        } elseif ($this->status == Status::INVEST_PENDING_ADMIN_REVIEW) {
+            $html = '<span class="badge badge--status badge--info">' . trans('Under Review') . '</span>';
         } elseif ($this->status == Status::INVEST_COMPLETED) {
             $html = '<span class="badge badge--status badge--success">' . trans('Completed') . '</span>';
         } elseif ($this->status == Status::INVEST_ACCEPT) {
@@ -96,7 +98,7 @@ class Invest extends Model
             $html = '<span class="badge badge--status badge--info">' . trans('Running') . '</span>';
         } elseif ($this->status == Status::INVEST_CLOSED) {
             $html = '<span class="badge badge--status badge--dark">' . trans('Closed') . '</span>';
-        } else {
+        } elseif ($this->status == Status::INVEST_CANCELED) {
             $html = '<span class="badge badge--status badge--danger">' . trans('Canceled') . '</span>';
         }
         return $html;

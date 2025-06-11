@@ -20,7 +20,6 @@ class InvestController extends Controller {
             'project_id' => 'required|exists:projects,id',
             'quantity' => 'required|integer|min:1',
             'payment_type' => 'required|in:1,2',
-            'contract_confirmed' => 'required|accepted',
             'referral_code' => 'nullable|exists:users,ref_code'
         ]);
 
@@ -100,26 +99,21 @@ class InvestController extends Controller {
     {
         $invest = Invest::where('id', $id)
             ->where('user_id', auth()->id())
-            ->where('payment_status', Status::PAYMENT_INITIATE)
+            ->where('status', Status::INVEST_PENDING)
             ->firstOrFail();
 
-        if ($invest->payment_type == Status::PAYMENT_ONLINE) {
-            return redirect()->route('user.deposit.index', $invest->id);
-        }
+        $invest->status = Status::INVEST_PENDING_ADMIN_REVIEW;
+        $invest->save();
 
-        // Wallet Payment
-        if ($invest->payment_type == Status::PAYMENT_WALLET) {
-            if ($invest->total_price > auth()->user()->balance) {
-                $notify[] = ['error', 'Insufficient balance.'];
-                return back()->withNotify($notify);
-            }
+        notify($invest->user, 'INVEST_SUBMITTED_FOR_REVIEW', [
+            'invest_id' => $invest->invest_no,
+            'project_title' => $invest->project->title,
+            'invest_amount' => showAmount($invest->total_price),
+            'quantity' => $invest->quantity,
+        ]);
 
-            PaymentController::confirmOrder($invest);
-            $notify[] = ['success', 'Investment successful using wallet balance.'];
-            return redirect()->route('user.home')->withNotify($notify);
-        }
-
-        return redirect()->route('user.home');
+        $notify[] = ['success', 'Investment submitted for admin review successfully.'];
+        return redirect()->route('user.invest.history')->withNotify($notify);
     }
 
     public function downloadContract($id)
@@ -134,5 +128,17 @@ class InvestController extends Controller {
         ]);
 
         return $pdf->download('contract-' . $invest->invest_no . '.pdf');
+    }
+
+    public function history()
+    {
+        $pageTitle = 'Investment History';
+        $invests = Invest::where('user_id', auth()->id())
+            ->with(['project'])
+            ->latest()
+            ->paginate(getPaginate());
+        $activeTemplate = activeTemplate();
+        $general = gs();
+        return view('templates.basic.user.invest.history', compact('pageTitle', 'invests', 'activeTemplate', 'general'));
     }
 }
