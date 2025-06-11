@@ -74,6 +74,42 @@
                             <label class="form--label">@lang('Country')</label>
                             <input class="form-control form--control" value="{{ @$user->country_name }}" disabled>
                         </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('Ngày sinh')</label>
+                            <input class="form-control form--control datepicker-here" type="text" name="date_of_birth" value="{{ $user->date_of_birth ? \Carbon\Carbon::parse($user->date_of_birth)->format('d/m/Y') : '' }}" data-date-format="dd/mm/yyyy" autocomplete="off">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('CC/CCCD số')</label>
+                            <input class="form-control form--control" type="text" name="id_number" value="{{ $user->id_number }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('Cấp ngày')</label>
+                            <input class="form-control form--control datepicker-here" type="text" name="id_issue_date" value="{{ $user->id_issue_date ? \Carbon\Carbon::parse($user->id_issue_date)->format('d/m/Y') : '' }}" data-date-format="dd/mm/yyyy" autocomplete="off">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('Nơi cấp')</label>
+                            <input class="form-control form--control" type="text" name="id_issue_place" value="{{ $user->id_issue_place }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('Số tài khoản')</label>
+                            <input class="form-control form--control" type="text" name="bank_account_number" value="{{ $user->bank_account_number }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('Ngân hàng')</label>
+                            <input class="form-control form--control" type="text" name="bank_name" value="{{ $user->bank_name }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('Chi nhánh')</label>
+                            <input class="form-control form--control" type="text" name="bank_branch" value="{{ $user->bank_branch }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('Tên chủ tài khoản')</label>
+                            <input class="form-control form--control" type="text" name="bank_account_holder" value="{{ $user->bank_account_holder }}">
+                        </div>
+                        <div class="col-sm-6">
+                            <label class="form-label form--label">@lang('Mã số thuế TNCN')</label>
+                            <input class="form-control form--control" type="text" name="tax_number" value="{{ $user->tax_number }}">
+                        </div>
                     </div>
 
                     <div class="row mt-4">
@@ -87,6 +123,15 @@
         </form>
     </div>
 @endsection
+@push('script-lib')
+    <script src="{{ asset('assets/admin/js/moment.min.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/daterangepicker.min.js') }}"></script>
+@endpush
+
+@push('style-lib')
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/daterangepicker.css') }}">
+@endpush
+
 @push('script')
     <script>
         document.getElementById('user-thumb-edit-input').addEventListener('change', function(event) {
@@ -99,5 +144,23 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        (function($) {
+            "use strict"
+            
+            $('.datepicker-here').daterangepicker({
+                singleDatePicker: true,
+                showDropdowns: true,
+                autoUpdateInput: false,
+                locale: {
+                    format: 'DD/MM/YYYY'
+                }
+            });
+
+            $('.datepicker-here').on('apply.daterangepicker', function(ev, picker) {
+                $(this).val(picker.startDate.format('DD/MM/YYYY'));
+            });
+
+        })(jQuery)
     </script>
 @endpush

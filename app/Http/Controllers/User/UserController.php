@@ -35,6 +35,17 @@ class UserController extends Controller
         return view('Template::user.projects_transaction', compact('pageTitle', 'transactions'));
     }
 
+    public function investmentContract()
+    {
+        $pageTitle = 'Investment Contract';
+        $user = auth()->user();
+        $invests = $user->invests()
+            ->with(['project'])
+            ->latest()
+            ->paginate(getPaginate());
+        return view('Template::user.investment.contract', compact('pageTitle', 'invests'));
+    }
+
     public function home()
     {
         $user = auth()->user();

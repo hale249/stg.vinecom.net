@@ -47,6 +47,7 @@ class Status
     const PAYMENT_WALLET = 2;
 
     const INVEST_PENDING = 0;
+    const INVEST_PENDING_ADMIN_REVIEW = 5;
     const INVEST_ACCEPT = 1;
     const INVEST_RUNNING = 2;
     const INVEST_COMPLETED = 3;

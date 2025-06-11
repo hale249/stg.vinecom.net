@@ -57,14 +57,16 @@ Route::middleware('admin')->group(function () {
     // Manage Invest Controller
     Route::controller('ManageInvestController')->name('invest.')->prefix('invest')->group(function () {
         Route::get('/', 'index')->name('index');
-        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::get('review', 'review')->name('review');
+        Route::get('review/contract/{id}', 'viewContract')->name('review.contract');
         Route::get('details/{id}', 'details')->name('details');
-        Route::post('store/{id?}', 'store')->name('store');
-        Route::post('invest/status/{id?}', 'investStatus')->name('status');
-        Route::get('invest/running', 'running')->name('running');
-        Route::post('stop/returns/{id}', 'stopReturns')->name('stop.returns');
-        Route::post('start/returns/{id}', 'startReturns')->name('start.returns');
-        Route::get('invest/completed', 'completed')->name('completed');
+        Route::post('status/{id}', 'investStatus')->name('status');
+        Route::post('approve/{id}', 'approve')->name('approve');
+        Route::post('reject/{id}', 'reject')->name('reject');
+        Route::get('running', 'running')->name('running');
+        Route::get('completed', 'completed')->name('completed');
+        Route::post('stop-returns/{id}', 'stopReturns')->name('stop.returns');
+        Route::post('start-returns/{id}', 'startReturns')->name('start.returns');
     });
 
     Route::controller('CategoryController')->name('category.')->prefix('category')->group(function () {

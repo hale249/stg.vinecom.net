@@ -45,16 +45,15 @@
                                     <li>Website: tapdoanbachai.vn;</li>
                                     <li>Số tài khoản: 0511100235999 – Ngân hàng: MB – CN Vạn Phúc;</li>
                                 </ul>
-
-                                <p><strong>BÊN B: Ông/Bà: {{ auth()->user()->fullname }}</strong></p>
+                                <div class="section-label">BÊN B: Ông/Bà: {{ $invest->user->fullname }}</div>
                                 <ul>
-                                    <li>Địa chỉ: {{ auth()->user()->address }};</li>
-                                    <li>Ngày sinh: {{ auth()->user()->birth_date }};</li>
-                                    <li>CC/CCCD số: {{ auth()->user()->id_number }} – Cấp ngày: {{ auth()->user()->id_issue_date }} – Nơi cấp: {{ auth()->user()->id_issue_place }};</li>
-                                    <li>Điện thoại: {{ auth()->user()->mobile }} – Email: {{ auth()->user()->email }};</li>
-                                    <li>Số tài khoản: {{ auth()->user()->account_number }} – Ngân hàng: {{ auth()->user()->bank_name }} – Chi nhánh: {{ auth()->user()->bank_branch }};</li>
-                                    <li>Tên chủ tài khoản: {{ auth()->user()->account_name }};</li>
-                                    <li>Mã số khách hàng: {{ auth()->user()->username }};</li>
+                                    <li>Địa chỉ: {{ $invest->user->address }};</li>
+                                    <li>Ngày sinh: {{ $invest->user->date_of_birth ? \Carbon\Carbon::parse($invest->user->date_of_birth)->format('d/m/Y') : 'N/A' }};</li>
+                                    <li>CC/CCCD số: {{ $invest->user->id_number }} – Cấp ngày: {{ $invest->user->id_issue_date ? \Carbon\Carbon::parse($invest->user->id_issue_date)->format('d/m/Y') : 'N/A' }} – Nơi cấp: {{ $invest->user->id_issue_place }};</li>
+                                    <li>Điện thoại: {{ $invest->user->mobile }} – Email: {{ $invest->user->email }};</li>
+                                    <li>Số tài khoản: {{ $invest->user->bank_account_number }} – Ngân hàng: {{ $invest->user->bank_name }} – Chi nhánh: {{ $invest->user->bank_branch }};</li>
+                                    <li>Tên chủ tài khoản: {{ $invest->user->bank_account_holder }};</li>
+                                    <li>Mã số khách hàng: {{ $invest->user->username }};</li>
                                     <li>Mã số thuế TNCN: {{ auth()->user()->tax_number }};</li>
                                     <li>Họ tên chuyên viên tư vấn: {{ $invest->project->consultant_name }} – Mã số CVTV: {{ $invest->project->consultant_code }};</li>
                                 </ul>

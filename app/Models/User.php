@@ -29,9 +29,39 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'kyc_data' => 'object',
-        'ver_code_send_at' => 'datetime'
+        'ver_code_send_at' => 'datetime',
+        'date_of_birth' => 'date',
+        'id_issue_date' => 'date'
     ];
 
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = [
+        'firstname',
+        'lastname',
+        'email',
+        'mobile',
+        'password',
+        'address',
+        'city',
+        'state',
+        'zip',
+        'country_code',
+        'country_name',
+        'dial_code',
+        'date_of_birth',
+        'id_number',
+        'id_issue_date',
+        'id_issue_place',
+        'bank_account_number',
+        'bank_name',
+        'bank_branch',
+        'bank_account_holder',
+        'tax_number'
+    ];
 
     public function loginLogs()
     {
@@ -63,16 +93,14 @@ class User extends Authenticatable
         return $this->hasMany(SupportTicket::class);
     }
 
-    public function fullname()
-    : Attribute
+    public function fullname(): Attribute
     {
         return new Attribute(
             get: fn () => $this->firstname . ' ' . $this->lastname,
         );
     }
 
-    public function mobileNumber()
-    : Attribute
+    public function mobileNumber(): Attribute
     {
         return new Attribute(
             get: fn () => $this->dial_code . $this->mobile,

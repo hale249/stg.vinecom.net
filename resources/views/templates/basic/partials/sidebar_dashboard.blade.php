@@ -37,6 +37,13 @@
                 </a>
             </li>
             <li class="offcanvas-sidebar-menu__item">
+                <a class="offcanvas-sidebar-menu__link {{ menuActive('user.investment.contract*') }}"
+                    href="{{ route('user.investment.contract') }}">
+                    <i class="fas fa-file-contract"></i>
+                    <span>@lang('Investment Contract')</span>
+                </a>
+            </li>
+            <li class="offcanvas-sidebar-menu__item">
                 <button class="offcanvas-sidebar-menu__btn collapsed" data-bs-toggle="collapse"
                     data-bs-target="#offcanvas-sidebar-deposit-collapse" aria-expanded="false" type="button">
                     <i class="fas fa-file-invoice-dollar"></i>
