@@ -125,6 +125,8 @@ Route::middleware('admin')->group(function () {
         Route::get('mobile-verified', 'mobileVerifiedUsers')->name('mobile.verified');
         Route::get('with-balance', 'usersWithBalance')->name('with.balance');
 
+        Route::post("/create-staff", "createStaff")->name("staff.create");
+
         Route::get('detail/{id}', 'detail')->name('detail');
         Route::get('kyc-data/{id}', 'kycDetails')->name('kyc.details');
         Route::post('kyc-approve/{id}', 'kycApprove')->name('kyc.approve');
