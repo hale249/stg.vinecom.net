@@ -72,7 +72,9 @@ class ManageProjectController extends Controller
         ]);
 
         if ($request->return_type == Status::REPEAT) {
-            $request->validate(['repeat_times'   => 'required_if:return_type,' . Status::REPEAT . '|numeric|gt:0']);
+            $request->validate([
+                'repeat_times' => 'required|numeric|gt:0'
+            ]);
         }
 
         if ($id) {

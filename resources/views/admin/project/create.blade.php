@@ -75,15 +75,14 @@
                     var returnType = $('select[name="return_type"]').val();
 
                     if (returnType === '-1') {
-                        $('.return_timespan').hide().closest('.form-group').find('input').attr('required',
-                            false);
+                        $('.return_timespan').hide().closest('.form-group').find('input').attr('required', false);
                         $('.return-type-wrapper').removeClass('col-md-4').addClass('col-md-6');
                         $('.time-settings-wrapper').removeClass('col-md-4').addClass('col-md-6');
                         $('.capital_back-wrapper').addClass('d-none');
                         $('.category-wrapper').removeClass('col-md-4').addClass('col-md-6');
                         $('.map-wrapper').removeClass('col-md-4').addClass('col-md-6');
                     } else if (returnType === '2') {
-                        $('.return_timespan').show().closest('.form-group').attr('required', true);
+                        $('.return_timespan').show().closest('.form-group').find('input').attr('required', true);
                         $('.return-type-wrapper').removeClass('col-md-6').addClass('col-md-4');
                         $('.time-settings-wrapper').removeClass('col-md-6').addClass('col-md-4');
                         $('.capital_back-wrapper').removeClass('d-none');

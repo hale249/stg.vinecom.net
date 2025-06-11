@@ -8,6 +8,34 @@ use Illuminate\Database\Eloquent\Model;
 
 class Invest extends Model
 {
+    protected $fillable = [
+        'invest_no',
+        'contract_content',
+        'referral_code',
+        'contract_confirmed',
+        'user_id',
+        'project_id',
+        'quantity',
+        'unit_price',
+        'total_price',
+        'roi_percentage',
+        'roi_amount',
+        'payment_type',
+        'total_earning',
+        'total_share',
+        'capital_back',
+        'capital_status',
+        'return_type',
+        'project_duration',
+        'project_closed',
+        'repeat_times',
+        'time_name',
+        'hours',
+        'recurring_pay',
+        'status',
+        'payment_status'
+    ];
+
     public function deposit()
     {
         return $this->hasOne(Deposit::class, 'invest_id');
