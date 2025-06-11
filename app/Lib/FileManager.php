@@ -125,25 +125,17 @@ class FileManager
     * @return void
     */
 	protected function uploadImage(){
-        $manager = new ImageManager(new Driver());
-        $image = $manager->read($this->file);
+        // Move the file to the destination
+        $this->file->move($this->path, $this->filename);
 
-        //resize the
-	    if ($this->size) {
-	        $size = explode('x', strtolower($this->size));
-	        $image->resize($size[0], $size[1]);
-	    }
-        //save the image
-	    $image->save($this->path . '/' . $this->filename);
-
-        //save the image as thumbnail version
-	    if ($this->thumb) {
+        // Create thumbnail if needed
+        if ($this->thumb) {
             if ($this->old) {
                 $this->removeFile($this->path . '/thumb_' . $this->old);
             }
-	        $thumb = explode('x', $this->thumb);
-	        $manager->read($this->file)->resize($thumb[0], $thumb[1])->save($this->path . '/thumb_' . $this->filename);
-	    }
+            // For now, just copy the original file as thumbnail
+            copy($this->path . '/' . $this->filename, $this->path . '/thumb_' . $this->filename);
+        }
 	}
 
 

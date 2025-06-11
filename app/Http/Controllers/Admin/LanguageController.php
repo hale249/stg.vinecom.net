@@ -32,9 +32,9 @@ class LanguageController extends Controller
 
 
 
-        $data = file_get_contents(resource_path('lang/') . 'en.json');
+        $data = file_get_contents(base_path('lang/en.json'));
         $jsonFile = strtolower($request->code) . '.json';
-        $path = resource_path('lang/') . $jsonFile;
+        $path = base_path('lang/') . $jsonFile;
 
         File::put($path, $data);
 
@@ -111,7 +111,7 @@ class LanguageController extends Controller
     public function langDelete($id)
     {
         $lang = Language::find($id);
-        fileManager()->removeFile(resource_path('lang/') . $lang->code . '.json');
+        fileManager()->removeFile(base_path('lang/') . $lang->code . '.json');
         fileManager()->removeFile(getFilePath('language') . '/' . $lang->image);
         $lang->delete();
         $notify[] = ['success', 'Language deleted successfully'];
@@ -122,7 +122,7 @@ class LanguageController extends Controller
     {
         $lang = Language::findOrFail($id);
         $pageTitle = "Update " . $lang->name . " Keywords";
-        $json = file_get_contents(resource_path('lang/') . $lang->code . '.json');
+        $json = file_get_contents(base_path('lang/') . $lang->code . '.json');
         $list_lang = Language::all();
 
         if (empty($json)) {
@@ -165,14 +165,14 @@ class LanguageController extends Controller
         $tolang = Language::findOrFail($request->toLangid);
         if ($request->id != 999) {
             $fromLang = Language::findOrFail($request->id);
-            $json = file_get_contents(resource_path('lang/') . $fromLang->code . '.json');
+            $json = file_get_contents(base_path('lang/') . $fromLang->code . '.json');
             $keywords = json_decode($json, true);
         } else {
             $text = $this->getKeys();
             $keywords = explode("\n", $text);
         }
 
-        $items = file_get_contents(resource_path('lang/') . $tolang->code . '.json');
+        $items = file_get_contents(base_path('lang/') . $tolang->code . '.json');
         foreach ($keywords as $keyword) {
             $keyword = trim($keyword);
             if (!array_key_exists($keyword, json_decode($items, true))) {
@@ -182,7 +182,7 @@ class LanguageController extends Controller
         if (isset($newArr)) {
             $itemData = json_decode($items, true);
             $result = array_merge($itemData, $newArr);
-            file_put_contents(resource_path('lang/') . $tolang->code . '.json', json_encode($result));
+            file_put_contents(base_path('lang/') . $tolang->code . '.json', json_encode($result));
         }
 
         return 'success';
@@ -196,7 +196,7 @@ class LanguageController extends Controller
             'value' => 'required'
         ]);
 
-        $items = file_get_contents(resource_path('lang/') . $lang->code . '.json');
+        $items = file_get_contents(base_path('lang/') . $lang->code . '.json');
 
         $reqKey = trim($request->key);
 
@@ -207,7 +207,7 @@ class LanguageController extends Controller
             $newArr[$reqKey] = trim($request->value);
             $itemData = json_decode($items, true);
             $result = array_merge($itemData, $newArr);
-            file_put_contents(resource_path('lang/') . $lang->code . '.json', json_encode($result));
+            file_put_contents(base_path('lang/') . $lang->code . '.json', json_encode($result));
             $notify[] = ['success', "Language key added successfully"];
             return back()->withNotify($notify);
         }
@@ -221,12 +221,12 @@ class LanguageController extends Controller
 
         $key = $request->key;
         $lang = Language::findOrFail($id);
-        $data = file_get_contents(resource_path('lang/') . $lang->code . '.json');
+        $data = file_get_contents(base_path('lang/') . $lang->code . '.json');
 
         $jsonArr = json_decode($data, true);
         unset($jsonArr[$key]);
 
-        file_put_contents(resource_path('lang/') . $lang->code . '.json', json_encode($jsonArr));
+        file_put_contents(base_path('lang/') . $lang->code . '.json', json_encode($jsonArr));
         $notify[] = ['success', "Language key deleted successfully"];
         return back()->withNotify($notify);
     }
@@ -242,13 +242,13 @@ class LanguageController extends Controller
         $reqValue = $request->value;
         $lang = Language::findOrFail($id);
 
-        $data = file_get_contents(resource_path('lang/') . $lang->code . '.json');
+        $data = file_get_contents(base_path('lang/') . $lang->code . '.json');
 
         $jsonArr = json_decode($data, true);
 
         $jsonArr[$key] = $reqValue;
 
-        file_put_contents(resource_path('lang/') . $lang->code . '.json', json_encode($jsonArr));
+        file_put_contents(base_path('lang/') . $lang->code . '.json', json_encode($jsonArr));
 
         $notify[] = ['success', 'Language key updated successfully'];
         return back()->withNotify($notify);

@@ -7,9 +7,9 @@
     --body-font: "Inter", sans-serif;
     --feedback-font: "Roboto Slab", serif;
     /* ========================= Theme Color Start ============================= */
-    --base-h: 145;
-    --base-s: 63%;
-    --base-l: 42%;
+    --base-h: 220;
+    --base-s: 55%;
+    --base-l: 22%;
     --base-l-custom: 21%;
     --base: var(--base-h) var(--base-s) var(--base-l);
     --base-d-custom: var(--base-h) var(--base-s) var(--base-l-custom);
@@ -89,9 +89,9 @@
     --secondary-l-500: var(--secondary-h) calc(var(--secondary-s)) calc(var(--secondary-l) + (100% - var(--secondary-l)) * 0.5);
     /* ========================= Secondary Colors End ============================ */
     /* ========================= Success Colors Start ========================== */
-    --success-h: 145;
-    --success-s: 63%;
-    --success-l: 42%;
+    --success-h: 220;
+    --success-s: 55%;
+    --success-l: 22%;
     --success: var(--success-h) var(--success-s) var(--success-l);
     --success-d-100: var(--success-h) var(--success-s) calc(var(--success-l) - var(--success-l) * 0.1);
     --success-d-200: var(--success-h) var(--success-s) calc(var(--success-l) - var(--success-l) * 0.2);
