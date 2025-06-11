@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Frontend;
 use App\Rules\FileTypeValidate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Artisan;
 
 class GeneralSettingController extends Controller {
     public function systemSetting() {
@@ -112,6 +113,8 @@ class GeneralSettingController extends Controller {
                 return back()->withNotify($notify);
             }
         }
+
+        Artisan::call('optimize:clear');
         $notify[] = ['success', 'Logo & favicon updated successfully'];
         return back()->withNotify($notify);
     }

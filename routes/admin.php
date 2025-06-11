@@ -43,9 +43,6 @@ Route::middleware('admin')->group(function () {
         Route::post('notifications/delete-all', 'deleteAllNotification')->name('notifications.delete.all');
         Route::post('notifications/delete-single/{id}', 'deleteSingleNotification')->name('notifications.delete.single');
 
-        //Report Bugs
-        Route::get('request-report', 'requestReport')->name('request.report');
-        Route::post('request-report', 'reportSubmit');
 
         Route::get('download-attachments/{file_hash}', 'downloadAttachment')->name('download.attachment');
     });
@@ -342,17 +339,6 @@ Route::middleware('admin')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::post('update/{id}', 'update')->name('update');
         Route::post('status/{id}', 'status')->name('status');
-    });
-
-    //System Information
-    Route::controller('SystemController')->name('system.')->prefix('system')->group(function () {
-        Route::get('info', 'systemInfo')->name('info');
-        Route::get('server-info', 'systemServerInfo')->name('server.info');
-        Route::get('optimize', 'optimize')->name('optimize');
-        Route::get('optimize-clear', 'optimizeClear')->name('optimize.clear');
-        Route::get('system-update', 'systemUpdate')->name('update');
-        Route::post('system-update', 'systemUpdateProcess')->name('update.process');
-        Route::get('system-update/log', 'systemUpdateLog')->name('update.log');
     });
 
     // SEO
