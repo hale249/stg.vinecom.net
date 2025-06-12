@@ -20,11 +20,11 @@ class InvestController extends Controller {
             'project_id' => 'required|exists:projects,id',
             'quantity' => 'required|integer|min:1',
             'payment_type' => 'required|in:1,2',
-            'referral_code' => 'nullable|exists:users,ref_code'
+            'referral_code' => 'nullable|exists:users,referral_code'
         ]);
 
         $user = auth()->user();
-        
+
         // Check KYC status
         if ($user->kv != Status::KYC_VERIFIED) {
             $notify[] = ['error', 'Vui lòng hoàn thành xác minh danh tính (KYC) trước khi đầu tư. <a href="' . route('user.kyc.form') . '" class="text-white">Nhấn vào đây để xác minh</a>'];
