@@ -2,14 +2,21 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Hợp đồng hợp tác kinh doanh</title>
     <style>
+        @font-face {
+            font-family: 'DejaVu Sans';
+            src: url('{{ storage_path('fonts/DejaVuSans.ttf') }}') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
         @page {
             size: A4 portrait;
             margin: 20mm;
         }
         body {
-            font-family: "Times New Roman", Times, serif;
+            font-family: 'DejaVu Sans', "Times New Roman", Times, serif;
             font-size: 13pt;
             line-height: 1.6;
             color: #000000;

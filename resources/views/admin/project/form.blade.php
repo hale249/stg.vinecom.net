@@ -79,7 +79,7 @@
             </label>
             <div class="input-group">
                 <input type="number" class="form-control share_amount" name="share_amount"
-                    value="{{ old('share_amount', getAmount(@$project->share_amount)) }}" step="0"
+                    value="{{ old('share_amount', getAmount(@$project->share_amount)) }}" step="0.01"
                     placeholder="@lang('Share Amount')" required>
                 <span class="input-group-text">{{ gs('cur_text') }}</span>
             </div>
@@ -221,7 +221,7 @@
                 <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
                     title="URL for embedding the project's location on Google Maps."></i>
             </label>
-            <input type="url" class="form-control" name="map_url"
+            <input type="text" class="form-control" name="map_url"
                 value="{{ old('map_url', @$project->map_url) }}" required>
         </div>
     </div>

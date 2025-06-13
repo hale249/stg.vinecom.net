@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Traits\GlobalStatus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use App\Models\Transaction;
 
 class InvestController extends Controller {
     use GlobalStatus;
@@ -102,6 +103,31 @@ class InvestController extends Controller {
             ->where('status', Status::INVEST_PENDING)
             ->firstOrFail();
 
+        $user = auth()->user();
+        
+        // Check if user has enough balance
+        if ($user->balance < $invest->total_price) {
+            $notify[] = ['error', 'Số dư tài khoản không đủ để thực hiện đầu tư.'];
+            return back()->withNotify($notify);
+        }
+
+        // Deduct balance
+        $user->balance -= $invest->total_price;
+        $user->save();
+
+        // Create transaction record
+        $transaction = new Transaction();
+        $transaction->user_id = $user->id;
+        $transaction->invest_id = $invest->id;
+        $transaction->amount = $invest->total_price;
+        $transaction->post_balance = $user->balance;
+        $transaction->trx_type = '-';
+        $transaction->details = 'Đầu tư vào dự án ' . $invest->project->title;
+        $transaction->remark = 'payment';
+        $transaction->trx = $invest->invest_no;
+        $transaction->save();
+
+        // Update investment status
         $invest->status = Status::INVEST_PENDING_ADMIN_REVIEW;
         $invest->save();
 
@@ -112,7 +138,7 @@ class InvestController extends Controller {
             'quantity' => $invest->quantity,
         ]);
 
-        $notify[] = ['success', 'Investment submitted for admin review successfully.'];
+        $notify[] = ['success', 'Đầu tư đã được gửi để xem xét.'];
         return redirect()->route('user.invest.history')->withNotify($notify);
     }
 
@@ -126,6 +152,12 @@ class InvestController extends Controller {
             'invest' => $invest,
             'user' => auth()->user()
         ]);
+
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+        $pdf->setOption('defaultFont', 'DejaVu Sans');
+        $pdf->setOption('encoding', 'UTF-8');
 
         return $pdf->download('contract-' . $invest->invest_no . '.pdf');
     }

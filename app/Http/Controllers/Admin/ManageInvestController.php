@@ -134,8 +134,13 @@ class ManageInvestController extends Controller
         $invest = Invest::where('status', Status::INVEST_PENDING_ADMIN_REVIEW)
             ->findOrFail($id);
 
-        $invest->status = Status::INVEST_ACCEPT;
+        // Update investment status
+        $invest->status = Status::INVEST_RUNNING;
+        $invest->payment_status = Status::PAYMENT_SUCCESS;
         $invest->save();
+
+        // Use PaymentController to handle the payment confirmation
+        \App\Http\Controllers\Gateway\PaymentController::confirmOrder($invest);
 
         notify($invest->user, 'INVEST_APPROVED', [
             'invest_id' => $invest->invest_no,
