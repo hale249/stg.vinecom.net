@@ -134,8 +134,27 @@ class ManageInvestController extends Controller
         $invest = Invest::where('status', Status::INVEST_PENDING_ADMIN_REVIEW)
             ->findOrFail($id);
 
-        $invest->status = Status::INVEST_ACCEPT;
+        // Update investment status
+        $invest->status = Status::INVEST_RUNNING;
+        $invest->payment_status = Status::PAYMENT_SUCCESS;
         $invest->save();
+
+        // Deduct balance from user
+        $user = $invest->user;
+        $user->balance -= $invest->total_price;
+        $user->save();
+
+        // Create transaction record
+        $transaction = new Transaction();
+        $transaction->user_id = $user->id;
+        $transaction->invest_id = $invest->id;
+        $transaction->amount = $invest->total_price;
+        $transaction->post_balance = $user->balance;
+        $transaction->trx_type = '-';
+        $transaction->details = 'Investment in project ' . $invest->project->title;
+        $transaction->remark = 'payment';
+        $transaction->trx = $invest->invest_no;
+        $transaction->save();
 
         notify($invest->user, 'INVEST_APPROVED', [
             'invest_id' => $invest->invest_no,
