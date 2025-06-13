@@ -59,7 +59,7 @@ class ManageProjectController extends Controller
             'share_count'    => "$isRequired|numeric|gt:0",
             'roi_amount'     => 'required|numeric|gt:0',
             'roi_percentage' => 'required|numeric|gt:0',
-            'map_url'        => 'required|string|url',
+            'map_url'        => 'required|string|regex:/^<iframe.*src="https:\/\/www\.google\.com\/maps\/embed\?pb=.+".*><\/iframe>$/',
             'start_date'     => 'required|date',
             'end_date'       => 'required|date',
             'maturity_time'  => 'required|numeric|gt:0',

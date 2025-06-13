@@ -221,7 +221,7 @@
                 <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
                     title="URL for embedding the project's location on Google Maps."></i>
             </label>
-            <input type="url" class="form-control" name="map_url"
+            <input type="text" class="form-control" name="map_url"
                 value="{{ old('map_url', @$project->map_url) }}" required>
         </div>
     </div>

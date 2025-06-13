@@ -153,7 +153,7 @@
                                             <h5 class="offer-details-block__title">@lang('Where This Project')</h5>
 
                                             <div class="offer-details-block__map">
-                                                <iframe src="{{ @$project->map_url }}"></iframe>
+                                                {!! @$project->map_url !!}
                                             </div>
                                         </div>
                                     </div>

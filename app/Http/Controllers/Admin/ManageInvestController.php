@@ -139,22 +139,8 @@ class ManageInvestController extends Controller
         $invest->payment_status = Status::PAYMENT_SUCCESS;
         $invest->save();
 
-        // Deduct balance from user
-        $user = $invest->user;
-        $user->balance -= $invest->total_price;
-        $user->save();
-
-        // Create transaction record
-        $transaction = new Transaction();
-        $transaction->user_id = $user->id;
-        $transaction->invest_id = $invest->id;
-        $transaction->amount = $invest->total_price;
-        $transaction->post_balance = $user->balance;
-        $transaction->trx_type = '-';
-        $transaction->details = 'Investment in project ' . $invest->project->title;
-        $transaction->remark = 'payment';
-        $transaction->trx = $invest->invest_no;
-        $transaction->save();
+        // Use PaymentController to handle the payment confirmation
+        \App\Http\Controllers\Gateway\PaymentController::confirmOrder($invest);
 
         notify($invest->user, 'INVEST_APPROVED', [
             'invest_id' => $invest->invest_no,
