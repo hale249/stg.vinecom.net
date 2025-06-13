@@ -127,6 +127,12 @@ class InvestController extends Controller {
             'user' => auth()->user()
         ]);
 
+        $pdf->setPaper('A4', 'portrait');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+        $pdf->setOption('defaultFont', 'DejaVu Sans');
+        $pdf->setOption('encoding', 'UTF-8');
+
         return $pdf->download('contract-' . $invest->invest_no . '.pdf');
     }
 
