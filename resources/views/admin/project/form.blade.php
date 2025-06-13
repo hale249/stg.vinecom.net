@@ -79,7 +79,7 @@
             </label>
             <div class="input-group">
                 <input type="number" class="form-control share_amount" name="share_amount"
-                    value="{{ old('share_amount', getAmount(@$project->share_amount)) }}" step="0"
+                    value="{{ old('share_amount', getAmount(@$project->share_amount)) }}" step="0.01"
                     placeholder="@lang('Share Amount')" required>
                 <span class="input-group-text">{{ gs('cur_text') }}</span>
             </div>

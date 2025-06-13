@@ -106,15 +106,19 @@ function showAmount($amount, $decimal = 2, $separate = true, $exceptZeros = fals
     if ($separate) {
         $separator = ',';
     }
+    
+    // Convert to float and round to remove any floating point precision issues
+    $amount = (float) $amount;
+    $amount = round($amount, $decimal);
+    
+    // Format the number with the specified decimal places
     $printAmount = number_format($amount, $decimal, '.', $separator);
+    
+    // Remove trailing zeros after decimal point if exceptZeros is true
     if ($exceptZeros) {
-        $exp = explode('.', $printAmount);
-        if ($exp[1] * 1 == 0) {
-            $printAmount = $exp[0];
-        } else {
-            $printAmount = rtrim($printAmount, '0');
-        }
+        $printAmount = rtrim(rtrim($printAmount, '0'), '.');
     }
+    
     if ($currencyFormat) {
         if (gs('currency_format') == Status::CUR_BOTH) {
             return gs('cur_sym') . $printAmount . ' ' . __(gs('cur_text'));
