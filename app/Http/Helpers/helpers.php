@@ -101,7 +101,7 @@ function getAmount($amount, $length = 2) {
     return $amount + 0;
 }
 
-function showAmount($amount, $decimal = 2, $separate = true, $exceptZeros = false, $currencyFormat = true) {
+function showAmount($amount, $decimal = 0, $separate = true, $exceptZeros = false, $currencyFormat = true) {
     $separator = '';
     if ($separate) {
         $separator = ',';

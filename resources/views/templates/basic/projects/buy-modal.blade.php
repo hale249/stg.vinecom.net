@@ -17,19 +17,6 @@
                     <input type="hidden" name="total_earning" id="modal_total_earning" value="">
 
                     <div class="payment-options-wrapper">
-                        <!-- Investment Amount Section -->
-                        <div class="investment-section mb-3">
-                            <div class="section-title mb-2">
-                                <h6 class="fw-bold mb-0">Số tiền đầu tư</h6>
-                            </div>
-                            <div class="form-group">
-                                <div class="input-group input-group-lg">
-                                    <input type="number" class="form-control form-control-lg" id="investment_amount" name="amount" value="{{ (int)$project->share_amount }}" readonly>
-                                    <span class="input-group-text" style="border: 2px solid #FFD700 !important; background: #FFD700 !important; color: #000 !important;">{{ gs('cur_text') }}</span>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Investment Profit Estimation Section -->
                         <div class="profit-estimation-section mb-3">
                             <div class="section-title mb-2">
@@ -64,6 +51,19 @@
                                 </div>
                                 <div class="note mt-2">
                                     <small class="text-muted">*Ngày kích hoạt hợp đồng tính từ ngày ký</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Investment Amount Section -->
+                        <div class="investment-section mb-3">
+                            <div class="section-title mb-2">
+                                <h6 class="fw-bold mb-0">Số tiền đầu tư</h6>
+                            </div>
+                            <div class="form-group">
+                                <div class="input-group input-group-lg">
+                                    <input type="number" class="form-control form-control-lg" id="investment_amount" name="amount" value="{{ (int)$project->share_amount }}" readonly>
+                                    <span class="input-group-text" style="border: 2px solid #FFD700 !important; background: #FFD700 !important; color: #000 !important;">{{ gs('cur_text') }}</span>
                                 </div>
                             </div>
                         </div>
