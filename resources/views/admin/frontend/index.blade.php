@@ -18,10 +18,12 @@
                         @foreach (getPageSections(true) as $k => $secs)
                             @if ($secs['builder'] && !@$secs['hide_builder'])
                                 <div class="col-md-3 searchItem">
-                                    <div class="frontend-section-card">
-                                        <h6>{{ __($secs['name']) }}</h6>
-                                        <a href="{{ route('admin.frontend.sections', $k) }}" class="btn btn--light btn-sm"><i class="las la-cog me-0"></i></a>
-                                    </div>
+                                    <a href="{{ route('admin.frontend.sections', $k) }}" class="text-decoration-none">
+                                        <div class="frontend-section-card">
+                                            <h6 class="text-dark mb-0">{{ __($secs['name']) }}</h6>
+                                            <i class="las la-cog text-muted"></i>
+                                        </div>
+                                    </a>
                                 </div>
                             @endif
                         @endforeach
@@ -42,6 +44,7 @@
             border-radius: 5px;
             background: #fff;
             transition: all .2s;
+            cursor: pointer;
         }
         .frontend-section-card:hover{
             background: #e7e7e7;
@@ -88,7 +91,6 @@
                 var empty = true;
 
                 searchItem.filter(function(idx, elem) {
-
                     if ($(elem).find('.frontend-section-card h6').text().trim().toLowerCase().indexOf(searchInput) >= 0) {
                         $(elem).show();
                         emptyArea.empty();
@@ -96,15 +98,12 @@
                     } else {
                         $(elem).hide();
                     }
-
                 }).sort();
 
                 if (empty) {
                     emptyArea.html(emptyHtml);
                 }
-
             });
-
         })(jQuery);
     </script>
 @endpush
