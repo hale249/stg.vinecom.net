@@ -223,7 +223,8 @@
         ],
         "title": "Manage Content",
         "icon": "las la-edit",
-        "route_name": "admin.frontend.index",
+        "route_name": "admin.frontend.sections",
+        "params": ["blog"],
         "menu_active": [
             "admin.frontend.index",
             "admin.frontend.sections",
