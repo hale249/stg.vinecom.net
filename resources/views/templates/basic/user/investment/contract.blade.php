@@ -1,4 +1,7 @@
 @extends($activeTemplate . 'layouts.master')
+@php
+    use App\Constants\Status;
+@endphp
 @section('content')
     <div class="container">
         <div class="row justify-content-center">
@@ -32,33 +35,37 @@
                                                 @php
                                                     $statusClass = '';
                                                     switch ($invest->status) {
-                                                        case 1:
+                                                        case Status::INVEST_RUNNING:
                                                             $statusClass = 'success';
                                                             $status = 'Running';
                                                             break;
-                                                        case 2:
+                                                        case Status::INVEST_CANCELED:
                                                             $statusClass = 'danger';
                                                             $status = 'Canceled';
                                                             break;
-                                                        case 3:
+                                                        case Status::INVEST_PENDING:
                                                             $statusClass = 'warning';
                                                             $status = 'Pending';
                                                             break;
-                                                        case 4:
+                                                        case Status::INVEST_COMPLETED:
                                                             $statusClass = 'info';
                                                             $status = 'Completed';
                                                             break;
-                                                        case 5:
+                                                        case Status::INVEST_PENDING_ADMIN_REVIEW:
                                                             $statusClass = 'warning';
                                                             $status = 'Pending Admin Review';
                                                             break;
-                                                        case 6:
+                                                        case Status::INVEST_ACCEPT:
                                                             $statusClass = 'success';
                                                             $status = 'Accepted';
                                                             break;
+                                                        case Status::INVEST_CLOSED:
+                                                            $statusClass = 'dark';
+                                                            $status = 'Closed';
+                                                            break;
                                                         default:
-                                                            $statusClass = 'danger';
-                                                            $status = 'Rejected';
+                                                            $statusClass = 'warning';
+                                                            $status = 'Pending';
                                                     }
                                                 @endphp
                                                 <span class="badge badge--{{ $statusClass }}">{{ __($status) }}</span>
@@ -66,6 +73,20 @@
                                             <td>{{ showDateTime($invest->created_at) }}</td>
                                             <td>
                                                 <div class="action-buttons">
+                                                    @if($invest->status == Status::INVEST_PENDING)
+                                                    <form action="{{ route('user.invest.confirm', $invest->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn--xsm btn--outline action-btn" data-toggle="tooltip" data-placement="top" title="@lang('Confirm Investment')">
+                                                            <i class="las la-check"></i>
+                                                        </button>
+                                                    </form>
+                                                    <form action="{{ route('user.invest.cancel', $invest->id) }}" method="POST" class="d-inline">
+                                                        @csrf
+                                                        <button type="submit" class="btn btn--xsm btn--outline action-btn" data-toggle="tooltip" data-placement="top" title="@lang('Cancel Investment')">
+                                                            <i class="las la-times"></i>
+                                                        </button>
+                                                    </form>
+                                                    @endif
                                                     <button type="button" 
                                                         class="btn btn--xsm btn--outline action-btn view-contract" 
                                                         data-bs-toggle="modal" 

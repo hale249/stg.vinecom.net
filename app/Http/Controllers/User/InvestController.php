@@ -139,7 +139,7 @@ class InvestController extends Controller {
         ]);
 
         $notify[] = ['success', 'Đầu tư đã được gửi để xem xét.'];
-        return redirect()->route('user.invest.history')->withNotify($notify);
+        return redirect()->route('user.investment.contract')->withNotify($notify);
     }
 
     public function downloadContract($id)
@@ -172,5 +172,26 @@ class InvestController extends Controller {
         $activeTemplate = activeTemplate();
         $general = gs();
         return view('templates.basic.user.invest.history', compact('pageTitle', 'invests', 'activeTemplate', 'general'));
+    }
+
+    public function cancel($id)
+    {
+        $invest = Invest::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->where('status', Status::INVEST_PENDING)
+            ->firstOrFail();
+
+        $invest->status = Status::INVEST_CANCELED;
+        $invest->save();
+
+        notify($invest->user, 'INVEST_CANCELED', [
+            'invest_id' => $invest->invest_no,
+            'project_title' => $invest->project->title,
+            'invest_amount' => showAmount($invest->total_price),
+            'quantity' => $invest->quantity,
+        ]);
+
+        $notify[] = ['success', 'Đầu tư đã được hủy thành công.'];
+        return redirect()->route('user.investment.contract')->withNotify($notify);
     }
 }

@@ -8,16 +8,18 @@
                         <div class="col-lg-12">
                             <div class="d-flex justify-content-between align-items-center mb-4">
                                 <div class="button-group">
-                                    <button type="button" class="btn btn-sm btn-outline--success confirmationBtn"
-                                        data-action="{{ route('admin.invest.approve', $invest->id) }}"
-                                        data-question="@lang('Are you sure to approve this investment?')">
-                                        <i class="las la-check"></i> @lang('Approve')
-                                    </button>
-                                    <button type="button" class="btn btn-sm btn-outline--danger confirmationBtn"
-                                        data-action="{{ route('admin.invest.reject', $invest->id) }}"
-                                        data-question="@lang('Are you sure to reject this investment?')">
-                                        <i class="las la-times"></i> @lang('Reject')
-                                    </button>
+                                    <form action="{{ route('admin.invest.approve', $invest->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline--success">
+                                            <i class="las la-check"></i> @lang('Approve')
+                                        </button>
+                                    </form>
+                                    <form action="{{ route('admin.invest.reject', $invest->id) }}" method="POST" class="d-inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-outline--danger">
+                                            <i class="las la-times"></i> @lang('Reject')
+                                        </button>
+                                    </form>
                                 </div>
                                 <a href="{{ route('admin.invest.review') }}" class="btn btn-sm btn-outline--primary">
                                     <i class="las la-arrow-left"></i> @lang('Back')
