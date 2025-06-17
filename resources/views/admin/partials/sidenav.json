@@ -212,6 +212,25 @@
         "menu_active": "admin.comment*",
         "route_name": "admin.comment.index"
     },
+    "manage_frontend": {
+        "keyword": [
+            "frontend",
+            "template",
+            "manage frontend",
+            "frontend contents",
+            "frontend settings",
+            "content management"
+        ],
+        "title": "Manage Content",
+        "icon": "las la-edit",
+        "route_name": "admin.frontend.index",
+        "menu_active": [
+            "admin.frontend.index",
+            "admin.frontend.sections",
+            "admin.frontend.sections.content",
+            "admin.frontend.sections.element"
+        ]
+    },
     "manage_users": {
         "title": "Manage Users",
         "icon": "las la-users",
@@ -669,7 +688,7 @@
             "admin.seo",
             "admin.kyc.setting",
             "admin.frontend.templates",
-            "admin.frontend.manage.*",
+            "admin.frontend.manage.pages",
             "admin.maintenance.mode",
             "admin.setting.cookie",
             "admin.setting.custom.css",
@@ -683,8 +702,6 @@
             "admin.setting.notification.push",
             "admin.setting.notification.templates",
             "admin.setting.notification.template.edit",
-            "admin.frontend.index",
-            "admin.frontend.sections*",
             "admin.gateway*",
             "admin.withdraw.method*"
         ]

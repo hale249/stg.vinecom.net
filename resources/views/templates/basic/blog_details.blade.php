@@ -6,7 +6,7 @@
                 <div class="col-xl-8 col-lg-7">
                     <div class="blog-item style-two bg-white">
                         <div class="blog-item__thumb">
-                            <img src="{{ frontendImage('blog', @$blog->data_values->image, '830x420') }}" alt="blog_image">
+                            <img src="{{ frontendImage('blog', @$blog->data_values->image, '830x420') }}" alt="blog_image" class="blog-detail-image">
                         </div>
                         <div class="blog-item__content">
                             <ul class="text-list inline">
@@ -83,6 +83,89 @@
         </div>
     </section>
 @endsection
+
+@push('style')
+<style>
+    .blog-item.style-two {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 0 15px rgba(0,0,0,0.1);
+    }
+    
+    .blog-item__thumb {
+        position: relative;
+        width: 100%;
+        padding-top: 50.6%; /* 420/830 = 0.506 = 50.6% */
+        overflow: hidden;
+    }
+    
+    .blog-item__thumb img.blog-detail-image {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .blog-item__content {
+        padding: 30px;
+    }
+    
+    .blog-item__title {
+        margin: 20px 0;
+        font-size: 24px;
+        line-height: 1.4;
+    }
+    
+    .blog-details-content {
+        margin-top: 20px;
+    }
+    
+    .blog-details-content img {
+        max-width: 100%;
+        height: auto;
+        margin: 20px 0;
+    }
+    
+    .blog-details-content p {
+        margin-bottom: 20px;
+        line-height: 1.8;
+    }
+    
+    .blog-details__footer {
+        margin-top: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+    
+    .social__links {
+        margin-top: 15px;
+    }
+    
+    .social__links li {
+        margin-right: 10px;
+    }
+    
+    .social__links a {
+        width: 35px;
+        height: 35px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border-radius: 50%;
+        color: #666;
+        transition: all 0.3s ease;
+    }
+    
+    .social__links a:hover {
+        background: var(--base);
+        color: #fff;
+    }
+</style>
+@endpush
 
 @push('fbComment')
     @php echo loadExtension('fb-comment') @endphp
