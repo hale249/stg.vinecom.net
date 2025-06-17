@@ -30,7 +30,7 @@ class LanguageController extends Controller
             'image' => ['required', 'image', new FileTypeValidate(['jpg', 'jpeg', 'png'])]
         ]);
 
-        $data = file_get_contents(base_path('lang/en.json'));
+        $data = file_get_contents(base_path('lang/vi.json'));
         $jsonFile = strtolower($request->code) . '.json';
         $path = base_path('lang/') . $jsonFile;
 
