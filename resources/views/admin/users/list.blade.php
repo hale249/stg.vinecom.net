@@ -11,7 +11,7 @@
                                 <th>@lang('User')</th>
                                 <th>@lang('Email-Mobile')</th>
                                 <th>@lang('Role')</th>
-                                <th>@lang('Country')</th>
+                                <th>@lang('Mã người dùng')</th>
                                 <th>@lang('Joined At')</th>
                                 <th>@lang('Balance')</th>
                                 <th>@lang('Action')</th>
@@ -51,8 +51,11 @@
                                         @endif
                                     </td>
                                     <td>
-                                            <span class="fw-bold"
-                                                  title="{{ @$user->country_name }}">{{ $user->country_code }}</span>
+                                        @if($user->is_staff)
+                                            <span class="fw-bold">{{ $user->referral_code }}</span>
+                                        @else
+                                            <span class="fw-bold">{{ $user->username }}</span>
+                                        @endif
                                     </td>
 
 

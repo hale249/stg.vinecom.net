@@ -36,4 +36,12 @@ class ReferralCodeGenerator
 
         return $referralCode;
     }
+
+    public static function generateStaffReferralCode(): string
+    {
+        do {
+            $referralCode = 'BHJ' . str_pad(random_int(0, 999), 3, '0', STR_PAD_LEFT);
+        } while (User::query()->where('referral_code', $referralCode)->exists());
+        return $referralCode;
+    }
 }
