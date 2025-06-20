@@ -378,4 +378,8 @@ Route::middleware('admin')->group(function () {
             Route::post('manage-seo/{id}', 'manageSeoStore');
         });
     });
+
+    // Alert Dashboard
+    Route::get('alert-dashboard', 'AlertDashboardController@index')->name('alert.dashboard');
+    Route::post('alert-settings', 'AlertDashboardController@saveSettings')->name('alert.settings');
 });

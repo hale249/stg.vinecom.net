@@ -133,6 +133,16 @@ class LoginController extends Controller
         $userLogin->os = @$userAgent['os_platform'];
         $userLogin->save();
 
+        // Redirect theo vai trò
+        if ($user->is_staff) {
+            if ($user->role === 'sales_manager') {
+                return redirect()->route('user.staff.manager.dashboard');
+            }
+            if ($user->role === 'sales_staff') {
+                return redirect()->route('user.staff.staff.dashboard');
+            }
+        }
+
         $redirection = Intended::getRedirection();
         return $redirection ? $redirection : to_route('user.home');
     }

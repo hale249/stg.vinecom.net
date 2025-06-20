@@ -6,6 +6,7 @@ use App\Constants\Status;
 use App\Traits\GlobalStatus;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Project extends Model
 {
@@ -126,5 +127,15 @@ class Project extends Model
 
             return $html;
         });
+    }
+
+    /**
+     * Calculate and update the maturity date based on the project's maturity_time
+     */
+    public function updateMaturityDate()
+    {
+        $endDate = Carbon::parse($this->end_date);
+        $this->maturity_date = $endDate->addMonths($this->maturity_time);
+        return $this;
     }
 }

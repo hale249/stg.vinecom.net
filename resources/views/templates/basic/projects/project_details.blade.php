@@ -118,6 +118,9 @@
                                                 <li>
                                                     <a href="http://www.linkedin.com/shareArticle?mini=true&amp;url={{ urlencode(url()->current()) }}" target="_blank"><i class="fab fa-linkedin-in"></i></a>
                                                 </li>
+                                                <li>
+                                                    <a href="javascript:void(0)" class="copy-project-link" data-link="{{ url()->current() }}" data-bs-toggle="tooltip" data-bs-placement="top" title="@lang('Copy Link')"><i class="las la-copy"></i></a>
+                                                </li>
                                             </ul>
                                         </div>
                                     </div>
@@ -650,6 +653,28 @@
                     } else if (window.updateModalValues) {
                         window.updateModalValues(sidebarQty);
                     }
+                });
+
+                $('.copy-project-link').on('click', function(e) {
+                    e.preventDefault();
+
+                    var linkToCopy = $(this).data('link');
+                    var tempInput = $('<input>');
+
+                    $('body').append(tempInput);
+                    tempInput.val(linkToCopy).select();
+                    document.execCommand('copy');
+                    tempInput.remove();
+
+                    var originalIcon = $(this).html();
+                    $(this).html('<i class="las la-check text-success"></i>');
+                    
+                    var notifyMessage = 'Đã sao chép liên kết dự án!';
+                    notify('success', notifyMessage);
+
+                    setTimeout(() => {
+                        $(this).html(originalIcon);
+                    }, 2000);
                 });
             });
         })(jQuery);

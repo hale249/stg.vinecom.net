@@ -21,10 +21,23 @@
             "Command dashboard",
             "Main control panel"
         ],
-        "title": "Dashboard",
+        "title": "Bảng điều khiển",
         "icon": "las la-home",
         "route_name": "admin.dashboard",
         "menu_active": "admin.dashboard"
+    },
+    "alert_dashboard": {
+        "title": "Cảnh báo hợp đồng",
+        "icon": "las la-bell",
+        "route_name": "admin.alert.dashboard",
+        "menu_active": "admin.alert.dashboard",
+        "keyword": [
+            "Contract alerts", 
+            "Payment alerts", 
+            "Maturity alerts", 
+            "Contract monitoring", 
+            "Investment alerts"
+        ]
     },
     "investment_report": {
         "keyword": [
@@ -36,7 +49,7 @@
             "Investment Overview",
             "Investment Summary"
         ],
-        "title": "Investment Report",
+        "title": "Báo cáo đầu tư",
         "icon": "las la-signal",
         "route_name": "admin.invest.report.index",
         "menu_active": "admin.invest.report.index"
