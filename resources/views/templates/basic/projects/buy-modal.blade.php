@@ -7,7 +7,52 @@
                 
             </div>
             <div class="modal-body">
-                <form action="{{ route('user.invest.order') }}" method="post" class="investment-form">
+                <!-- User Verification Warning -->
+                @php
+                    $user = auth()->user();
+                    $missingFields = [];
+                    
+                    // Check for required fields
+                    if(empty($user->firstname) || empty($user->lastname)) {
+                        $missingFields[] = 'Họ tên';
+                    }
+                    if(empty($user->date_of_birth)) {
+                        $missingFields[] = 'Ngày sinh';
+                    }
+                    if(empty($user->id_number) || empty($user->id_issue_date) || empty($user->id_issue_place)) {
+                        $missingFields[] = 'CCCD/CMND';
+                    }
+                    if(empty($user->bank_account_number) || empty($user->bank_name) || empty($user->bank_branch) || empty($user->bank_account_holder)) {
+                        $missingFields[] = 'Thông tin ngân hàng';
+                    }
+                    
+                    $needsVerification = count($missingFields) > 0;
+                @endphp
+                
+                @if($needsVerification)
+                <div class="verification-warning mb-4">
+                    <div class="alert alert-warning" role="alert">
+                        <div class="d-flex align-items-center">
+                            <div class="alert-icon me-3">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                            <div class="alert-content">
+                                <h5 class="mb-1">Yêu cầu xác minh trước đầu tư</h5>
+                                <p class="mb-2">Cần cập nhật thông tin cá nhân trước khi xác nhận đầu tư.</p>
+                                <p class="mb-2">
+                                    <strong>Thông tin còn thiếu:</strong> {{ implode(', ', $missingFields) }}
+                                </p>
+                                <a href="{{ route('user.profile.setting') }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-user-edit me-1"></i> Cập nhật thông tin ngay
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                <!-- End User Verification Warning -->
+                
+                <form action="{{ route('invest.order') }}" method="post" class="investment-form">
                     @csrf
                     <input type="hidden" name="project_id" value="{{ $project->id }}">
                     <input type="hidden" name="quantity" id="modal_quantity" value="1">
@@ -60,10 +105,31 @@
                             <div class="section-title mb-2">
                                 <h6 class="fw-bold mb-0">Số tiền đầu tư</h6>
                             </div>
-                            <div class="form-group">
+                            <div class="form-group mb-3">
                                 <div class="input-group input-group-lg">
-                                    <input type="number" class="form-control form-control-lg" id="investment_amount" name="amount" value="{{ (int)$project->share_amount }}" readonly>
+                                    <input type="number" class="form-control form-control-lg" id="investment_amount" name="amount" value="{{ (int)$project->share_amount }}" min="{{ (int)$project->share_amount }}" step="0.01" readonly>
                                     <span class="input-group-text" style="border: 2px solid #FFD700 !important; background: #FFD700 !important; color: #000 !important;">{{ gs('cur_text') }}</span>
+                                </div>
+                                <small class="text-muted d-block mt-1">
+                                    Giá 1 đơn vị: {{ number_format($project->share_amount, 0, ',', '.') }} {{ gs('cur_text') }} 
+                                    (Tổng {{ $project->share_count }} đơn vị)
+                                </small>
+                            </div>
+                            
+                            <!-- Custom Investment Amount -->
+                            <div class="custom-amount-section mt-3">
+                                <div class="section-title mb-2">
+                                    <h6 class="fw-bold mb-0">Số tiền đầu tư khác</h6>
+                                    <p class="text-muted small mb-0">Nhập số tiền đầu tư tùy ý</p>
+                                </div>
+                                <div class="form-group">
+                                    <div class="input-group input-group-lg">
+                                        <input type="number" class="form-control form-control-lg" id="custom_investment_amount" name="custom_amount" placeholder="Nhập số tiền đầu tư tùy ý" min="{{ (int)$project->share_amount }}" step="0.01">
+                                        <span class="input-group-text" style="border: 2px solid #FFD700 !important; background: #FFD700 !important; color: #000 !important;">{{ gs('cur_text') }}</span>
+                                    </div>
+                                    <small class="text-muted d-block mt-1">
+                                        Số tiền tối thiểu: {{ number_format($project->share_amount, 0, ',', '.') }} {{ gs('cur_text') }}
+                                    </small>
                                 </div>
                             </div>
                         </div>
@@ -79,17 +145,60 @@
                                     <span class="input-group-text bg-light">
                                         <i class="las la-user-friends"></i>
                                     </span>
-                                    <input type="text" class="form-control" name="referral_code" placeholder="Nhập mã giới thiệu">
+                                    <input type="text" class="form-control" name="referral_code" placeholder="Nhập mã giới thiệu" @if($user && $user->is_staff) required @endif>
                                 </div>
                             </div>
+                            @if($user && $user->is_staff)
+                                <small class="text-danger">* Mã giới thiệu là bắt buộc đối với nhân viên chăm sóc</small>
+                            @endif
                         </div>
+                    </div>
+
+                    <!-- Profit Schedule Table -->
+                    <div class="mt-3">
+                        <button type="button" id="view-profit-schedule-btn" class="btn btn-success w-100" data-bs-toggle="modal" data-bs-target="#profitScheduleModal">
+                            <i class="las la-file-pdf"></i> Xem Bảng Lãi Chi Tiết
+                        </button>
                     </div>
 
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-primary btn-lg px-5">Xác nhận đầu tư</button>
+                        <button type="submit" class="btn btn-primary btn-lg px-5" @if($needsVerification) disabled @endif>Xác nhận đầu tư</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Profit Schedule Modal -->
+<div class="modal fade" id="profitScheduleModal" tabindex="-1" aria-labelledby="profitScheduleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-fullscreen">
+        <div class="modal-content">
+            <div class="modal-header profit-schedule-header">
+                <div class="profit-schedule-title">
+                    <div class="header-text">
+                        <div class="country-name">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+                        <div class="motto">Độc lập - Tự do - Hạnh phúc</div>
+                        <div class="separator">-------o0o-------</div>
+                        <div class="main-title">BẢNG LÃI DỰ KIẾN</div>
+                    </div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="profitScheduleContent">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                    <p>Đang tải bảng lãi...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" aria-label="Close">Đóng</button>
+                <a href="#" id="download-pdf-btn" class="btn btn-primary" target="_blank">
+                    <i class="las la-download"></i> Tải PDF
+                </a>
             </div>
         </div>
     </div>
@@ -100,6 +209,14 @@
 .modal-dialog {
     max-width: 500px;
     margin: 1.75rem auto;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.modal-dialog .modal-content {
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .modal-content {
@@ -112,6 +229,8 @@
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     max-height: calc(100vh - 3.5rem);
     width: 100%;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .modal.show .modal-content {
@@ -141,12 +260,19 @@
 
 .modal-body {
     padding: 1rem 1.25rem;
+    width: 100%;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
 .modal-footer {
     padding: 0.75rem 1.25rem;
     background: var(--bs-body-bg);
     border-radius: 0 0 16px 16px;
+    width: 100%;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 /* Optimized Section Styles */
@@ -159,6 +285,7 @@
     box-shadow: 0 4px 16px rgba(0,0,0,0.06);
     border: 1px solid rgba(255, 215, 0, 0.1);
     width: 100%;
+    box-sizing: border-box;
 }
 
 /* Input Group Full Width */
@@ -186,6 +313,7 @@
 /* Payment Options Wrapper */
 .payment-options-wrapper {
     width: 100%;
+    box-sizing: border-box;
 }
 
 /* Optimized Input Styles */
@@ -335,6 +463,25 @@
     color: #000;
 }
 
+.btn-success {
+    background: linear-gradient(45deg, #28a745, #20c997);
+    border: none;
+    padding: 0.75rem 1.75rem;
+    font-weight: 700;
+    font-size: 0.95rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 16px rgba(40, 167, 69, 0.25);
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-success:hover {
+    background: linear-gradient(45deg, #218838, #1ea085);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(40, 167, 69, 0.35);
+    color: white;
+}
+
 .btn-light {
     background: #E9ECEF;
     border: none;
@@ -416,14 +563,164 @@
         margin-left: 0;
     }
 }
+
+/* Profit Schedule Modal Specific Styles */
+#profitScheduleModal .modal-dialog {
+    max-width: none !important;
+    width: 100% !important;
+    height: 100% !important;
+    margin: 0 !important;
+}
+
+#profitScheduleModal .modal-content {
+    height: 100vh !important;
+    border-radius: 0 !important;
+    transform: none !important;
+    opacity: 1 !important;
+    max-height: none !important;
+    width: 100% !important;
+}
+
+#profitScheduleModal .modal-header {
+    padding: 0 !important;
+    border-bottom: none !important;
+    background: white !important;
+    position: relative;
+}
+
+#profitScheduleModal .profit-schedule-header {
+    padding: 2rem 2rem 1rem 2rem !important;
+    text-align: center;
+    background: white !important;
+    border-bottom: 2px solid #e9ecef !important;
+}
+
+#profitScheduleModal .profit-schedule-title {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#profitScheduleModal .header-text {
+    font-family: "Times New Roman", Times, serif !important;
+    color: #000000 !important;
+}
+
+#profitScheduleModal .country-name {
+    font-weight: bold !important;
+    font-size: 14pt !important;
+    margin-bottom: 5px !important;
+    color: #000000 !important;
+}
+
+#profitScheduleModal .motto {
+    font-weight: bold !important;
+    font-size: 14pt !important;
+    margin-bottom: 5px !important;
+    color: #000000 !important;
+}
+
+#profitScheduleModal .separator {
+    font-size: 12pt !important;
+    margin-bottom: 10px !important;
+    color: #000000 !important;
+}
+
+#profitScheduleModal .main-title {
+    font-size: 18pt !important;
+    font-weight: bold !important;
+    text-transform: uppercase !important;
+    color: #000000 !important;
+    letter-spacing: 1px !important;
+}
+
+#profitScheduleModal .modal-body {
+    padding: 2rem !important;
+    overflow-y: auto !important;
+    height: calc(100vh - 140px) !important;
+    background: white !important;
+}
+
+#profitScheduleModal .modal-footer {
+    padding: 1rem 2rem !important;
+    border-top: 2px solid #e9ecef !important;
+    background: white !important;
+}
+
+#profitScheduleModal .btn-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    background: rgba(0,0,0,0.1);
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#profitScheduleModal .btn-close:hover {
+    background: rgba(0,0,0,0.2);
+}
+
+/* Landscape orientation for profit schedule */
+@media (min-width: 768px) {
+    #profitScheduleModal .modal-content {
+        max-width: 1200px !important;
+        margin: 2rem auto !important;
+        height: calc(100vh - 4rem) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15) !important;
+    }
+    
+    #profitScheduleModal .modal-body {
+        height: calc(100vh - 200px) !important;
+    }
+    
+    #profitScheduleModal .profit-schedule-header {
+        padding: 2.5rem 2rem 1.5rem 2rem !important;
+    }
+}
+
+/* Form elements width consistency */
+.investment-form {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.investment-form .form-group {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.investment-form .input-group,
+.investment-form .input-group-lg {
+    width: 100%;
+    box-sizing: border-box;
+}
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const today = new Date();
     const maturityDate = new Date('{{ $project->maturity_date }}');
-    const unitPrice = {{ $project->share_amount }};
-    const roiPercentage = {{ $project->roi_percentage }};
+    
+    // Tính toán giá 1 đơn vị dựa trên dữ liệu từ database
+    const totalPackage = {{ $project->share_amount * $project->share_count }}; // Tổng gói
+    const totalUnits = {{ $project->share_count }}; // Số lượng đơn vị tối đa từ database
+    const unitPrice = {{ $project->share_amount }}; // Giá 1 đơn vị từ database
+    
+    const roiPercentage = {{ $project->roi_percentage }}; // 9%/năm
+    const maturityMonths = {{ $project->maturity_time }}; // 2 tháng
+    const projectId = {{ $project->id }};
+    const scheduleUrl = new URL("{{ route('invest.profit.schedule.pdf') }}");
+    const scheduleHtmlUrl = new URL("{{ route('invest.profit.schedule.html') }}");
+    
+    // Tính lãi suất cho thời hạn đầu tư
+    const periodInterestRate = (roiPercentage / 100 / 12) * maturityMonths; // 1.5% cho 2 tháng
     
     const formatDate = (date) => {
         return date.toLocaleDateString('vi-VN', {
@@ -437,51 +734,175 @@ document.addEventListener('DOMContentLoaded', function() {
         return amount.toLocaleString('vi-VN') + ' {{ gs('cur_text') }}';
     };
 
-    const updateModalValues = (quantity) => {
-        const totalAmount = unitPrice * quantity;
-        const totalProfit = (totalAmount * roiPercentage) / 100;
-        
-        // Update investment amount
-        document.getElementById('investment_amount').value = totalAmount;
-        
-        // Update total profit
-        document.getElementById('total_profit').textContent = formatCurrency(totalProfit);
-        
-        // Update hidden inputs
-        document.getElementById('modal_quantity').value = quantity;
-        document.getElementById('modal_total_price').value = totalAmount;
-        document.getElementById('modal_total_earning').value = totalProfit;
-    };
-
+    // Hàm tính và hiển thị ngày đáo hạn và ngày trả lãi hàng tháng
     const setDates = () => {
-        document.getElementById('maturity_date').textContent = formatDate(maturityDate);
+        // Tính ngày đáo hạn (maturity date)
+        const futureDate = new Date();
+        futureDate.setMonth(futureDate.getMonth() + maturityMonths);
+        document.getElementById('maturity_date').textContent = formatDate(futureDate);
         
-        // Set interest payment date to current day only
-        document.getElementById('interest_payment_date').textContent = today.getDate();
+        // Tính ngày trả lãi hàng tháng (mặc định ngày hiện tại của tháng)
+        const currentDay = today.getDate();
+        document.getElementById('interest_payment_date').textContent = currentDay;
     };
 
-    updateModalValues(1);
-    setDates();
+    // Hàm cập nhật modal, quantity truyền vào (mặc định 1)
+    window.updateModalValues = function(quantity) {
+        quantity = parseInt(quantity);
+        if (isNaN(quantity) || quantity < 1) quantity = 1;
+        document.getElementById('modal_quantity').value = quantity;
+        // Tính toán số tiền đầu tư
+        const amount = quantity * unitPrice;
+        document.getElementById('investment_amount').value = amount;
+        // Tính lãi dự kiến cho thời hạn đầu tư
+        const totalProfit = Math.round(amount * (roiPercentage / 100) * (maturityMonths / 12));
+        // Cập nhật giá trị hiển thị và giá trị ẩn
+        document.getElementById('total_profit').textContent = formatCurrency(totalProfit);
+        document.getElementById('modal_total_price').value = amount;
+        document.getElementById('modal_unit_price').value = unitPrice;
+        document.getElementById('modal_total_earning').value = totalProfit;
+        // Cập nhật ngày đáo hạn và ngày trả lãi
+        setDates();
+    }
 
-    const quantityInput = document.querySelector('.product-qty__value');
-    if (quantityInput) {
-        quantityInput.addEventListener('change', function() {
-            const quantity = parseInt(this.value) || 1;
-            // Ensure quantity is between 1 and max
-            const maxValue = parseInt(this.max) || 18;
-            const validQuantity = Math.min(Math.max(1, quantity), maxValue);
-            this.value = validQuantity;
-            updateModalValues(validQuantity);
+    // Hàm cập nhật khi nhập số tiền tùy chọn
+    const updateCustomAmount = (customAmount) => {
+        customAmount = parseFloat(customAmount);
+        if (isNaN(customAmount) || customAmount < unitPrice) {
+            customAmount = unitPrice;
+        }
+
+        // Cập nhật số lượng dựa trên số tiền tùy chọn
+        const calculatedQuantity = Math.ceil(customAmount / unitPrice);
+        document.getElementById('modal_quantity').value = calculatedQuantity;
+        
+        // Cập nhật các giá trị hiển thị
+        document.getElementById('investment_amount').value = customAmount;
+        document.getElementById('modal_total_price').value = customAmount;
+        
+        // Tính lãi dự kiến cho thời hạn đầu tư
+        const totalProfit = Math.round(customAmount * (roiPercentage / 100) * (maturityMonths / 12));
+        
+        // Cập nhật giá trị hiển thị
+        document.getElementById('total_profit').textContent = formatCurrency(totalProfit);
+        document.getElementById('modal_total_earning').value = totalProfit;
+        
+        // Cập nhật ngày đáo hạn và ngày trả lãi
+        setDates();
+    }
+
+    // Xử lý sự kiện khi nhập số tiền tùy chọn
+    const customAmountInput = document.getElementById('custom_investment_amount');
+    if (customAmountInput) {
+        customAmountInput.addEventListener('input', function() {
+            updateCustomAmount(this.value);
+        });
+        
+        customAmountInput.addEventListener('change', function() {
+            updateCustomAmount(this.value);
         });
     }
 
+    // Khởi tạo với 1 đơn vị
+    window.updateModalValues(1);
 
+    // Nếu có các sự kiện mở modal, cũng gọi lại updateModalValues để đảm bảo luôn đúng
     const bitModal = document.getElementById('bitModal');
     if (bitModal) {
         bitModal.addEventListener('show.bs.modal', function() {
-            const currentQuantity = parseInt(quantityInput.value) || 1;
-            updateModalValues(currentQuantity);
+            window.updateModalValues(window._modalQuantity || 1);
         });
     }
+
+    // Load profit schedule modal content
+    const loadProfitScheduleModal = (amount) => {
+        const modalContent = document.getElementById('profitScheduleContent');
+        const downloadBtn = document.getElementById('download-pdf-btn');
+        
+        // Show loading
+        modalContent.innerHTML = `
+            <div style="text-align: center; margin: 40px 0;">
+                <div class="spinner-border" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                <p class="mt-3">Đang tải bảng lãi...</p>
+            </div>
+        `;
+
+        // Fetch HTML content
+        const url = new URL(scheduleHtmlUrl);
+        url.searchParams.set('project_id', projectId);
+        url.searchParams.set('amount', amount);
+
+        fetch(url.toString())
+            .then(response => response.text())
+            .then(html => {
+                modalContent.innerHTML = html;
+                // Hide preloader if exists
+                if (window.$ && typeof $ === 'function') {
+                    $('.preloader').fadeOut();
+                } else {
+                    document.querySelectorAll('.preloader').forEach(function(el) {
+                        el.style.display = 'none';
+                    });
+                }
+                // Update download PDF link
+                if (downloadBtn) {
+                    const pdfUrl = new URL(scheduleUrl);
+                    pdfUrl.searchParams.set('project_id', projectId);
+                    pdfUrl.searchParams.set('amount', amount);
+                    downloadBtn.href = pdfUrl.toString();
+                }
+            })
+            .catch(error => {
+                modalContent.innerHTML = `
+                    <div style="text-align: center; margin: 40px 0; color: #dc3545;">
+                        <i class="las la-exclamation-triangle" style="font-size: 3rem;"></i>
+                        <p class="mt-3">Có lỗi xảy ra khi tải bảng lãi. Vui lòng thử lại.</p>
+                    </div>
+                `;
+                if (window.$ && typeof $ === 'function') {
+                    $('.preloader').fadeOut();
+                } else {
+                    document.querySelectorAll('.preloader').forEach(function(el) {
+                        el.style.display = 'none';
+                    });
+                }
+                console.error('Error loading profit schedule:', error);
+            });
+    };
+
+    // Load profit schedule when modal opens
+    const profitScheduleModal = document.getElementById('profitScheduleModal');
+    if (profitScheduleModal) {
+        profitScheduleModal.addEventListener('show.bs.modal', function() {
+            const amt = parseFloat(document.getElementById('investment_amount').value) || unitPrice;
+            loadProfitScheduleModal(amt);
+        });
+        
+        // Handle closing profit schedule modal
+        profitScheduleModal.addEventListener('hidden.bs.modal', function() {
+            // Ensure the investment modal is still open
+            const bitModal = document.getElementById('bitModal');
+            if (bitModal && !bitModal.classList.contains('show')) {
+                // If investment modal was closed, reopen it
+                const bsModal = new bootstrap.Modal(bitModal);
+                bsModal.show();
+            }
+        });
+    }
+    
+    // Handle close button click
+    const closeButtons = document.querySelectorAll('#profitScheduleModal .btn-close, #profitScheduleModal .btn-secondary');
+    closeButtons.forEach(button => {
+        button.addEventListener('click', function(e) {
+            e.preventDefault();
+            const profitScheduleModal = document.getElementById('profitScheduleModal');
+            const bsModal = bootstrap.Modal.getInstance(profitScheduleModal);
+            if (bsModal) {
+                bsModal.hide();
+            }
+        });
+    });
 });
 </script>

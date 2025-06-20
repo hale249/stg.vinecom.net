@@ -50,3 +50,13 @@ Route::controller('SiteController')->group(function () {
     Route::get('/{slug}', 'pages')->name('pages');
     Route::get('/', 'index')->name('home');
 });
+
+Route::controller('User\InvestController')->prefix('invest')->middleware('auth')->group(function () {
+    Route::post('order', 'order')->name('invest.order');
+    Route::get('contract/{id}', 'showContract')->name('invest.contract');
+    Route::post('confirm/{id}', 'confirm')->name('invest.confirm');
+    Route::get('download-contract/{id}', 'downloadContract')->name('invest.download.contract');
+    Route::post('cancel/{id}', 'cancel')->name('invest.cancel');
+    Route::get('profit-schedule-pdf', 'downloadProfitSchedulePdf')->name('invest.profit.schedule.pdf');
+    Route::get('profit-schedule-html', 'getProfitScheduleHtml')->name('invest.profit.schedule.html');
+});

@@ -506,7 +506,7 @@ class ManageUsersController extends Controller
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|string|min:6'
             ]);
-            $referralCode = ReferralCodeGenerator::generateUniqueReferralCode();
+            $referralCode = ReferralCodeGenerator::generateStaffReferralCode();
 
             $user = new User();
             $user->firstname = $request->firstname;
