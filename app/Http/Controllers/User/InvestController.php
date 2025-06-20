@@ -61,9 +61,9 @@ class InvestController extends Controller {
          */
 
         // Calculate unit price based on total package and total units from database
-        $totalPackage = $project->share_amount; // Tổng gói từ database
+        $totalPackage = $project->share_amount * $project->share_count; // Tổng gói
         $totalUnits = $project->share_count; // Tổng số đơn vị tối đa từ database
-        $unitPrice = $totalPackage / $totalUnits; // Giá 1 đơn vị = Tổng gói / Số đơn vị
+        $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
 
         // Fallback defaults – will be overwritten depending on investment mode
         $quantity        = 1;
@@ -266,11 +266,7 @@ class InvestController extends Controller {
         $amount = getAmount($request->amount);
         $user = auth()->user();
 
-        // Calculate unit price based on total package and total units from database
-        $totalPackage = $project->share_amount; // Tổng gói từ database
-        $totalUnits = $project->share_count; // Tổng số đơn vị tối đa từ database
-        $unitPrice = $totalPackage / $totalUnits; // Giá 1 đơn vị = Tổng gói / Số đơn vị
-        
+        $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
         if ($amount < $unitPrice) {
             abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . number_format($unitPrice, 0, ',', '.') . ' VNĐ (1 đơn vị).');
         }
@@ -376,11 +372,7 @@ class InvestController extends Controller {
         $amount = getAmount($request->amount);
         $user = auth()->user();
 
-        // Calculate unit price based on total package and total units from database
-        $totalPackage = $project->share_amount; // Tổng gói từ database
-        $totalUnits = $project->share_count; // Tổng số đơn vị tối đa từ database
-        $unitPrice = $totalPackage / $totalUnits; // Giá 1 đơn vị = Tổng gói / Số đơn vị
-        
+        $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
         if ($amount < $unitPrice) {
             abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . number_format($unitPrice, 0, ',', '.') . ' VNĐ (1 đơn vị).');
         }

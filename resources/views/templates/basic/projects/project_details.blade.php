@@ -636,6 +636,21 @@
                         }
                     });
                 });
+
+                // --- Sync sidebar quantity to modal ---
+                $(document).on('click', '.bookNow', function() {
+                    // Get quantity from sidebar
+                    var sidebarQty = $(this).closest('.offcanvas-sidebar').find('.product-qty__value').val();
+                    sidebarQty = parseInt(sidebarQty) || 1;
+                    // Set biến toàn cục để modal lấy đúng số lượng khi mở
+                    window._modalQuantity = sidebarQty;
+                    // Gọi cập nhật modal
+                    if (typeof updateModalValues === 'function') {
+                        updateModalValues(sidebarQty);
+                    } else if (window.updateModalValues) {
+                        window.updateModalValues(sidebarQty);
+                    }
+                });
             });
         })(jQuery);
     </script>
