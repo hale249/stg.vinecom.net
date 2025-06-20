@@ -7,6 +7,51 @@
                 
             </div>
             <div class="modal-body">
+                <!-- User Verification Warning -->
+                @php
+                    $user = auth()->user();
+                    $missingFields = [];
+                    
+                    // Check for required fields
+                    if(empty($user->firstname) || empty($user->lastname)) {
+                        $missingFields[] = 'Họ tên';
+                    }
+                    if(empty($user->date_of_birth)) {
+                        $missingFields[] = 'Ngày sinh';
+                    }
+                    if(empty($user->id_number) || empty($user->id_issue_date) || empty($user->id_issue_place)) {
+                        $missingFields[] = 'CCCD/CMND';
+                    }
+                    if(empty($user->bank_account_number) || empty($user->bank_name) || empty($user->bank_branch) || empty($user->bank_account_holder)) {
+                        $missingFields[] = 'Thông tin ngân hàng';
+                    }
+                    
+                    $needsVerification = count($missingFields) > 0;
+                @endphp
+                
+                @if($needsVerification)
+                <div class="verification-warning mb-4">
+                    <div class="alert alert-warning" role="alert">
+                        <div class="d-flex align-items-center">
+                            <div class="alert-icon me-3">
+                                <i class="fas fa-exclamation-triangle fa-2x"></i>
+                            </div>
+                            <div class="alert-content">
+                                <h5 class="mb-1">Yêu cầu xác minh trước đầu tư</h5>
+                                <p class="mb-2">Cần cập nhật thông tin cá nhân trước khi xác nhận đầu tư.</p>
+                                <p class="mb-2">
+                                    <strong>Thông tin còn thiếu:</strong> {{ implode(', ', $missingFields) }}
+                                </p>
+                                <a href="{{ route('user.profile.setting') }}" class="btn btn-sm btn-warning">
+                                    <i class="fas fa-user-edit me-1"></i> Cập nhật thông tin ngay
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @endif
+                <!-- End User Verification Warning -->
+                
                 <form action="{{ route('invest.order') }}" method="post" class="investment-form">
                     @csrf
                     <input type="hidden" name="project_id" value="{{ $project->id }}">
@@ -115,7 +160,7 @@
 
                     <div class="modal-footer border-0 pt-0">
                         <button type="button" class="btn btn-light" data-bs-dismiss="modal">Hủy</button>
-                        <button type="submit" class="btn btn-primary btn-lg px-5">Xác nhận đầu tư</button>
+                        <button type="submit" class="btn btn-primary btn-lg px-5" @if($needsVerification) disabled @endif>Xác nhận đầu tư</button>
                     </div>
                 </form>
             </div>
