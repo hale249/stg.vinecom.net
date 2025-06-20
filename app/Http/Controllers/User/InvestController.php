@@ -358,11 +358,7 @@ class InvestController extends Controller {
 
     public function getProfitScheduleHtml(Request $request)
     {
-        // Check if user is authenticated
-        if (!auth()->check()) {
-            abort(401, 'Vui lòng đăng nhập để xem bảng lãi dự kiến.');
-        }
-
+        // Bỏ kiểm tra đăng nhập, cho phép cả khách xem
         $request->validate([
             'project_id' => 'required|exists:projects,id',
             'amount'     => 'required|numeric|min:0.01',
@@ -370,7 +366,7 @@ class InvestController extends Controller {
 
         $project = \App\Models\Project::findOrFail($request->project_id);
         $amount = getAmount($request->amount);
-        $user = auth()->user();
+        $user = auth()->check() ? auth()->user() : null;
 
         $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
         if ($amount < $unitPrice) {

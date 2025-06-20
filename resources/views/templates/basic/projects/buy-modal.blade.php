@@ -145,9 +145,12 @@
                                     <span class="input-group-text bg-light">
                                         <i class="las la-user-friends"></i>
                                     </span>
-                                    <input type="text" class="form-control" name="referral_code" placeholder="Nhập mã giới thiệu">
+                                    <input type="text" class="form-control" name="referral_code" placeholder="Nhập mã giới thiệu" @if($user && $user->is_staff) required @endif>
                                 </div>
                             </div>
+                            @if($user && $user->is_staff)
+                                <small class="text-danger">* Mã giới thiệu là bắt buộc đối với nhân viên chăm sóc</small>
+                            @endif
                         </div>
                     </div>
 
@@ -835,7 +838,14 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(response => response.text())
             .then(html => {
                 modalContent.innerHTML = html;
-                
+                // Hide preloader if exists
+                if (window.$ && typeof $ === 'function') {
+                    $('.preloader').fadeOut();
+                } else {
+                    document.querySelectorAll('.preloader').forEach(function(el) {
+                        el.style.display = 'none';
+                    });
+                }
                 // Update download PDF link
                 if (downloadBtn) {
                     const pdfUrl = new URL(scheduleUrl);
@@ -851,6 +861,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         <p class="mt-3">Có lỗi xảy ra khi tải bảng lãi. Vui lòng thử lại.</p>
                     </div>
                 `;
+                if (window.$ && typeof $ === 'function') {
+                    $('.preloader').fadeOut();
+                } else {
+                    document.querySelectorAll('.preloader').forEach(function(el) {
+                        el.style.display = 'none';
+                    });
+                }
                 console.error('Error loading profit schedule:', error);
             });
     };
