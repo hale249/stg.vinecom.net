@@ -121,22 +121,19 @@ class ManageProjectController extends Controller
             }
         }
 
-        $investEndDate = Carbon::parse($request->end_date);
-        $maturityMonths = (int)$request->maturity_time;
-        $matureDate = $investEndDate->addMonths($maturityMonths);
-        // ROI Amount
-        $roiAmount = $request->roi_percentage / 100 * $request->share_amount;
-
         $project->title = $request->title;
-        $project->slug = $request->slug;
+        $project->slug = slug($request->title);
         $project->goal = $request->goal;
         $project->share_amount = $request->share_amount;
         $project->roi_percentage = $request->roi_percentage;
-        $project->roi_amount = $roiAmount;
+        $project->roi_amount = $request->roi_percentage / 100 * $request->share_amount;
         $project->start_date = $request->start_date;
         $project->end_date = $request->end_date;
         $project->maturity_time = $request->maturity_time;
-        $project->maturity_date = $matureDate;
+        
+        // Update maturity date based on end date + maturity time
+        $project->updateMaturityDate();
+        
         $project->time_id = $request->time_id;
         $project->repeat_times = $request->repeat_times ?? 0;
         $project->return_type = @$request->return_type == Status::REPEAT ? Status::REPEAT : Status::LIFETIME;

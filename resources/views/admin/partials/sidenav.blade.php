@@ -10,6 +10,13 @@
         </div>
         <div class="sidebar__menu-wrapper">
             <ul class="sidebar__menu">
+                {{-- <li class="sidebar-menu-item {{ menuActive('admin.dashboard') }}">
+                    <a href="{{ route('admin.dashboard') }}" class="nav-link">
+                        <i class="menu-icon las la-home"></i>
+                        <span class="menu-title">@lang('Dashboard')</span>
+                    </a>
+                </li> --}}
+
                 @foreach($sideBarLinks as $key => $data)
                     @if (@$data->header)
                         <li class="sidebar__menu-header">{{ __($data->header) }}</li>

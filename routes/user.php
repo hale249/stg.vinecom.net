@@ -121,5 +121,39 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::post('manual', 'manualDepositUpdate')->name('manual.update');
             Route::any('/{investId?}', 'deposit')->name('index');
         });
+
+        // Sales Staff Role-Based Routes
+        Route::middleware('staff.role:sales_manager')->name('staff.')->group(function () {
+            Route::controller('User\SalesManagerController')->prefix('manager')->name('manager.')->group(function () {
+                Route::get('/', 'dashboard')->name('dashboard');
+                Route::get('team-members', 'teamMembers')->name('team_members');
+                Route::post('create-staff', 'createStaffMember')->name('create_staff');
+                Route::get('contracts', 'teamContracts')->name('contracts');
+                Route::get('approval-requests', 'approvalRequests')->name('approval_requests');
+                Route::post('approve-contract/{id}', 'approveContract')->name('approve_contract');
+                Route::post('reject-contract/{id}', 'rejectContract')->name('reject_contract');
+                Route::get('alerts', 'alerts')->name('alerts');
+                Route::get('reports', 'reports')->name('reports');
+                Route::get('report/transactions', 'reportTransactions')->name('report.transactions');
+                Route::get('report/interests', 'reportInterests')->name('report.interests');
+                Route::get('report/commissions', 'reportCommissions')->name('report.commissions');
+                Route::get('hr/salary', 'salaryDashboard')->name('hr.salary');
+                Route::get('hr/kpi', 'kpiDashboard')->name('hr.kpi');
+                Route::get('hr/performance', 'performanceDashboard')->name('hr.performance');
+            });
+        });
+        
+        Route::middleware('staff.role:sales_staff')->name('staff.')->group(function () {
+            Route::controller('User\SalesStaffController')->prefix('staff')->name('staff.')->group(function () {
+                Route::get('/', 'dashboard')->name('dashboard');
+                Route::get('contracts', 'contracts')->name('contracts');
+                Route::get('contract/{id}', 'contractDetails')->name('contract_details');
+                Route::get('create-contract', 'createContract')->name('create_contract');
+                Route::post('store-contract', 'storeContract')->name('store_contract');
+                Route::post('cancel-contract/{id}', 'cancelContract')->name('cancel_contract');
+                Route::get('alerts', 'alerts')->name('alerts');
+                Route::get('customers', 'customers')->name('customers');
+            });
+        });
     });
 });

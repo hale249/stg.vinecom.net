@@ -55,12 +55,32 @@ class AdminController extends Controller
         $withdrawals['total_withdraw_rejected'] = Withdrawal::rejected()->count();
         $withdrawals['total_withdraw_charge'] = Withdrawal::approved()->sum('charge');
 
-        $invest['total_invests'] = Invest::sum('total_price');
+        $invest['total_invests'] = Invest::where('status', Status::INVEST_RUNNING)->sum('total_price');
         $invest['total_interests'] = Transaction::where('remark', 'profit')->sum('amount');
         $invest['running_invests'] = Invest::where('status', Status::INVEST_RUNNING)->sum('total_price');
         $invest['completed_invests'] = Invest::where('status', Status::INVEST_COMPLETED)->sum('total_price');
 
-        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'withdrawals', 'invest'));
+        // Alert dashboard data
+        $today = Carbon::now();
+        $general = gs();
+        $alertPeriod = $general->alert_period ?? 60;
+        $alertDate = $today->copy()->addDays($alertPeriod);
+        
+        $alertSummary = [
+            'interest_alerts' => Invest::where('status', Status::INVEST_RUNNING)
+                                    ->whereNotNull('next_time')
+                                    ->where('next_time', '<=', $alertDate)
+                                    ->count(),
+                                    
+            'maturity_alerts' => Invest::where('status', Status::INVEST_RUNNING)
+                                    ->whereNotNull('project_closed')
+                                    ->where('project_closed', '<=', $alertDate)
+                                    ->count(),
+                                    
+            'alert_period' => $alertPeriod
+        ];
+
+        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'withdrawals', 'invest', 'alertSummary'));
     }
 
     public function depositAndWithdrawReport(Request $request)

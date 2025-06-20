@@ -18,6 +18,8 @@ class User extends Authenticatable
         'username',
         'email',
         'is_staff',
+        'role',
+        'manager_id',
         'image',
         'dial_code',
         'mobile',
@@ -110,6 +112,16 @@ class User extends Authenticatable
         return $this->hasMany(SupportTicket::class);
     }
 
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function staffMembers()
+    {
+        return $this->hasMany(User::class, 'manager_id');
+    }
+
     public function fullname(): Attribute
     {
         return new Attribute(
@@ -122,6 +134,16 @@ class User extends Authenticatable
         return new Attribute(
             get: fn () => $this->dial_code . $this->mobile,
         );
+    }
+
+    public function isSalesManager(): bool
+    {
+        return $this->is_staff && $this->role === 'sales_manager';
+    }
+
+    public function isSalesStaff(): bool
+    {
+        return $this->is_staff && $this->role === 'sales_staff';
     }
 
     // SCOPES
@@ -168,6 +190,16 @@ class User extends Authenticatable
     public function scopeWithBalance($query)
     {
         return $query->where('balance', '>', 0);
+    }
+
+    public function scopeSalesManagers($query)
+    {
+        return $query->where('is_staff', true)->where('role', 'sales_manager');
+    }
+
+    public function scopeSalesStaff($query)
+    {
+        return $query->where('is_staff', true)->where('role', 'sales_staff');
     }
 
     public function deviceTokens()

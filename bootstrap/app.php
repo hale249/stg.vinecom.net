@@ -72,6 +72,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'kyc' => KycMiddleware::class,
             'registration.complete' => RegistrationStep::class,
             'maintenance' => MaintenanceMode::class,
+            'staff.role' => \App\Http\Middleware\CheckStaffRole::class,
         ]);
 
         $middleware->validateCsrfTokens(

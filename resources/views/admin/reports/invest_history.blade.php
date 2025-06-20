@@ -38,7 +38,7 @@
                     <form>
                         <div class="d-flex flex-wrap gap-4">
                             <div class="flex-grow-1">
-                                <label>@lang('Project/Username')</label>
+                                <label>@lang('Project')/Mã HĐ</label>
                                 <input class="form-control" name="search" type="text" value="{{ request()->search }}">
                             </div>
                             <div class="flex-grow-1">
@@ -68,6 +68,7 @@
                         <table class="table table--light style--two">
                             <thead>
                                 <tr>
+                                    <th>Mã HĐ</th>
                                     <th>@lang('User')</th>
                                     <th>@lang('Project Name')</th>
                                     <th>@lang('Quantity')</th>
@@ -83,6 +84,7 @@
                             <tbody>
                                 @forelse($invests as $invest)
                                     <tr>
+                                        <td>{{ $invest->invest_no }}</td>
                                         <td>
                                             <span class="fw-bold">{{ $invest->user->fullname }}</span>
                                             <br>
