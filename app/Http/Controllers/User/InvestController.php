@@ -17,12 +17,28 @@ class InvestController extends Controller {
     use GlobalStatus;
 
     public function order(Request $request) {
-        $request->validate([
-            'project_id' => 'required|exists:projects,id',
-            'quantity' => 'required|integer|min:1',
-            'payment_type' => 'required|in:1,2',
-            'referral_code' => 'nullable|exists:users,referral_code'
-        ]);
+        /*
+         * Users can now invest in two different ways:
+         * 1. By providing the number of units (previous behaviour – field `quantity`).
+         * 2. By providing an arbitrary amount (new behaviour – field `amount`).
+         * Either `quantity` **or** `amount` must be present. If both are present, `amount` will be
+         * taken as the source of truth.
+         */
+
+        $rules = [
+            'project_id'    => 'required|exists:projects,id',
+            'payment_type'  => 'required|in:1,2',
+            'referral_code' => 'nullable|exists:users,referral_code',
+        ];
+
+        // Conditional validation depending on which field the client sends
+        if ($request->filled('amount')) {
+            $rules['amount'] = 'numeric|min:0.01'; // Minimum 0.01 of currency
+        } else {
+            $rules['quantity'] = 'required|integer|min:1';
+        }
+
+        $request->validate($rules);
 
         $user = auth()->user();
 
@@ -38,14 +54,53 @@ class InvestController extends Controller {
             return back()->withNotify($notify);
         }
 
-        if ($request->quantity > $project->available_share) {
-            $notify[] = ['error', 'Not enough shares available.'];
-            return back()->withNotify($notify);
+        /*
+         * ---------------------------------------------------------------------
+         * Determine investment amount & quantity
+         * ---------------------------------------------------------------------
+         */
+
+        // Calculate unit price based on total package and total units from database
+        $totalPackage = $project->share_amount; // Tổng gói từ database
+        $totalUnits = $project->share_count; // Tổng số đơn vị tối đa từ database
+        $unitPrice = $totalPackage / $totalUnits; // Giá 1 đơn vị = Tổng gói / Số đơn vị
+
+        // Fallback defaults – will be overwritten depending on investment mode
+        $quantity        = 1;
+        $totalPrice      = $unitPrice;
+        $recurringAmount = 0;
+
+        if ($request->filled('amount')) {
+            // --- Investment by AMOUNT ---------------------------------------
+            if ($request->amount < $unitPrice) {
+                $notify[] = ['error', 'Số tiền đầu tư tối thiểu là ' . showAmount($unitPrice) . ' (1 đơn vị)'];
+                return back()->withNotify($notify);
+            }
+
+            $totalPrice = getAmount($request->amount);
+            $quantity = round($totalPrice / $unitPrice); // Calculate number of units
+
+            // Calculate ROI amount based on percentage so profit scales with amount
+            $projectRoiPercentage = getAmount($project->roi_percentage);
+            $project->roi_amount  = ($totalPrice * $projectRoiPercentage) / 100; // Dynamically override for this investment
+
+            // Recurring amount per payout period
+            $recurringAmount = $project->roi_amount;
+
+        } else {
+            // --- Investment by QUANTITY ------------------------------------
+            if ($request->quantity > $project->available_share) {
+                $notify[] = ['error', 'Số lượng đơn vị không được vượt quá ' . $project->available_share . ' đơn vị còn lại.'];
+                return back()->withNotify($notify);
+            }
+
+            $quantity        = (int) $request->quantity;
+            $totalPrice      = $unitPrice * $quantity;
+            $recurringAmount = ($quantity * $project->roi_amount);
         }
 
-        $unitPrice = $project->share_amount;
-        $totalPrice = $unitPrice * $request->quantity;
-        $recurringAmount = ($request->quantity * $project->roi_amount);
+        $totalEarning = 0;
+        $investClosed = null;
         $totalShare = $project->share_count;
 
         if ($project->return_type == Status::LIFETIME) {
@@ -59,7 +114,7 @@ class InvestController extends Controller {
         $invest->invest_no = getTrx();
         $invest->user_id = $user->id;
         $invest->project_id = $request->project_id;
-        $invest->quantity = $request->quantity;
+        $invest->quantity = $quantity;
         $invest->unit_price = $unitPrice;
         $invest->total_price = $totalPrice;
         $invest->roi_percentage = $project->roi_percentage;
@@ -193,5 +248,218 @@ class InvestController extends Controller {
 
         $notify[] = ['success', 'Đầu tư đã được hủy thành công.'];
         return redirect()->route('user.investment.contract')->withNotify($notify);
+    }
+
+    public function downloadProfitSchedulePdf(Request $request)
+    {
+        // Check if user is authenticated
+        if (!auth()->check()) {
+            abort(401, 'Vui lòng đăng nhập để xem bảng lãi dự kiến.');
+        }
+
+        $request->validate([
+            'project_id' => 'required|exists:projects,id',
+            'amount'     => 'required|numeric|min:0.01',
+        ]);
+
+        $project = \App\Models\Project::findOrFail($request->project_id);
+        $amount = getAmount($request->amount);
+        $user = auth()->user();
+
+        // Calculate unit price based on total package and total units from database
+        $totalPackage = $project->share_amount; // Tổng gói từ database
+        $totalUnits = $project->share_count; // Tổng số đơn vị tối đa từ database
+        $unitPrice = $totalPackage / $totalUnits; // Giá 1 đơn vị = Tổng gói / Số đơn vị
+        
+        if ($amount < $unitPrice) {
+            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . number_format($unitPrice, 0, ',', '.') . ' VNĐ (1 đơn vị).');
+        }
+
+        // Kiểm tra dự án có hợp lệ không
+        if (!$project->maturity_time || $project->maturity_time <= 0) {
+            abort(400, 'Dự án không có thông tin kỳ hạn hợp lệ.');
+        }
+
+        $schedule = [];
+        $annualRate = $project->roi_percentage;
+        $totalPeriods = (int) $project->maturity_time;
+        $principal = $amount;
+        $cumulativeInterest = 0;
+
+        // Ngày ký hợp đồng là ngày hiện tại
+        $contractDate = \Carbon\Carbon::now();
+        
+        // Ngày đáo hạn
+        $maturityDate = $project->maturity_date ? \Carbon\Carbon::parse($project->maturity_date) : $contractDate->copy()->addMonths($totalPeriods);
+        
+        // Đảm bảo ngày đáo hạn không nhỏ hơn ngày hiện tại
+        if ($maturityDate <= $contractDate) {
+            $maturityDate = $contractDate->copy()->addMonths((int)$project->maturity_time);
+        }
+
+        // Tính toán các kỳ theo tháng
+        $currentDate = $contractDate->copy();
+        $i = 1;
+
+        while ($currentDate->lte($maturityDate)) {
+            // Ngày bắt đầu kỳ
+            $periodStart = $currentDate->copy();
+            
+            // Ngày kết thúc kỳ: ngày bắt đầu + 1 tháng, trừ đi 1 ngày
+            $periodEnd = $periodStart->copy()->addMonth()->subDay();
+            
+            // Nếu ngày kết thúc vượt quá ngày đáo hạn, thì đặt là ngày đáo hạn
+            if ($periodEnd->gte($maturityDate)) {
+                $periodEnd = $maturityDate->copy();
+            }
+            
+            // Số ngày thực tế của kỳ này
+            $daysInPeriod = $periodStart->diffInDaysFiltered(function ($date) {
+                return true; // Đếm tất cả các ngày
+            }, $periodEnd) + 1;
+            
+            // Tính lãi kỳ này (làm tròn đến 0 chữ số thập phân)
+            $periodInterest = round(($principal * ($annualRate / 100 / 365)) * $daysInPeriod, 0);
+            $cumulativeInterest += $periodInterest;
+
+            $schedule[] = [
+                'period_no' => 'Kỳ ' . $i,
+                'start_date' => $periodStart->copy(),
+                'end_date' => $periodEnd->copy(),
+                'days' => (int) $daysInPeriod, // Đảm bảo là số nguyên
+                'interest_rate' => $annualRate,
+                'principal' => $principal,
+                'period_interest' => $periodInterest,
+                'pay_date' => $periodEnd->copy(),
+                'principal_left' => $principal, // Nếu có tất toán gốc thì cập nhật ở đây
+                'cumulative_total' => $principal + $cumulativeInterest, // Gốc + lãi cộng dồn
+            ];
+            
+            // Cập nhật ngày bắt đầu cho kỳ tiếp theo (ngày kết thúc + 1 ngày)
+            $currentDate = $periodEnd->copy()->addDay();
+            $i++;
+
+            // Dừng vòng lặp nếu ngày bắt đầu tiếp theo đã qua ngày đáo hạn
+            if ($currentDate->gt($maturityDate) && $periodEnd->eq($maturityDate)) {
+                break;
+            }
+        }
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('templates.basic.user.invest.profit_schedule_pdf', [
+            'schedule' => $schedule,
+            'project' => $project,
+            'user' => $user,
+            'investment_amount' => $amount
+        ]);
+
+        $pdf->setPaper('A4', 'landscape');
+        $pdf->setOption('isHtml5ParserEnabled', true);
+        $pdf->setOption('isRemoteEnabled', true);
+        $pdf->setOption('defaultFont', 'Times New Roman');
+
+        return $pdf->stream('bang-lai-du-kien-' . slug($project->title) . '.pdf');
+    }
+
+    public function getProfitScheduleHtml(Request $request)
+    {
+        // Check if user is authenticated
+        if (!auth()->check()) {
+            abort(401, 'Vui lòng đăng nhập để xem bảng lãi dự kiến.');
+        }
+
+        $request->validate([
+            'project_id' => 'required|exists:projects,id',
+            'amount'     => 'required|numeric|min:0.01',
+        ]);
+
+        $project = \App\Models\Project::findOrFail($request->project_id);
+        $amount = getAmount($request->amount);
+        $user = auth()->user();
+
+        // Calculate unit price based on total package and total units from database
+        $totalPackage = $project->share_amount; // Tổng gói từ database
+        $totalUnits = $project->share_count; // Tổng số đơn vị tối đa từ database
+        $unitPrice = $totalPackage / $totalUnits; // Giá 1 đơn vị = Tổng gói / Số đơn vị
+        
+        if ($amount < $unitPrice) {
+            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . number_format($unitPrice, 0, ',', '.') . ' VNĐ (1 đơn vị).');
+        }
+
+        // Kiểm tra dự án có hợp lệ không
+        if (!$project->maturity_time || $project->maturity_time <= 0) {
+            abort(400, 'Dự án không có thông tin kỳ hạn hợp lệ.');
+        }
+
+        $schedule = [];
+        $annualRate = $project->roi_percentage;
+        $totalPeriods = (int) $project->maturity_time;
+        $principal = $amount;
+        $cumulativeInterest = 0;
+
+        // Ngày ký hợp đồng là ngày hiện tại
+        $contractDate = \Carbon\Carbon::now();
+        
+        // Ngày đáo hạn
+        $maturityDate = $project->maturity_date ? \Carbon\Carbon::parse($project->maturity_date) : $contractDate->copy()->addMonths($totalPeriods);
+        
+        // Đảm bảo ngày đáo hạn không nhỏ hơn ngày hiện tại
+        if ($maturityDate <= $contractDate) {
+            $maturityDate = $contractDate->copy()->addMonths((int)$project->maturity_time);
+        }
+
+        // Tính toán các kỳ theo tháng
+        $currentDate = $contractDate->copy();
+        $i = 1;
+
+        while ($currentDate->lte($maturityDate)) {
+            // Ngày bắt đầu kỳ
+            $periodStart = $currentDate->copy();
+            
+            // Ngày kết thúc kỳ: ngày bắt đầu + 1 tháng, trừ đi 1 ngày
+            $periodEnd = $periodStart->copy()->addMonth()->subDay();
+            
+            // Nếu ngày kết thúc vượt quá ngày đáo hạn, thì đặt là ngày đáo hạn
+            if ($periodEnd->gte($maturityDate)) {
+                $periodEnd = $maturityDate->copy();
+            }
+            
+            // Số ngày thực tế của kỳ này
+            $daysInPeriod = $periodStart->diffInDaysFiltered(function ($date) {
+                return true; // Đếm tất cả các ngày
+            }, $periodEnd) + 1;
+            
+            // Tính lãi kỳ này (làm tròn đến 0 chữ số thập phân)
+            $periodInterest = round(($principal * ($annualRate / 100 / 365)) * $daysInPeriod, 0);
+            $cumulativeInterest += $periodInterest;
+
+            $schedule[] = [
+                'period_no' => 'Kỳ ' . $i,
+                'start_date' => $periodStart->copy(),
+                'end_date' => $periodEnd->copy(),
+                'days' => (int) $daysInPeriod, // Đảm bảo là số nguyên
+                'interest_rate' => $annualRate,
+                'principal' => $principal,
+                'period_interest' => $periodInterest,
+                'pay_date' => $periodEnd->copy(),
+                'principal_left' => $principal, // Nếu có tất toán gốc thì cập nhật ở đây
+                'cumulative_total' => $principal + $cumulativeInterest, // Gốc + lãi cộng dồn
+            ];
+            
+            // Cập nhật ngày bắt đầu cho kỳ tiếp theo (ngày kết thúc + 1 ngày)
+            $currentDate = $periodEnd->copy()->addDay();
+            $i++;
+
+            // Dừng vòng lặp nếu ngày bắt đầu tiếp theo đã qua ngày đáo hạn
+            if ($currentDate->gt($maturityDate) && $periodEnd->eq($maturityDate)) {
+                break;
+            }
+        }
+
+        return view('templates.basic.user.invest.profit_schedule_modal', [
+            'schedule' => $schedule,
+            'project' => $project,
+            'user' => $user,
+            'investment_amount' => $amount
+        ]);
     }
 }
