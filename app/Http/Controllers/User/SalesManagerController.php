@@ -6,6 +6,8 @@ use App\Constants\Status;
 use App\Http\Controllers\Controller;
 use App\Models\Invest;
 use App\Models\User;
+use App\Models\StaffSalary;
+use App\Models\StaffKPI;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -274,19 +276,100 @@ class SalesManagerController extends Controller
     /**
      * HR Management: Salary Dashboard
      */
-    public function salaryDashboard()
+    public function salaryDashboard(Request $request)
     {
         $pageTitle = 'Lương & Thu nhập';
-        return view('user.staff.manager.salary_commission', compact('pageTitle'));
+        $user = Auth::user();
+        
+        // Get filter parameters
+        $month = $request->get('month', now()->format('Y-m'));
+        $staffId = $request->get('user_id');
+        
+        // Get staff members
+        $staffMembers = $user->staffMembers;
+        
+        // Build query for salaries
+        $query = StaffSalary::with(['staff'])
+            ->where('manager_id', $user->id)
+            ->where('month_year', $month);
+            
+        if ($staffId) {
+            $query->where('staff_id', $staffId);
+        }
+        
+        $salaries = $query->latest()->paginate(getPaginate());
+        
+        // Calculate summary statistics
+        $summary = [
+            'total_base_salary' => $salaries->sum('base_salary'),
+            'total_commission' => $salaries->sum('commission_amount'),
+            'total_bonus' => $salaries->sum('bonus_amount'),
+            'total_deduction' => $salaries->sum('deduction_amount'),
+            'total_salary' => $salaries->sum('total_salary'),
+            'avg_kpi_percentage' => $salaries->avg('kpi_percentage'),
+            'exceeded_kpi_count' => $salaries->where('kpi_status', 'exceeded')->count(),
+            'achieved_kpi_count' => $salaries->where('kpi_status', 'achieved')->count(),
+            'near_achieved_count' => $salaries->where('kpi_status', 'near_achieved')->count(),
+            'not_achieved_count' => $salaries->where('kpi_status', 'not_achieved')->count(),
+        ];
+        
+        return view('user.staff.manager.salary_commission', compact('pageTitle', 'salaries', 'staffMembers', 'summary', 'month', 'staffId'));
     }
 
     /**
      * HR Management: KPI Dashboard
      */
-    public function kpiDashboard()
+    public function kpiDashboard(Request $request)
     {
         $pageTitle = 'KPI & Chỉ số';
-        return view('user.staff.manager.kpi_dashboard', compact('pageTitle'));
+        $user = Auth::user();
+        
+        // Get filter parameters
+        $month = $request->get('month', now()->format('Y-m'));
+        $staffId = $request->get('user_id');
+        
+        // Get staff members
+        $staffMembers = $user->staffMembers;
+        
+        // Build query for KPIs
+        $query = StaffKPI::with(['staff'])
+            ->where('manager_id', $user->id)
+            ->where('month_year', $month);
+            
+        if ($staffId) {
+            $query->where('staff_id', $staffId);
+        }
+        
+        $kpis = $query->latest()->paginate(getPaginate());
+        
+        // Calculate summary statistics
+        $summary = [
+            'total_target_contracts' => $kpis->sum('target_contracts'),
+            'total_actual_contracts' => $kpis->sum('actual_contracts'),
+            'total_target_sales' => $kpis->sum('target_sales'),
+            'total_actual_sales' => $kpis->sum('actual_sales'),
+            'avg_overall_kpi' => $kpis->avg('overall_kpi_percentage'),
+            'exceeded_kpi_count' => $kpis->where('kpi_status', 'exceeded')->count(),
+            'achieved_kpi_count' => $kpis->where('kpi_status', 'achieved')->count(),
+            'near_achieved_count' => $kpis->where('kpi_status', 'near_achieved')->count(),
+            'not_achieved_count' => $kpis->where('kpi_status', 'not_achieved')->count(),
+        ];
+        
+        // Get KPI data for charts (last 6 months)
+        $chartData = StaffKPI::where('manager_id', $user->id)
+            ->where('month_year', '>=', now()->subMonths(5)->format('Y-m'))
+            ->orderBy('month_year')
+            ->get()
+            ->groupBy('month_year')
+            ->map(function ($monthKpis) {
+                return [
+                    'target_sales' => $monthKpis->sum('target_sales'),
+                    'actual_sales' => $monthKpis->sum('actual_sales'),
+                    'avg_kpi' => $monthKpis->avg('overall_kpi_percentage'),
+                ];
+            });
+        
+        return view('user.staff.manager.kpi_dashboard', compact('pageTitle', 'kpis', 'staffMembers', 'summary', 'chartData', 'month', 'staffId'));
     }
 
     /**

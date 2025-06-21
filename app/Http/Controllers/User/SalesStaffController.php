@@ -287,4 +287,47 @@ class SalesStaffController extends Controller
         
         return view('user.staff.staff.customers', compact('pageTitle', 'customers', 'pending_notifications', 'notifications', 'emptyMessage', 'general'));
     }
+
+    /**
+     * Xem bảng lương cá nhân
+     */
+    public function salary(Request $request)
+    {
+        $pageTitle = 'Lương & Thu nhập';
+        $user = Auth::user();
+        $month = $request->get('month', now()->format('Y-m'));
+        $salaries = \App\Models\StaffSalary::where('staff_id', $user->id)
+            ->where('month_year', $month)
+            ->latest()->paginate(getPaginate());
+        $summary = [
+            'total_base_salary' => $salaries->sum('base_salary'),
+            'total_commission' => $salaries->sum('commission_amount'),
+            'total_bonus' => $salaries->sum('bonus_amount'),
+            'total_deduction' => $salaries->sum('deduction_amount'),
+            'total_salary' => $salaries->sum('total_salary'),
+            'avg_kpi_percentage' => $salaries->avg('kpi_percentage'),
+        ];
+        return view('user.staff.staff.salary', compact('pageTitle', 'salaries', 'summary', 'month'));
+    }
+
+    /**
+     * Xem KPI cá nhân
+     */
+    public function kpi(Request $request)
+    {
+        $pageTitle = 'KPI & Chỉ số';
+        $user = Auth::user();
+        $month = $request->get('month', now()->format('Y-m'));
+        $kpis = \App\Models\StaffKPI::where('staff_id', $user->id)
+            ->where('month_year', $month)
+            ->latest()->paginate(getPaginate());
+        $summary = [
+            'total_target_contracts' => $kpis->sum('target_contracts'),
+            'total_actual_contracts' => $kpis->sum('actual_contracts'),
+            'total_target_sales' => $kpis->sum('target_sales'),
+            'total_actual_sales' => $kpis->sum('actual_sales'),
+            'avg_overall_kpi' => $kpis->avg('overall_kpi_percentage'),
+        ];
+        return view('user.staff.staff.kpi', compact('pageTitle', 'kpis', 'summary', 'month'));
+    }
 } 

@@ -153,6 +153,8 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::post('cancel-contract/{id}', 'cancelContract')->name('cancel_contract');
                 Route::get('alerts', 'alerts')->name('alerts');
                 Route::get('customers', 'customers')->name('customers');
+                Route::get('salary', 'salary')->name('salary');
+                Route::get('kpi', 'kpi')->name('kpi');
             });
             
             // Staff notification routes
