@@ -60,3 +60,15 @@ Route::controller('User\InvestController')->prefix('invest')->middleware('auth')
     Route::get('profit-schedule-pdf', 'downloadProfitSchedulePdf')->name('invest.profit.schedule.pdf');
     Route::get('profit-schedule-html', 'getProfitScheduleHtml')->name('invest.profit.schedule.html');
 });
+
+// Staff Routes
+Route::middleware(['auth'])->prefix('user/staff')->name('user.staff.staff.')->group(function () {
+    Route::get('dashboard', 'User\SalesStaffController@dashboard')->name('dashboard');
+    Route::get('contracts', 'User\SalesStaffController@contracts')->name('contracts');
+    Route::get('contract/{id}', 'User\SalesStaffController@contractDetails')->name('contract_details');
+    Route::get('create-contract', 'User\SalesStaffController@createContract')->name('create_contract');
+    Route::post('store-contract', 'User\SalesStaffController@storeContract')->name('store_contract');
+    Route::post('cancel-contract/{id}', 'User\SalesStaffController@cancelContract')->name('cancel_contract');
+    Route::get('alerts', 'User\SalesStaffController@alerts')->name('alerts');
+    Route::get('customers', 'User\SalesStaffController@customers')->name('customers');
+});

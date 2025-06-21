@@ -154,6 +154,13 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::get('alerts', 'alerts')->name('alerts');
                 Route::get('customers', 'customers')->name('customers');
             });
+            
+            // Staff notification routes
+            Route::controller('User\NotificationController')->prefix('notifications')->name('notifications.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('{id}', 'show')->name('show');
+                Route::post('{id}/read', 'markAsRead')->name('read');
+            });
         });
     });
 });

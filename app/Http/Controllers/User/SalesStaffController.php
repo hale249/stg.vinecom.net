@@ -19,14 +19,15 @@ class SalesStaffController extends Controller
     {
         $pageTitle = 'Sales Staff Dashboard';
         $user = Auth::user();
+        $general = gs();
         
         // Dashboard statistics
         $stats = [
-            'total_contracts' => Invest::where('user_id', $user->id)->count(),
-            'active_contracts' => Invest::where('user_id', $user->id)->where('status', Status::INVEST_RUNNING)->count(),
-            'pending_contracts' => Invest::where('user_id', $user->id)->where('status', Status::INVEST_PENDING)->count(),
+            'total_contracts' => Invest::where('staff_id', $user->id)->count(),
+            'active_contracts' => Invest::where('staff_id', $user->id)->where('status', Status::INVEST_RUNNING)->count(),
+            'pending_contracts' => Invest::where('staff_id', $user->id)->where('status', Status::INVEST_PENDING)->count(),
             'customers' => User::whereIn('id', function($query) use ($user) {
-                $query->select('user_id')->from('invests')->where('user_id', $user->id)->distinct();
+                $query->select('user_id')->from('invests')->where('staff_id', $user->id)->distinct();
             })->count()
         ];
         
@@ -36,7 +37,7 @@ class SalesStaffController extends Controller
         $alertDate = $today->copy()->addDays($alertPeriod);
         
         // Get interest payment alerts
-        $interestAlerts = Invest::where('user_id', $user->id)
+        $interestAlerts = Invest::where('staff_id', $user->id)
             ->where('status', Status::INVEST_RUNNING)
             ->whereNotNull('next_time')
             ->where('next_time', '<=', $alertDate)
@@ -46,7 +47,7 @@ class SalesStaffController extends Controller
             ->get();
             
         // Get maturity alerts    
-        $maturityAlerts = Invest::where('user_id', $user->id)
+        $maturityAlerts = Invest::where('staff_id', $user->id)
             ->where('status', Status::INVEST_RUNNING)
             ->whereNotNull('project_closed')
             ->where('project_closed', '<=', $alertDate)
@@ -56,13 +57,19 @@ class SalesStaffController extends Controller
             ->get();
             
         // Get recent contracts
-        $recentContracts = Invest::where('user_id', $user->id)
+        $recentContracts = Invest::where('staff_id', $user->id)
             ->with(['project', 'user'])
             ->latest()
             ->limit(5)
             ->get();
         
-        return view('user.staff.staff.dashboard', compact('pageTitle', 'user', 'stats', 'interestAlerts', 'maturityAlerts', 'recentContracts'));
+        // Get notifications for topnav
+        $pending_notifications = $user->notifications()->where('user_read', 0)->count();
+        $notifications = $user->notifications()->latest()->limit(5)->get();
+        
+        $emptyMessage = 'No data found';
+        
+        return view('user.staff.staff.dashboard', compact('pageTitle', 'user', 'stats', 'interestAlerts', 'maturityAlerts', 'recentContracts', 'pending_notifications', 'notifications', 'general', 'emptyMessage'));
     }
     
     /**
@@ -72,13 +79,20 @@ class SalesStaffController extends Controller
     {
         $pageTitle = 'My Contracts';
         $user = Auth::user();
+        $general = gs();
         
-        $contracts = Invest::where('user_id', $user->id)
+        $contracts = Invest::where('staff_id', $user->id)
             ->with(['project', 'user'])
             ->latest()
             ->paginate(getPaginate());
             
-        return view('user.staff.staff.contracts', compact('pageTitle', 'contracts'));
+        // Get notifications for topnav
+        $pending_notifications = $user->notifications()->where('user_read', 0)->count();
+        $notifications = $user->notifications()->latest()->limit(5)->get();
+        
+        $emptyMessage = 'No contracts found';
+            
+        return view('user.staff.staff.contracts', compact('pageTitle', 'contracts', 'pending_notifications', 'notifications', 'emptyMessage', 'general'));
     }
     
     /**
@@ -87,15 +101,20 @@ class SalesStaffController extends Controller
     public function contractDetails($id)
     {
         $user = Auth::user();
+        $general = gs();
         
         $invest = Invest::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('staff_id', $user->id)
             ->with(['project', 'user'])
             ->firstOrFail();
             
         $pageTitle = 'Contract Details: ' . $invest->invest_no;
         
-        return view('user.staff.staff.contract_details', compact('pageTitle', 'invest'));
+        // Get notifications for topnav
+        $pending_notifications = $user->notifications()->where('user_read', 0)->count();
+        $notifications = $user->notifications()->latest()->limit(5)->get();
+        
+        return view('user.staff.staff.contract_details', compact('pageTitle', 'invest', 'pending_notifications', 'notifications', 'general'));
     }
     
     /**
@@ -104,8 +123,20 @@ class SalesStaffController extends Controller
     public function createContract()
     {
         $pageTitle = 'Create New Contract';
+        $user = Auth::user();
+        $general = gs();
         
-        return view('user.staff.staff.create_contract', compact('pageTitle'));
+        // Get customers for dropdown
+        $customers = User::where('status', 1)->get();
+        
+        // Get projects for dropdown
+        $projects = \App\Models\Project::where('status', 1)->get();
+        
+        // Get notifications for topnav
+        $pending_notifications = $user->notifications()->where('user_read', 0)->count();
+        $notifications = $user->notifications()->latest()->limit(5)->get();
+        
+        return view('user.staff.staff.create_contract', compact('pageTitle', 'pending_notifications', 'notifications', 'general', 'customers', 'projects'));
     }
     
     /**
@@ -114,22 +145,33 @@ class SalesStaffController extends Controller
     public function storeContract(Request $request)
     {
         $request->validate([
-            // Add validation rules based on your invest model
-            'customer_id' => 'required',
-            'project_id' => 'required',
-            'amount' => 'required|numeric|min:0',
-            // Add other necessary fields
+            'customer_id' => 'required|integer|exists:users,id',
+            'project_id' => 'required|integer|exists:projects,id',
+            'amount' => 'required|numeric|min:1',
+            'duration' => 'required|integer|min:1',
         ]);
         
-        // Logic to store a new contract
-        // This is a simplified version
+        // Get the project details
+        $project = \App\Models\Project::findOrFail($request->project_id);
+        $customer = User::findOrFail($request->customer_id);
+        
+        // Generate a unique contract number
+        $investNo = getTrx();
+        
+        // Create a new contract
         $invest = new Invest();
-        $invest->user_id = Auth::id(); // Set to staff member ID
-        $invest->customer_id = $request->customer_id;
+        $invest->user_id = $customer->id; // Customer ID
+        $invest->staff_id = Auth::id(); // Set to staff member ID
         $invest->project_id = $request->project_id;
+        $invest->invest_no = $investNo;
         $invest->amount = $request->amount;
+        $invest->profit_type = $project->profit_type;
+        $invest->interest_rate = $project->interest_rate;
+        $invest->interest_period = $project->profit_period;
+        $invest->period = $request->duration;
         $invest->status = Status::INVEST_PENDING; // Set as pending for manager approval
-        // Set other fields as needed
+        $invest->created_at = now();
+        $invest->updated_at = now();
         $invest->save();
         
         $notify[] = ['success', 'Contract created and submitted for approval'];
@@ -144,7 +186,7 @@ class SalesStaffController extends Controller
         $user = Auth::user();
         
         $invest = Invest::where('id', $id)
-            ->where('user_id', $user->id)
+            ->where('staff_id', $user->id)
             ->where('status', Status::INVEST_PENDING) // Can only cancel pending contracts
             ->firstOrFail();
             
@@ -162,12 +204,13 @@ class SalesStaffController extends Controller
     {
         $pageTitle = 'My Alerts';
         $user = Auth::user();
+        $general = gs();
         
         $today = Carbon::now();
         $sixMonthsLater = $today->copy()->addMonths(6);
         
         // Get interest payment alerts for next 6 months
-        $interestAlerts = Invest::where('user_id', $user->id)
+        $interestAlerts = Invest::where('staff_id', $user->id)
             ->where('status', Status::INVEST_RUNNING)
             ->whereNotNull('next_time')
             ->where('next_time', '>=', $today)
@@ -177,7 +220,7 @@ class SalesStaffController extends Controller
             ->get();
             
         // Get maturity alerts for next 6 months
-        $maturityAlerts = Invest::where('user_id', $user->id)
+        $maturityAlerts = Invest::where('staff_id', $user->id)
             ->where('status', Status::INVEST_RUNNING)
             ->whereNotNull('project_closed')
             ->where('project_closed', '>=', $today)
@@ -198,36 +241,50 @@ class SalesStaffController extends Controller
         }
         
         foreach ($interestAlerts as $alert) {
-            $paymentDate = Carbon::parse($alert->next_time);
-            $monthKey = $paymentDate->format('Y-m');
+            $monthKey = Carbon::parse($alert->next_time)->format('Y-m');
             if (isset($monthlyAlerts[$monthKey])) {
                 $monthlyAlerts[$monthKey]['interest_alerts'][] = $alert;
             }
         }
         
         foreach ($maturityAlerts as $alert) {
-            $maturityDate = Carbon::parse($alert->project_closed);
-            $monthKey = $maturityDate->format('Y-m');
+            $monthKey = Carbon::parse($alert->project_closed)->format('Y-m');
             if (isset($monthlyAlerts[$monthKey])) {
                 $monthlyAlerts[$monthKey]['maturity_alerts'][] = $alert;
             }
         }
         
-        return view('user.staff.staff.alerts', compact('pageTitle', 'monthlyAlerts'));
+        // Get notifications for topnav
+        $pending_notifications = $user->notifications()->where('user_read', 0)->count();
+        $notifications = $user->notifications()->latest()->limit(5)->get();
+        
+        return view('user.staff.staff.alerts', compact('pageTitle', 'interestAlerts', 'maturityAlerts', 'monthlyAlerts', 'pending_notifications', 'notifications', 'general'));
     }
     
     /**
-     * View customers
+     * View customers assigned to this staff
      */
     public function customers()
     {
         $pageTitle = 'My Customers';
         $user = Auth::user();
+        $general = gs();
         
-        $customers = User::whereIn('id', function($query) use ($user) {
-            $query->select('user_id')->from('invests')->where('user_id', $user->id)->distinct();
-        })->paginate(getPaginate());
+        // Get all customers that have contracts with this staff
+        $customers = User::whereHas('invests', function($query) use ($user) {
+                $query->where('staff_id', $user->id);
+            })
+            ->withCount('invests')
+            ->withSum('invests', 'amount')
+            ->latest()
+            ->paginate(getPaginate());
         
-        return view('user.staff.staff.customers', compact('pageTitle', 'customers'));
+        // Get notifications for topnav
+        $pending_notifications = $user->notifications()->where('user_read', 0)->count();
+        $notifications = $user->notifications()->latest()->limit(5)->get();
+        
+        $emptyMessage = 'No customers found';
+        
+        return view('user.staff.staff.customers', compact('pageTitle', 'customers', 'pending_notifications', 'notifications', 'emptyMessage', 'general'));
     }
 } 
