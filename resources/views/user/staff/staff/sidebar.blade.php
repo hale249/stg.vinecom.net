@@ -48,6 +48,22 @@
                     </a>
                 </li>
                 
+                <li class="sidebar__menu-header text-white opacity-75 text-uppercase small px-3 my-2">@lang('Quản trị cá nhân')</li>
+                
+                <li class="sidebar-menu-item {{ request()->routeIs('user.staff.staff.salary') ? 'active' : '' }}">
+                    <a href="{{ route('user.staff.staff.salary') }}" class="nav-link">
+                        <i class="menu-icon las la-money-bill"></i>
+                        <span class="menu-title">@lang('Lương & Thu nhập')</span>
+                    </a>
+                </li>
+                
+                <li class="sidebar-menu-item {{ request()->routeIs('user.staff.staff.kpi') ? 'active' : '' }}">
+                    <a href="{{ route('user.staff.staff.kpi') }}" class="nav-link">
+                        <i class="menu-icon las la-bullseye"></i>
+                        <span class="menu-title">@lang('KPI & Chỉ số')</span>
+                    </a>
+                </li>
+                
                 <li class="sidebar__menu-header text-white opacity-75 text-uppercase small px-3 my-2">@lang('Khách hàng')</li>
                 
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.staff.customers') ? 'active' : '' }}">

@@ -212,4 +212,25 @@ class User extends Authenticatable
         return $this->hasMany(NotificationLog::class);
     }
 
+    // Staff Salary & KPI Relationships
+    public function staffSalaries()
+    {
+        return $this->hasMany(StaffSalary::class, 'staff_id');
+    }
+
+    public function managedSalaries()
+    {
+        return $this->hasMany(StaffSalary::class, 'manager_id');
+    }
+
+    public function staffKpis()
+    {
+        return $this->hasMany(StaffKPI::class, 'staff_id');
+    }
+
+    public function managedKpis()
+    {
+        return $this->hasMany(StaffKPI::class, 'manager_id');
+    }
+
 }
