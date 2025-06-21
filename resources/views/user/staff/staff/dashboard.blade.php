@@ -1,4 +1,4 @@
-@extends('user.layouts.app')
+@extends('user.staff.layouts.staff_app')
 
 @section('panel')
 <div class="row mb-none-30">
@@ -180,7 +180,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="text-center" colspan="100%">{{ __($emptyMessage) }}</td>
+                                    <td class="text-center" colspan="100%">{{ __($emptyMessage ?? 'No upcoming payments') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
@@ -202,9 +202,9 @@
                             <tr>
                                 <th>@lang('Contract')</th>
                                 <th>@lang('Project')</th>
+                                <th>@lang('Customer')</th>
                                 <th>@lang('Amount')</th>
                                 <th>@lang('Status')</th>
-                                <th>@lang('Created')</th>
                                 <th>@lang('Action')</th>
                             </tr>
                         </thead>
@@ -213,21 +213,33 @@
                                 <tr>
                                     <td>{{ $contract->invest_no }}</td>
                                     <td>{{ $contract->project->name }}</td>
+                                    <td>{{ $contract->user->fullname }}</td>
                                     <td>{{ showAmount($contract->amount) }} {{ __($general->cur_text) }}</td>
                                     <td>
-                                        @if($contract->status == \App\Constants\Status::INVEST_PENDING)
-                                            <span class="badge badge--warning">@lang('Pending')</span>
-                                        @elseif($contract->status == \App\Constants\Status::INVEST_RUNNING)
-                                            <span class="badge badge--success">@lang('Active')</span>
-                                        @elseif($contract->status == \App\Constants\Status::INVEST_COMPLETED)
-                                            <span class="badge badge--primary">@lang('Completed')</span>
-                                        @elseif($contract->status == \App\Constants\Status::INVEST_CANCELED)
-                                            <span class="badge badge--danger">@lang('Canceled')</span>
-                                        @else
-                                            <span class="badge badge--dark">@lang('Unknown')</span>
-                                        @endif
+                                        @php
+                                            $status = $contract->status;
+                                            $statusClass = '';
+                                            $statusText = '';
+                                            
+                                            if($status == \App\Constants\Status::INVEST_PENDING) {
+                                                $statusClass = 'warning';
+                                                $statusText = 'Pending';
+                                            } elseif($status == \App\Constants\Status::INVEST_RUNNING) {
+                                                $statusClass = 'success';
+                                                $statusText = 'Running';
+                                            } elseif($status == \App\Constants\Status::INVEST_COMPLETED) {
+                                                $statusClass = 'primary';
+                                                $statusText = 'Completed';
+                                            } elseif($status == \App\Constants\Status::INVEST_REJECTED) {
+                                                $statusClass = 'danger';
+                                                $statusText = 'Rejected';
+                                            } elseif($status == \App\Constants\Status::INVEST_CANCELED) {
+                                                $statusClass = 'dark';
+                                                $statusText = 'Canceled';
+                                            }
+                                        @endphp
+                                        <span class="badge badge--{{ $statusClass }}">{{ __($statusText) }}</span>
                                     </td>
-                                    <td>{{ showDateTime($contract->created_at) }}</td>
                                     <td>
                                         <a href="{{ route('user.staff.staff.contract_details', $contract->id) }}" class="icon-btn">
                                             <i class="fa fa-eye text--shadow"></i>
@@ -236,7 +248,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="text-center" colspan="100%">{{ __($emptyMessage) }}</td>
+                                    <td class="text-center" colspan="100%">{{ __($emptyMessage ?? 'No recent contracts') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>
