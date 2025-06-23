@@ -15,6 +15,9 @@ class Project extends Model
     protected $casts = [
         'gallery' => 'array',
         'seo_content' => 'object',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'maturity_date' => 'datetime',
     ];
 
     protected $fillable = [
@@ -59,6 +62,26 @@ class Project extends Model
     public function comment()
     {
         return $this->hasMany(Comment::class, 'project_id')->where('comment_id', null);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(ProjectDocument::class)->public()->ordered();
+    }
+
+    public function legalDocuments()
+    {
+        return $this->hasMany(ProjectDocument::class)->public()->byType('legal')->ordered();
+    }
+
+    public function financialDocuments()
+    {
+        return $this->hasMany(ProjectDocument::class)->public()->byType('financial')->ordered();
+    }
+
+    public function technicalDocuments()
+    {
+        return $this->hasMany(ProjectDocument::class)->public()->byType('technical')->ordered();
     }
 
     public function scopeBeforeEndDate($query)
@@ -135,7 +158,7 @@ class Project extends Model
     public function updateMaturityDate()
     {
         $endDate = Carbon::parse($this->end_date);
-        $this->maturity_date = $endDate->addMonths($this->maturity_time);
+        $this->maturity_date = $endDate->addMonths((int)$this->maturity_time);
         return $this;
     }
 }

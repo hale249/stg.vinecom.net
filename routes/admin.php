@@ -86,6 +86,7 @@ Route::middleware('admin')->group(function () {
     Route::controller('ManageProjectController')->name('project.')->prefix('project')->group(function () {
         Route::get('/', 'index')->name('index');
         Route::get('create', 'create')->name('create');
+        Route::get('show/{id}', 'show')->name('show');
         Route::post('store/{id?}', 'store')->name('store');
         Route::get('edit/{id}', 'edit')->name('edit');
         Route::get('project/check-slug/{id?}', 'checkSlug')->name('check.slug');
@@ -99,6 +100,18 @@ Route::middleware('admin')->group(function () {
         Route::get('lifetime-return', 'lifetime')->name('lifetime');
         Route::get('repeat-return', 'repeat')->name('repeat');
     });
+
+    // Project Documents Management
+    Route::controller('ProjectDocumentController')->name('project.documents.')->prefix('project/{projectId}/documents')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{documentId}', 'edit')->name('edit');
+        Route::post('update/{documentId}', 'update')->name('update');
+        Route::post('delete/{documentId}', 'destroy')->name('delete');
+        Route::get('download/{documentId}', 'download')->name('download');
+    });
+
     // Invest Report
     Route::controller('InvestReportController')->name('invest.report.')->prefix('invest/report')->group(function () {
         Route::get('index', 'index')->name('index');

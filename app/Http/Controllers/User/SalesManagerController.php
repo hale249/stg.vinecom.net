@@ -380,4 +380,81 @@ class SalesManagerController extends Controller
         $pageTitle = 'Hiệu suất làm việc';
             return view('user.staff.manager.performance_dashboard', compact('pageTitle'));
     }
+
+    /**
+     * Store new KPI data
+     */
+    public function storeKPI(Request $request)
+    {
+        $request->validate([
+            'staff_id' => 'required|exists:users,id',
+            'month_year' => 'required|date_format:Y-m',
+            'target_contracts' => 'nullable|integer|min:0',
+            'actual_contracts' => 'nullable|integer|min:0',
+            'target_sales' => 'nullable|numeric|min:0',
+            'actual_sales' => 'nullable|numeric|min:0',
+            'target_customers' => 'nullable|integer|min:0',
+            'actual_customers' => 'nullable|integer|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $user = Auth::user();
+        
+        // Check if KPI already exists for this staff and month
+        $existingKPI = StaffKPI::where('staff_id', $request->staff_id)
+            ->where('month_year', $request->month_year)
+            ->where('manager_id', $user->id)
+            ->first();
+
+        if ($existingKPI) {
+            $notify[] = ['error', 'KPI cho nhân viên này trong tháng này đã tồn tại.'];
+            return back()->withNotify($notify);
+        }
+
+        // Calculate completion rates
+        $contractCompletionRate = $request->target_contracts > 0 ? 
+            ($request->actual_contracts / $request->target_contracts) * 100 : 0;
+        $salesCompletionRate = $request->target_sales > 0 ? 
+            ($request->actual_sales / $request->target_sales) * 100 : 0;
+        $customerCompletionRate = $request->target_customers > 0 ? 
+            ($request->actual_customers / $request->target_customers) * 100 : 0;
+        
+        // Calculate overall KPI (average of 3 rates)
+        $overallKpiPercentage = ($contractCompletionRate + $salesCompletionRate + $customerCompletionRate) / 3;
+
+        // Determine KPI status
+        if ($overallKpiPercentage >= 120) {
+            $kpiStatus = 'exceeded';
+        } elseif ($overallKpiPercentage >= 100) {
+            $kpiStatus = 'achieved';
+        } elseif ($overallKpiPercentage >= 80) {
+            $kpiStatus = 'near_achieved';
+        } else {
+            $kpiStatus = 'not_achieved';
+        }
+
+        // Create KPI record
+        StaffKPI::create([
+            'staff_id' => $request->staff_id,
+            'manager_id' => $user->id,
+            'month_year' => $request->month_year,
+            'target_contracts' => $request->target_contracts ?? 0,
+            'actual_contracts' => $request->actual_contracts ?? 0,
+            'target_sales' => $request->target_sales ?? 0,
+            'actual_sales' => $request->actual_sales ?? 0,
+            'target_customers' => $request->target_customers ?? 0,
+            'actual_customers' => $request->actual_customers ?? 0,
+            'contract_completion_rate' => $contractCompletionRate,
+            'sales_completion_rate' => $salesCompletionRate,
+            'customer_completion_rate' => $customerCompletionRate,
+            'overall_kpi_percentage' => $overallKpiPercentage,
+            'kpi_status' => $kpiStatus,
+            'notes' => $request->notes,
+            'status' => 'approved',
+            'approved_at' => now(),
+        ]);
+
+        $notify[] = ['success', 'KPI đã được tạo thành công.'];
+        return back()->withNotify($notify);
+    }
 } 
