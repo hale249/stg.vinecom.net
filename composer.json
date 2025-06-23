@@ -25,6 +25,7 @@
         "phpmailer/phpmailer": "^6.10",
         "razorpay/razorpay": "^2.9",
         "sendgrid/sendgrid": "^8.1",
+        "setasign/fpdi": "*",
         "stripe/stripe-php": "^17.3",
         "twilio/sdk": "^8.6",
         "vonage/client": "^4.2"

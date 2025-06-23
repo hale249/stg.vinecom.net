@@ -58,9 +58,17 @@ class ManageProjectController extends Controller
     public function store(Request $request, $id = 0)
     {
         $isRequired = $id ? 'nullable' : 'required';
+        
+        // Convert formatted money inputs back to numeric values
+        $request->merge([
+            'target_amount' => $this->convertFormattedMoney($request->target_amount),
+            'share_amount' => $this->convertFormattedMoney($request->share_amount),
+            'roi_amount' => $this->convertFormattedMoney($request->roi_amount),
+        ]);
+        
         $request->validate([
             'title'          => 'required|string|max:40',
-            'goal'           => 'required|numeric|gt:0',
+            'target_amount'  => 'required|numeric|gt:0',
             'description'    => 'required|string',
             'share_amount'   => 'required|numeric|gt:0',
             'share_count'    => "$isRequired|numeric|gt:0",
@@ -84,6 +92,20 @@ class ManageProjectController extends Controller
             ]);
         }
 
+        // Calculate and validate the relationship between target_amount, share_count, and share_amount
+        $targetAmount = $request->target_amount;
+        $shareCount = $request->share_count;
+        $shareAmount = $request->share_amount;
+        
+        // Ensure consistency: target_amount should equal share_count * share_amount
+        $calculatedTarget = $shareCount * $shareAmount;
+        $difference = abs($calculatedTarget - $targetAmount);
+        
+        // If difference is significant (more than 0.01), adjust target_amount to match calculation
+        if ($difference > 0.01) {
+            $targetAmount = $calculatedTarget;
+        }
+
         if ($id) {
             $project = Project::findOrFail($id);
             $notify[] = ['success', 'Project updated successfully'];
@@ -99,8 +121,8 @@ class ManageProjectController extends Controller
             $redirect = back();
         } else {
             $project = new Project();
-            $project->available_share = $request->share_count;
-            $project->share_count = $request->share_count;
+            $project->available_share = $shareCount;
+            $project->share_count = $shareCount;
             $notify[] = ['success', 'Project created successfully'];
             $redirect = redirect()->route('admin.project.index');
         }
@@ -130,10 +152,11 @@ class ManageProjectController extends Controller
 
         $project->title = $request->title;
         $project->slug = slug($request->title);
-        $project->goal = $request->goal;
-        $project->share_amount = $request->share_amount;
+        $project->goal = $targetAmount; // Store the calculated target amount
+        $project->share_amount = $shareAmount;
+        $project->share_count = $shareCount;
         $project->roi_percentage = $request->roi_percentage;
-        $project->roi_amount = $request->roi_percentage / 100 * $request->share_amount;
+        $project->roi_amount = $request->roi_percentage / 100 * $shareAmount;
         $project->start_date = $request->start_date;
         $project->end_date = $request->end_date;
         $project->maturity_time = $request->maturity_time;
@@ -263,9 +286,23 @@ class ManageProjectController extends Controller
 
     public function repeat()
     {
-        $pageTitle = 'Repeated Return Projects';
+        $pageTitle = 'Repeat Return Projects';
         $projects = $this->projectData('repeat');
-
         return view('admin.project.index', compact('pageTitle', 'projects'));
+    }
+
+    /**
+     * Convert formatted money string to numeric value
+     * Example: "200.000.000" -> 200000000
+     */
+    private function convertFormattedMoney($value)
+    {
+        if (empty($value)) {
+            return 0;
+        }
+        
+        // Remove all dots and convert to numeric
+        $numericValue = str_replace('.', '', $value);
+        return (float) $numericValue;
     }
 }

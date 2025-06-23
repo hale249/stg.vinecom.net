@@ -88,7 +88,7 @@ class InvestController extends Controller {
         }
 
         $invest = new Invest();
-        $invest->invest_no = getTrx();
+        $invest->invest_no = generateContractNumber();
         $invest->user_id = $user->id;
         $invest->project_id = $request->project_id;
         $invest->quantity = $quantity;
@@ -108,7 +108,7 @@ class InvestController extends Controller {
         $invest->time_name = $project->time->name;
         $invest->hours = $project->time->hours;
         $invest->recurring_pay = $recurringAmount;
-        $invest->contract_content = generateContractContent($project, $user);
+        $invest->contract_content = generateContractContent($project, $user, $invest->invest_no);
         $invest->contract_confirmed = true;
         $invest->referral_code = $request->referral_code;
         $invest->save();

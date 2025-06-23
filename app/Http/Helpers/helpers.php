@@ -121,11 +121,11 @@ function showAmount($amount, $decimal = 0, $separate = true, $exceptZeros = fals
     
     if ($currencyFormat) {
         if (gs('currency_format') == Status::CUR_BOTH) {
-            return gs('cur_sym') . $printAmount . ' ' . __(gs('cur_text'));
+            return $printAmount . ' ' . __(gs('cur_text')) . ' ' . gs('cur_sym');
         } else if (gs('currency_format') == Status::CUR_TEXT) {
             return $printAmount . ' ' . __(gs('cur_text'));
         } else {
-            return gs('cur_sym') . $printAmount;
+            return $printAmount . ' ' . gs('cur_sym');
         }
     }
     return $printAmount;
@@ -540,9 +540,13 @@ function getTotalReturns($invest) {
     return $totalReturns;
 }
 
-function generateContractContent($project, $user = null) {
+function generateContractContent($project, $user = null, $contractNumber = null) {
     $date = now()->format('d/m/Y');
-    $contractNumber = 'SMB/' . date('Y') . '/BHG-' . str_pad($project->id, 4, '0', STR_PAD_LEFT);
+    
+    // Nếu không có contractNumber được truyền vào, sử dụng format cũ
+    if (!$contractNumber) {
+        $contractNumber = 'SMB/' . date('Y') . '/BHG-' . str_pad($project->id, 4, '0', STR_PAD_LEFT);
+    }
     
     $contractContent = <<<HTML
 <!DOCTYPE html>
@@ -688,4 +692,59 @@ function generateContractContent($project, $user = null) {
 HTML;
 
     return $contractContent;
+}
+
+function generateContractNumber() {
+    // Lấy tháng và năm hiện tại
+    $month = date('m'); // 2 chữ số tháng (01-12)
+    $year = date('y');  // 2 chữ số năm (25 cho 2025)
+    
+    // Tìm số thứ tự hợp đồng trong tháng hiện tại
+    $currentMonth = date('Y-m'); // 2025-06
+    $contractCount = \App\Models\Invest::whereYear('created_at', date('Y'))
+                                      ->whereMonth('created_at', date('m'))
+                                      ->count();
+    
+    // Tăng số thứ tự lên 1 cho hợp đồng mới
+    $contractCount++;
+    
+    // Format: 3 số thứ tự + 2 số tháng + 2 số năm
+    // Ví dụ: 001 + 06 + 25 = 0010625
+    $contractNumber = str_pad($contractCount, 3, '0', STR_PAD_LEFT) . $month . $year;
+    
+    return $contractNumber;
+}
+
+function addWatermarkToPdf($pdfContent, $status = null) {
+    // Chỉ thêm watermark khi hợp đồng chưa được duyệt
+    if ($status !== \App\Constants\Status::INVEST_RUNNING) {
+        // Tạo watermark HTML
+        $watermarkHtml = '
+        <div style="
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-family: Arial, sans-serif;
+            font-size: 48px;
+            font-weight: bold;
+            color: rgba(255, 0, 0, 0.3);
+            text-align: center;
+            z-index: 1000;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+            border: 8px solid rgba(255, 0, 0, 0.3);
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            white-space: nowrap;
+        ">
+            HỢP ĐỒNG CHƯA CÓ<br>HIỆU LỰC PHÁP LÝ
+        </div>';
+        
+        // Chèn watermark vào cuối content trước thẻ đóng body
+        $pdfContent = str_replace('</body>', $watermarkHtml . '</body>', $pdfContent);
+    }
+    
+    return $pdfContent;
 }

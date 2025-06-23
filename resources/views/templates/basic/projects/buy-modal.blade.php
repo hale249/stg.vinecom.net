@@ -107,12 +107,12 @@
                             </div>
                             <div class="form-group mb-3">
                                 <div class="input-group input-group-lg">
-                                    <input type="number" class="form-control form-control-lg" id="investment_amount" name="amount" value="{{ (int)$project->share_amount }}" min="{{ (int)$project->share_amount }}" step="0.01" readonly>
+                                    <input type="number" class="form-control form-control-lg" id="investment_amount" name="amount" value="{{ (int)$project->share_amount }}" min="{{ (int)$project->share_amount }}" step="0.01">
                                     <span class="input-group-text" style="border: 2px solid #FFD700 !important; background: #FFD700 !important; color: #000 !important;">{{ gs('cur_text') }}</span>
                                 </div>
                                 <small class="text-muted d-block mt-1">
-                                    Giá 1 đơn vị: {{ number_format($project->share_amount, 0, ',', '.') }} {{ gs('cur_text') }} 
-                                    (Tổng {{ $project->share_count }} đơn vị)
+                                    Giá suất đầu tư: {{ number_format($project->share_amount, 0, ',', '.') }} {{ gs('cur_text') }} 
+                                    
                                 </small>
                             </div>
                         </div>
@@ -121,19 +121,16 @@
                         <div class="referral-section">
                             <div class="section-title mb-2">
                                 <h6 class="fw-bold mb-0">Mã giới thiệu</h6>
-                                <p class="text-muted small mb-0">Nhập mã giới thiệu nếu bạn có</p>
+                                <p class="text-muted small mb-0">Nhập mã giới thiệu (bắt buộc)</p>
                             </div>
                             <div class="form-group">
                                 <div class="input-group">
                                     <span class="input-group-text bg-light">
                                         <i class="las la-user-friends"></i>
                                     </span>
-                                    <input type="text" class="form-control" name="referral_code" placeholder="Nhập mã giới thiệu" @if($user && $user->is_staff) required @endif>
+                                    <input type="text" class="form-control" name="referral_code" placeholder="Nhập mã giới thiệu" required>
                                 </div>
                             </div>
-                            @if($user && $user->is_staff)
-                                <small class="text-danger">* Mã giới thiệu là bắt buộc đối với nhân viên chăm sóc</small>
-                            @endif
                         </div>
                     </div>
 
@@ -161,10 +158,7 @@
             <div class="modal-header profit-schedule-header">
                 <div class="profit-schedule-title">
                     <div class="header-text">
-                        <div class="country-name">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-                        <div class="motto">Độc lập - Tự do - Hạnh phúc</div>
-                        <div class="separator">-------o0o-------</div>
-                        <div class="main-title">BẢNG LÃI DỰ KIẾN</div>
+                        <div class="main-title">BẢNG MINH HOẠ LỢI TỨC</div>
                     </div>
                 </div>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -718,10 +712,10 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Hàm tính và hiển thị ngày đáo hạn và ngày trả lãi hàng tháng
-    const setDates = () => {
+    const setDates = (months = maturityMonths) => {
         // Tính ngày đáo hạn (maturity date)
         const futureDate = new Date();
-        futureDate.setMonth(futureDate.getMonth() + maturityMonths);
+        futureDate.setMonth(futureDate.getMonth() + months);
         document.getElementById('maturity_date').textContent = formatDate(futureDate);
         
         // Tính ngày trả lãi hàng tháng (mặc định ngày hiện tại của tháng)
@@ -730,11 +724,14 @@ document.addEventListener('DOMContentLoaded', function() {
     };
 
     // Hàm cập nhật modal với số tiền cụ thể
-    window.updateModalValues = function(amount) {
+    window.updateModalValues = function(amount, months = {{ $project->maturity_time }}) {
         amount = parseFloat(amount);
         if (isNaN(amount) || amount < unitPrice) {
             amount = unitPrice;
         }
+        
+        // Ensure months is a valid number
+        months = parseInt(months) || {{ $project->maturity_time }};
         
         // Tính số lượng đơn vị dựa trên số tiền
         const quantity = Math.ceil(amount / unitPrice);
@@ -743,7 +740,7 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('investment_amount').value = amount;
         
         // Tính lãi dự kiến cho thời hạn đầu tư
-        const totalProfit = Math.round(amount * (roiPercentage / 100) * (maturityMonths / 12));
+        const totalProfit = Math.round(amount * (roiPercentage / 100) * (months / 12));
         
         // Cập nhật giá trị hiển thị và giá trị ẩn
         document.getElementById('total_profit').textContent = formatCurrency(totalProfit);
@@ -752,18 +749,23 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modal_total_earning').value = totalProfit;
         
         // Cập nhật ngày đáo hạn và ngày trả lãi
-        setDates();
+        setDates(months);
     }
 
-    // Khởi tạo với giá đơn vị
     window.updateModalValues(unitPrice);
 
-    // Nếu có các sự kiện mở modal, cũng gọi lại updateModalValues để đảm bảo luôn đúng
     const bitModal = document.getElementById('bitModal');
     if (bitModal) {
         bitModal.addEventListener('show.bs.modal', function() {
-            // Lấy số tiền từ input ở trang chi tiết dự án
-            const projectDetailsAmount = parseFloat(document.getElementById('investment_amount_input')?.value) || unitPrice;
+            // Lấy số tiền từ input ở trang chi tiết dự án với hàm parse đúng format
+            const projectDetailsInput = document.getElementById('investment_amount_input');
+            let projectDetailsAmount = unitPrice;
+            
+            if (projectDetailsInput) {
+                // Parse giá trị có dấu chấm từ input
+                const inputValue = projectDetailsInput.value;
+                projectDetailsAmount = parseFloat(inputValue.replace(/\./g, '')) || unitPrice;
+            }
             
             // Cập nhật modal với số tiền đã nhập
             window.updateModalValues(projectDetailsAmount);
@@ -774,6 +776,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const loadProfitScheduleModal = (amount) => {
         const modalContent = document.getElementById('profitScheduleContent');
         const downloadBtn = document.getElementById('download-pdf-btn');
+        const months = parseInt(document.getElementById('term_months')?.value) || maturityMonths;
         
         // Show loading
         modalContent.innerHTML = `
@@ -789,6 +792,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const url = new URL(scheduleHtmlUrl);
         url.searchParams.set('project_id', projectId);
         url.searchParams.set('amount', amount);
+        url.searchParams.set('months', months);
 
         fetch(url.toString())
             .then(response => response.text())
@@ -807,6 +811,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const pdfUrl = new URL(scheduleUrl);
                     pdfUrl.searchParams.set('project_id', projectId);
                     pdfUrl.searchParams.set('amount', amount);
+                    pdfUrl.searchParams.set('months', months);
                     downloadBtn.href = pdfUrl.toString();
                 }
             })
@@ -860,5 +865,19 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    // Add event listeners for live update in modal
+    const investmentAmountInput = document.getElementById('investment_amount');
+    const termMonthsInput = document.getElementById('term_months');
+    if (investmentAmountInput) {
+        investmentAmountInput.addEventListener('input', function() {
+            window.updateModalValues(this.value, termMonthsInput ? termMonthsInput.value : undefined);
+        });
+    }
+    if (termMonthsInput) {
+        termMonthsInput.addEventListener('change', function() {
+            window.updateModalValues(investmentAmountInput.value, this.value);
+        });
+    }
 });
 </script>

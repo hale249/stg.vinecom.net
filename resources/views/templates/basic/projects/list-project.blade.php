@@ -83,15 +83,12 @@
                     </div>
 
                     <div class="card-progress-modern">
-                        @php
-                            $progressPercentage = (($project->share_count - $project->available_share) / $project->share_count) * 100;
-                        @endphp
                         <div class="progress-header">
                             <span class="progress-label">Tiến độ đầu tư</span>
-                            <span class="progress-percentage">{{ round($progressPercentage, 1) }}%</span>
+                            <span class="progress-percentage">{{ $project->investment_progress }}%</span>
                         </div>
                         <div class="progress-bar-container">
-                            <div class="progress-bar" style="width: {{ $progressPercentage }}%"></div>
+                            <div class="progress-bar" style="width: {{ $project->investment_progress }}%"></div>
                         </div>
                     </div>
 

@@ -128,28 +128,25 @@
 
                         <!-- Investment Progress -->
                         <div class="investment-progress-modern">
-                            @php
-                                $progressPercentage = (($project->share_count - $project->available_share) / $project->share_count) * 100;
-                            @endphp
                             <div class="progress-header">
                                 <h4>Tiến độ đầu tư</h4>
-                                <span class="progress-percentage">{{ round($progressPercentage, 1) }}%</span>
+                                <span class="progress-percentage">{{ $project->investment_progress }}%</span>
                             </div>
                             <div class="progress-bar-container">
-                                <div class="progress-bar" style="width: {{ $progressPercentage }}%"></div>
+                                <div class="progress-bar" style="width: {{ $project->investment_progress }}%"></div>
                             </div>
                             <div class="progress-stats">
                                 <div class="progress-stat">
-                                    <span class="stat-number">{{ getAmount($project->share_count - $project->available_share) }}</span>
+                                    <span class="stat-number">{{ showAmount($project->target_amount) }}</span>
+                                    <span class="stat-text">Mục tiêu dự án</span>
+                                </div>
+                                <div class="progress-stat">
+                                    <span class="stat-number">{{ showAmount($project->remaining_amount) }}</span>
+                                    <span class="stat-text">Số tiền còn lại</span>
+                                </div>
+                                <div class="progress-stat">
+                                    <span class="stat-number">{{ showAmount($project->invested_amount) }}</span>
                                     <span class="stat-text">Đã đầu tư</span>
-                                </div>
-                                <div class="progress-stat">
-                                    <span class="stat-number">{{ showAmount(($project->available_share * $project->share_amount)) }}</span>
-                                    <span class="stat-text">Hạn mức còn lại</span>
-                                </div>
-                                <div class="progress-stat">
-                                    <span class="stat-number">{{ getAmount($project->share_count) }}</span>
-                                    <span class="stat-text">Tổng cộng</span>
                                 </div>
                             </div>
                         </div>
@@ -343,7 +340,7 @@
                                         <div class="form-group mb-3">
                                             <label>Số tiền đầu tư</label>
                                             <div class="input-group">
-                                                <input type="number" 
+                                                <input type="text" 
                                                        class="form-control" 
                                                        id="investment_amount_input"
                                                        placeholder="Nhập số tiền"
@@ -356,10 +353,14 @@
                                         
                                         <div class="investment-summary mb-3">
                                             <div class="summary-item">
-                                                <span>Số cổ phần:</span>
-                                                <span id="quantityDisplay">1</span>
+                                                <span>Kỳ hạn:</span>
+                                                <select id="term_months" class="form-select">
+                                                    @for ($i = 1; $i <= 36; $i++)
+                                                        <option value="{{ $i }}">{{ $i }} tháng</option>
+                                                    @endfor
+                                                </select>
                                             </div>
-                                            <div class="summary-item">
+                                            <div class="summary-item mt-3">
                                                 <span>Lợi nhuận dự kiến:</span>
                                                 <span id="roiDisplay">0 VNĐ</span>
                                             </div>
@@ -1412,20 +1413,60 @@
         
         // Investment form calculations
         const amountInput = document.querySelector('#investment_amount_input');
-        const quantityDisplay = document.getElementById('quantityDisplay');
+        const termSelect = document.getElementById('term_months');
         const roiDisplay = document.getElementById('roiDisplay');
         const shareAmount = {{ $project->share_amount }};
         const roiPercentage = {{ $project->roi_percentage }};
-        
-        if (amountInput) {
-            amountInput.addEventListener('input', function() {
-                const amount = parseFloat(this.value) || 0;
-                const quantity = Math.floor(amount / shareAmount);
-                const roi = (amount * roiPercentage) / 100;
-                
-                quantityDisplay.textContent = quantity;
-                roiDisplay.textContent = roi.toLocaleString('vi-VN') + ' VNĐ';
+
+        // Hàm format số tiền có dấu chấm
+        function formatCurrencyInput(value) {
+            value = value.replace(/\D/g, ''); // chỉ lấy số
+            if (!value) return '';
+            return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
+
+        // Hàm lấy số thực từ input đã format
+        function parseCurrencyInput(value) {
+            return parseFloat(value.replace(/\./g, '')) || 0;
+        }
+
+        function calculateRoi() {
+            const amount = parseCurrencyInput(amountInput.value);
+            const months = parseInt(termSelect.value) || 1;
+            // Calculate ROI based on annual percentage, term in months, and investment amount
+            const roi = (amount * roiPercentage / 100) * (months / 12);
+            roiDisplay.textContent = roi.toLocaleString('vi-VN') + ' VNĐ';
+        }
+
+        if (amountInput && termSelect) {
+            amountInput.addEventListener('input', function(e) {
+                // Lưu vị trí con trỏ và số dấu chấm trước khi format
+                let selectionStart = this.selectionStart;
+                const oldValue = this.value;
+                const oldDotCount = (oldValue.slice(0, selectionStart).match(/\./g) || []).length;
+                // Format lại giá trị
+                const formatted = formatCurrencyInput(this.value);
+                this.value = formatted;
+                // Đếm lại số dấu chấm mới
+                const newDotCount = (formatted.slice(0, selectionStart).match(/\./g) || []).length;
+                // Điều chỉnh vị trí con trỏ dựa trên số dấu chấm thay đổi
+                selectionStart += (newDotCount - oldDotCount);
+                this.setSelectionRange(selectionStart, selectionStart);
+                calculateRoi();
+                // Sync modal if open
+                if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
+                    window.updateModalValues(parseCurrencyInput(this.value), termSelect.value);
+                }
             });
+            termSelect.addEventListener('change', function() {
+                calculateRoi();
+                // Sync modal if open
+                if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
+                    window.updateModalValues(parseCurrencyInput(amountInput.value), this.value);
+                }
+            });
+            // Khởi tạo tính toán ban đầu
+            calculateRoi();
         }
         
         // Copy link functionality
@@ -1447,13 +1488,15 @@
         const bitModal = document.getElementById('bitModal');
         if (bitModal) {
             bitModal.addEventListener('show.bs.modal', function() {
-                // Get the amount from the input field
-                const amount = parseFloat(document.getElementById('investment_amount_input').value) || shareAmount;
+                // Get the amount from the input field using the correct parsing function
+                const amount = parseCurrencyInput(document.getElementById('investment_amount_input').value) || shareAmount;
+                // Get the selected term
+                const months = parseInt(document.getElementById('term_months').value) || 1;
                 
                 // Initialize modal values when modal opens
                 if (typeof window.updateModalValues === 'function') {
-                    // Pass the amount directly to updateModalValues
-                    window.updateModalValues(amount);
+                    // Pass the amount and term to updateModalValues
+                    window.updateModalValues(amount, months);
                 }
             });
         }

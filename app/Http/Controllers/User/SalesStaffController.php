@@ -156,7 +156,7 @@ class SalesStaffController extends Controller
         $customer = User::findOrFail($request->customer_id);
         
         // Generate a unique contract number
-        $investNo = getTrx();
+        $investNo = generateContractNumber();
         
         // Create a new contract
         $invest = new Invest();
@@ -170,6 +170,7 @@ class SalesStaffController extends Controller
         $invest->interest_period = $project->profit_period;
         $invest->period = $request->duration;
         $invest->status = Status::INVEST_PENDING; // Set as pending for manager approval
+        $invest->contract_content = generateContractContent($project, $customer, $investNo);
         $invest->created_at = now();
         $invest->updated_at = now();
         $invest->save();

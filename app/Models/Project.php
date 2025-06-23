@@ -24,6 +24,7 @@ class Project extends Model
         'title',
         'slug',
         'goal',
+        'share_count',
         'share_amount',
         'roi_percentage',
         'roi_amount',
@@ -160,5 +161,48 @@ class Project extends Model
         $endDate = Carbon::parse($this->end_date);
         $this->maturity_date = $endDate->addMonths((int)$this->maturity_time);
         return $this;
+    }
+
+    /**
+     * Get the target amount (calculated from share_count * share_amount for consistency)
+     */
+    public function getTargetAmountAttribute()
+    {
+        return $this->share_count * $this->share_amount;
+    }
+
+    /**
+     * Get the remaining amount to be invested
+     */
+    public function getRemainingAmountAttribute()
+    {
+        return $this->available_share * $this->share_amount;
+    }
+
+    /**
+     * Get the invested amount
+     */
+    public function getInvestedAmountAttribute()
+    {
+        return ($this->share_count - $this->available_share) * $this->share_amount;
+    }
+
+    /**
+     * Get the investment progress percentage
+     */
+    public function getInvestmentProgressAttribute()
+    {
+        if ($this->share_count == 0) {
+            return 0;
+        }
+        return round((($this->share_count - $this->available_share) / $this->share_count) * 100, 2);
+    }
+
+    /**
+     * Get the number of shares sold
+     */
+    public function getSoldSharesAttribute()
+    {
+        return $this->share_count - $this->available_share;
     }
 }
