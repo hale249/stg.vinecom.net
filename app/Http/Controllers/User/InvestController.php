@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\User;
-
 use App\Constants\Status;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Gateway\PaymentController;
@@ -17,13 +16,6 @@ class InvestController extends Controller {
     use GlobalStatus;
 
     public function order(Request $request) {
-        /*
-         * Users can now invest in two different ways:
-         * 1. By providing the number of units (previous behaviour – field `quantity`).
-         * 2. By providing an arbitrary amount (new behaviour – field `amount`).
-         * Either `quantity` **or** `amount` must be present. If both are present, `amount` will be
-         * taken as the source of truth.
-         */
 
         $rules = [
             'project_id'    => 'required|exists:projects,id',
@@ -31,9 +23,8 @@ class InvestController extends Controller {
             'referral_code' => 'nullable|exists:users,referral_code',
         ];
 
-        // Conditional validation depending on which field the client sends
         if ($request->filled('amount')) {
-            $rules['amount'] = 'numeric|min:0.01'; // Minimum 0.01 of currency
+            $rules['amount'] = 'numeric|min:0.01'; 
         } else {
             $rules['quantity'] = 'required|integer|min:1';
         }
@@ -42,7 +33,6 @@ class InvestController extends Controller {
 
         $user = auth()->user();
 
-        // Check KYC status
         if ($user->kv != Status::KYC_VERIFIED) {
             $notify[] = ['error', 'Vui lòng hoàn thành xác minh danh tính (KYC) trước khi đầu tư. <a href="' . route('user.kyc.form') . '" class="text-white">Nhấn vào đây để xác minh</a>'];
             return back()->withNotify($notify);
@@ -54,18 +44,9 @@ class InvestController extends Controller {
             return back()->withNotify($notify);
         }
 
-        /*
-         * ---------------------------------------------------------------------
-         * Determine investment amount & quantity
-         * ---------------------------------------------------------------------
-         */
-
-        // Calculate unit price based on total package and total units from database
         $totalPackage = $project->share_amount * $project->share_count; // Tổng gói
         $totalUnits = $project->share_count; // Tổng số đơn vị tối đa từ database
         $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
-
-        // Fallback defaults – will be overwritten depending on investment mode
         $quantity        = 1;
         $totalPrice      = $unitPrice;
         $recurringAmount = 0;
@@ -78,17 +59,13 @@ class InvestController extends Controller {
             }
 
             $totalPrice = getAmount($request->amount);
-            $quantity = round($totalPrice / $unitPrice); // Calculate number of units
-
-            // Calculate ROI amount based on percentage so profit scales with amount
+            $quantity = round($totalPrice / $unitPrice); 
             $projectRoiPercentage = getAmount($project->roi_percentage);
-            $project->roi_amount  = ($totalPrice * $projectRoiPercentage) / 100; // Dynamically override for this investment
+            $project->roi_amount  = ($totalPrice * $projectRoiPercentage) / 100; 
 
-            // Recurring amount per payout period
             $recurringAmount = $project->roi_amount;
 
         } else {
-            // --- Investment by QUANTITY ------------------------------------
             if ($request->quantity > $project->available_share) {
                 $notify[] = ['error', 'Số lượng đơn vị không được vượt quá ' . $project->available_share . ' đơn vị còn lại.'];
                 return back()->withNotify($notify);
@@ -105,7 +82,7 @@ class InvestController extends Controller {
 
         if ($project->return_type == Status::LIFETIME) {
             $totalEarning = 0;
-            $investClosed = Carbon::parse($project->maturity_date)->addMonths($project->project_duration);
+            $investClosed = Carbon::parse($project->maturity_date)->addMonths((int)$project->project_duration);
         } else if ($project->return_type == Status::REPEAT) {
             $totalEarning = $recurringAmount * $project->repeat_times;
         }
@@ -136,7 +113,6 @@ class InvestController extends Controller {
         $invest->referral_code = $request->referral_code;
         $invest->save();
 
-        // Redirect to contract confirmation page
         return redirect()->route('user.invest.contract', $invest->id);
     }
 

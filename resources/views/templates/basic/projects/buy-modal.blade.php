@@ -115,23 +115,6 @@
                                     (Tổng {{ $project->share_count }} đơn vị)
                                 </small>
                             </div>
-                            
-                            <!-- Custom Investment Amount -->
-                            <div class="custom-amount-section mt-3">
-                                <div class="section-title mb-2">
-                                    <h6 class="fw-bold mb-0">Số tiền đầu tư khác</h6>
-                                    <p class="text-muted small mb-0">Nhập số tiền đầu tư tùy ý</p>
-                                </div>
-                                <div class="form-group">
-                                    <div class="input-group input-group-lg">
-                                        <input type="number" class="form-control form-control-lg" id="custom_investment_amount" name="custom_amount" placeholder="Nhập số tiền đầu tư tùy ý" min="{{ (int)$project->share_amount }}" step="0.01">
-                                        <span class="input-group-text" style="border: 2px solid #FFD700 !important; background: #FFD700 !important; color: #000 !important;">{{ gs('cur_text') }}</span>
-                                    </div>
-                                    <small class="text-muted d-block mt-1">
-                                        Số tiền tối thiểu: {{ number_format($project->share_amount, 0, ',', '.') }} {{ gs('cur_text') }}
-                                    </small>
-                                </div>
-                            </div>
                         </div>
 
                         <!-- Referral Code Section -->
@@ -746,71 +729,44 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('interest_payment_date').textContent = currentDay;
     };
 
-    // Hàm cập nhật modal, quantity truyền vào (mặc định 1)
-    window.updateModalValues = function(quantity) {
-        quantity = parseInt(quantity);
-        if (isNaN(quantity) || quantity < 1) quantity = 1;
+    // Hàm cập nhật modal với số tiền cụ thể
+    window.updateModalValues = function(amount) {
+        amount = parseFloat(amount);
+        if (isNaN(amount) || amount < unitPrice) {
+            amount = unitPrice;
+        }
+        
+        // Tính số lượng đơn vị dựa trên số tiền
+        const quantity = Math.ceil(amount / unitPrice);
+        
         document.getElementById('modal_quantity').value = quantity;
-        // Tính toán số tiền đầu tư
-        const amount = quantity * unitPrice;
         document.getElementById('investment_amount').value = amount;
+        
         // Tính lãi dự kiến cho thời hạn đầu tư
         const totalProfit = Math.round(amount * (roiPercentage / 100) * (maturityMonths / 12));
+        
         // Cập nhật giá trị hiển thị và giá trị ẩn
         document.getElementById('total_profit').textContent = formatCurrency(totalProfit);
         document.getElementById('modal_total_price').value = amount;
         document.getElementById('modal_unit_price').value = unitPrice;
         document.getElementById('modal_total_earning').value = totalProfit;
-        // Cập nhật ngày đáo hạn và ngày trả lãi
-        setDates();
-    }
-
-    // Hàm cập nhật khi nhập số tiền tùy chọn
-    const updateCustomAmount = (customAmount) => {
-        customAmount = parseFloat(customAmount);
-        if (isNaN(customAmount) || customAmount < unitPrice) {
-            customAmount = unitPrice;
-        }
-
-        // Cập nhật số lượng dựa trên số tiền tùy chọn
-        const calculatedQuantity = Math.ceil(customAmount / unitPrice);
-        document.getElementById('modal_quantity').value = calculatedQuantity;
-        
-        // Cập nhật các giá trị hiển thị
-        document.getElementById('investment_amount').value = customAmount;
-        document.getElementById('modal_total_price').value = customAmount;
-        
-        // Tính lãi dự kiến cho thời hạn đầu tư
-        const totalProfit = Math.round(customAmount * (roiPercentage / 100) * (maturityMonths / 12));
-        
-        // Cập nhật giá trị hiển thị
-        document.getElementById('total_profit').textContent = formatCurrency(totalProfit);
-        document.getElementById('modal_total_earning').value = totalProfit;
         
         // Cập nhật ngày đáo hạn và ngày trả lãi
         setDates();
     }
 
-    // Xử lý sự kiện khi nhập số tiền tùy chọn
-    const customAmountInput = document.getElementById('custom_investment_amount');
-    if (customAmountInput) {
-        customAmountInput.addEventListener('input', function() {
-            updateCustomAmount(this.value);
-        });
-        
-        customAmountInput.addEventListener('change', function() {
-            updateCustomAmount(this.value);
-        });
-    }
-
-    // Khởi tạo với 1 đơn vị
-    window.updateModalValues(1);
+    // Khởi tạo với giá đơn vị
+    window.updateModalValues(unitPrice);
 
     // Nếu có các sự kiện mở modal, cũng gọi lại updateModalValues để đảm bảo luôn đúng
     const bitModal = document.getElementById('bitModal');
     if (bitModal) {
         bitModal.addEventListener('show.bs.modal', function() {
-            window.updateModalValues(window._modalQuantity || 1);
+            // Lấy số tiền từ input ở trang chi tiết dự án
+            const projectDetailsAmount = parseFloat(document.getElementById('investment_amount_input')?.value) || unitPrice;
+            
+            // Cập nhật modal với số tiền đã nhập
+            window.updateModalValues(projectDetailsAmount);
         });
     }
 

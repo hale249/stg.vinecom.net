@@ -76,6 +76,11 @@
                                                     </a>
 
                                                     <a class="dropdown-item text--info"
+                                                        href="{{ route('admin.project.documents.index', $project->id) }}">
+                                                        <i class="las la-file-pdf"></i> @lang('Tài liệu')
+                                                    </a>
+
+                                                    <a class="dropdown-item text--info"
                                                         href="{{ route('admin.project.investHistory', $project->id) }}">
                                                         <i class="las la-user-secret"></i> @lang('Investors')
                                                     </a>

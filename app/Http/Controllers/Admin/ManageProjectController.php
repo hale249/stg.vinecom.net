@@ -48,6 +48,13 @@ class ManageProjectController extends Controller
         return view('admin.project.create', compact('pageTitle', 'project', 'times', 'galleries', 'categories'));
     }
 
+    public function show($id)
+    {
+        $pageTitle = 'Project Details';
+        $project = Project::with(['category', 'time'])->findOrFail($id);
+        return view('admin.project.show', compact('pageTitle', 'project'));
+    }
+
     public function store(Request $request, $id = 0)
     {
         $isRequired = $id ? 'nullable' : 'required';

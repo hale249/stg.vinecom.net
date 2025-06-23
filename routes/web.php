@@ -61,6 +61,9 @@ Route::controller('User\InvestController')->prefix('invest')->middleware('auth')
     Route::get('profit-schedule-html', 'getProfitScheduleHtml')->name('invest.profit.schedule.html');
 });
 
+// Project Document View Route
+Route::get('project-document/{projectId}/{documentId}', 'ProjectDocumentController@view')->withoutMiddleware('maintenance')->name('project.document.view');
+
 // Staff Routes
 Route::middleware(['auth'])->prefix('user/staff')->name('user.staff.staff.')->group(function () {
     Route::get('dashboard', 'User\SalesStaffController@dashboard')->name('dashboard');

@@ -139,6 +139,7 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::get('report/commissions', 'reportCommissions')->name('report.commissions');
                 Route::get('hr/salary', 'salaryDashboard')->name('hr.salary');
                 Route::get('hr/kpi', 'kpiDashboard')->name('hr.kpi');
+                Route::post('hr/kpi', 'storeKPI')->name('hr.kpi.store');
                 Route::get('hr/performance', 'performanceDashboard')->name('hr.performance');
             });
         });

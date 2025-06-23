@@ -31,11 +31,17 @@ class ProjectController extends Controller {
         $commentCount = $commentsInit->count();
         $comments     = $commentsInit->paginate(getPaginate(5));
 
+        // Load project documents
+        $documents = $project->documents;
+        $legalDocuments = $project->legalDocuments;
+        $financialDocuments = $project->financialDocuments;
+        $technicalDocuments = $project->technicalDocuments;
+
         if ($request->ajax()) {
             return view('Template::partials.comment', compact('comments', 'project'))->render();
         }
 
-        return view('Template::projects.project_details', compact('pageTitle', 'project', 'relates', 'comments', 'commentCount', 'seoContents', 'seoImage'));
+        return view('Template::projects.project_details', compact('pageTitle', 'project', 'relates', 'comments', 'commentCount', 'seoContents', 'seoImage', 'documents', 'legalDocuments', 'financialDocuments', 'technicalDocuments'));
     }
 
     public function checkQuantity(Request $request) {

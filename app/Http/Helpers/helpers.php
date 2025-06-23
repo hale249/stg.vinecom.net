@@ -476,9 +476,9 @@ function convertMatureTime($value) {
 }
 
 function investMaturedDate($project, $endDate = false) {
-    $date = Carbon::parse($project->end_date)->addMonth($project->maturity_time); // investMaturedDate
+    $date = Carbon::parse($project->end_date)->addMonths((int)$project->maturity_time); // investMaturedDate
     if ($endDate) {
-        $date = $date->addMonths($project->project_duration); //investmentEndDate
+        $date = $date->addMonths((int)$project->project_duration); //investmentEndDate
     }
     return $date;
 }
