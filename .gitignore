@@ -38,5 +38,5 @@ storage/logs/*
 
 /public/assets/images/language/*
 /public/assets/images/project/*
-/public/storage
+
 /public/storage/*
