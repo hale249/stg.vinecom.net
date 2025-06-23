@@ -4,6 +4,7 @@
 .env
 .env.backup
 .phpunit.result.cache
+
 Homestead.json
 Homestead.yaml
 npm-debug.log
@@ -37,3 +38,4 @@ storage/logs/*
 
 /public/assets/images/language/*
 /public/assets/images/project/*
+/public/storage
