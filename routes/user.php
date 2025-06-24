@@ -101,6 +101,7 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::controller('InvestController')->prefix('invest')->name('invest.')->group(function () {
                 Route::post('/store', 'order')->name('order');
                 Route::get('/contract/{id}', 'showContract')->name('contract');
+                Route::get('/contract/{id}/watermark', 'viewContractWithWatermark')->name('contract.watermark');
                 Route::post('/confirm/{id}', 'confirm')->name('confirm');
                 Route::post('/cancel/{id}', 'cancel')->name('cancel');
                 Route::get('/contract/{id}/download', 'downloadContract')->name('contract.download');

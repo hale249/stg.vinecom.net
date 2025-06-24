@@ -108,7 +108,7 @@ class InvestController extends Controller {
         $invest->time_name = $project->time->name;
         $invest->hours = $project->time->hours;
         $invest->recurring_pay = $recurringAmount;
-        $invest->contract_content = generateContractContent($project, $user, $invest->invest_no);
+        $invest->contract_content = generateContractContent($project, $user, $invest->invest_no, $invest->status);
         $invest->contract_confirmed = true;
         $invest->referral_code = $request->referral_code;
         $invest->save();
@@ -162,6 +162,9 @@ class InvestController extends Controller {
         $invest->status = Status::INVEST_PENDING_ADMIN_REVIEW;
         $invest->save();
 
+        // Refresh contract content to add watermark
+        refreshContractContent($invest);
+
         notify($invest->user, 'INVEST_SUBMITTED_FOR_REVIEW', [
             'invest_id' => $invest->invest_no,
             'project_title' => $invest->project->title,
@@ -181,16 +184,31 @@ class InvestController extends Controller {
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('templates.basic.user.invest.contract_pdf', [
             'invest' => $invest,
-            'user' => auth()->user()
+            'user' => auth()->user(),
+            'status' => $invest->status
         ]);
 
         $pdf->setPaper('A4', 'portrait');
         $pdf->setOption('isHtml5ParserEnabled', true);
         $pdf->setOption('isRemoteEnabled', true);
-        $pdf->setOption('defaultFont', 'DejaVu Sans');
+        $pdf->setOption('defaultFont', 'Times New Roman');
         $pdf->setOption('encoding', 'UTF-8');
 
         return $pdf->download('contract-' . $invest->invest_no . '.pdf');
+    }
+
+    public function viewContractWithWatermark($id)
+    {
+        $invest = Invest::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        // Generate contract content with current status (including watermark if needed)
+        $contractContent = generateContractContent($invest->project, $invest->user, $invest->invest_no, $invest->status, true);
+
+        $pageTitle = 'Investment Contract';
+        $activeTemplate = activeTemplate();
+        return view('templates.basic.user.invest.contract_with_watermark', compact('pageTitle', 'invest', 'activeTemplate', 'contractContent'));
     }
 
     public function history()

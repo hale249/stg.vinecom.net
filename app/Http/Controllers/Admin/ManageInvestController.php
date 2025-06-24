@@ -87,6 +87,9 @@ class ManageInvestController extends Controller
         $invest->status = Status::INVEST_CLOSED;
         $invest->save();
 
+        // Refresh contract content
+        refreshContractContent($invest);
+
         $notify[] = ['success', 'Returns have been stopped successfully.'];
         return back()->withNotify($notify);
     }
@@ -102,6 +105,9 @@ class ManageInvestController extends Controller
 
         $invest->status = Status::INVEST_RUNNING;
         $invest->save();
+
+        // Refresh contract content
+        refreshContractContent($invest);
 
         $notify[] = ['success', 'Returns have been started successfully.'];
         return back()->withNotify($notify);
@@ -139,6 +145,9 @@ class ManageInvestController extends Controller
         $invest->payment_status = Status::PAYMENT_SUCCESS;
         $invest->save();
 
+        // Refresh contract content to remove watermark
+        refreshContractContent($invest);
+
         // Use PaymentController to handle the payment confirmation
         \App\Http\Controllers\Gateway\PaymentController::confirmOrder($invest);
 
@@ -160,6 +169,9 @@ class ManageInvestController extends Controller
 
         $invest->status = Status::INVEST_CANCELED;
         $invest->save();
+
+        // Refresh contract content to keep watermark
+        refreshContractContent($invest);
 
         notify($invest->user, 'INVEST_REJECTED', [
             'invest_id' => $invest->invest_no,

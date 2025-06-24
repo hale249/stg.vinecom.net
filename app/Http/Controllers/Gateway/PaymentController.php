@@ -193,6 +193,9 @@ class PaymentController extends Controller
         $invest->next_time      = investMaturedDate($project);
         $invest->status         = Status::INVEST_RUNNING;
         $invest->save();
+
+        // Refresh contract content to remove watermark
+        refreshContractContent($invest);
     }
 
     public function depositConfirm()

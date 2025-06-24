@@ -170,7 +170,7 @@ class SalesStaffController extends Controller
         $invest->interest_period = $project->profit_period;
         $invest->period = $request->duration;
         $invest->status = Status::INVEST_PENDING; // Set as pending for manager approval
-        $invest->contract_content = generateContractContent($project, $customer, $investNo);
+        $invest->contract_content = generateContractContent($project, $customer, $investNo, $invest->status);
         $invest->created_at = now();
         $invest->updated_at = now();
         $invest->save();

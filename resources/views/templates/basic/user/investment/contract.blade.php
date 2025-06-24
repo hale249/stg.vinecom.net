@@ -108,16 +108,12 @@
                                                         data-user-username="{{ $invest->user->username }}"
                                                         data-user-tax="{{ $invest->user->tax_number }}"
                                                         data-consultant-name="{{ $invest->project->consultant_name }}"
-                                                        data-consultant-code="{{ $invest->project->consultant_code }}"
-                                                        data-toggle="tooltip"
-                                                        data-placement="top" 
-                                                        title="@lang('View Contract')">
-                                                        <i class="las la-file-contract"></i>
+                                                        data-consultant-code="{{ $invest->project->consultant_code }}">
+                                                        <i class="las la-eye"></i> @lang('View')
                                                     </button>
-                                                    <a href="{{ route('user.invest.contract.download', $invest->id) }}"
-                                                        class="btn btn--xsm btn--outline action-btn" data-toggle="tooltip"
-                                                        data-placement="top" title="@lang('Download Contract')">
-                                                        <i class="las la-download"></i>
+                                                    <a href="{{ route('user.invest.contract.watermark', $invest->id) }}" 
+                                                        class="btn btn--xsm btn--outline action-btn">
+                                                        <i class="las la-stamp"></i> @lang('Status')
                                                     </a>
                                                 </div>
                                             </td>
