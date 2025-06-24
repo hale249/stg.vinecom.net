@@ -77,20 +77,11 @@ class ManageProjectController extends Controller
             'map_url'        => 'required|string|regex:/^<iframe.*src="https:\/\/www\.google\.com\/maps\/embed\?pb=.+".*><\/iframe>$/',
             'start_date'     => 'required|date',
             'end_date'       => 'required|date',
-            'maturity_time'  => 'required|numeric|gt:0',
             'image'          => [$isRequired, 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
             'gallery'        => "$isRequired|array|min:0|max:4",
             'gallery.*'      => [$isRequired, 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
             'category_id'    => "$isRequired|exists:categories,id",
-            'time_id'        => "$isRequired|exists:times,id",
-            'return_type'    => 'required|in:' . Status::REPEAT . ',' . Status::LIFETIME
         ]);
-
-        if ($request->return_type == Status::REPEAT) {
-            $request->validate([
-                'repeat_times' => 'required|numeric|gt:0'
-            ]);
-        }
 
         // Calculate and validate the relationship between target_amount, share_count, and share_amount
         $targetAmount = $request->target_amount;
@@ -159,20 +150,16 @@ class ManageProjectController extends Controller
         $project->roi_amount = $request->roi_percentage / 100 * $shareAmount;
         $project->start_date = $request->start_date;
         $project->end_date = $request->end_date;
+        
+        // Set maturity_time to 0 and maturity_date to end_date since we're removing the field
         $project->maturity_time = $request->maturity_time;
+        $project->maturity_date = $request->end_date;
         
-        // Update maturity date based on end date + maturity time
-        $project->updateMaturityDate();
-        
-        $project->time_id = $request->time_id;
-        $project->repeat_times = $request->repeat_times ?? 0;
-        $project->return_type = @$request->return_type == Status::REPEAT ? Status::REPEAT : Status::LIFETIME;
-
-        if ($project->return_type == Status::REPEAT) {
-            $project->capital_back = @$request->capital_back ? Status::YES : Status::NO;
-        } else {
-            $project->capital_back = Status::NO;
-        }
+        // Set default values for removed fields
+        $project->time_id = 0;
+        $project->repeat_times = 0;
+        $project->return_type = Status::LIFETIME;
+        $project->capital_back = Status::NO;
 
         $project->category_id = $request->category_id;
         $project->map_url = $request->map_url;

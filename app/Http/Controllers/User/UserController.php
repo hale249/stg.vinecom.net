@@ -43,7 +43,8 @@ class UserController extends Controller
             ->with(['project'])
             ->latest()
             ->paginate(getPaginate());
-        return view('Template::user.investment.contract', compact('pageTitle', 'invests'));
+        $general = gs();
+        return view('Template::user.investment.contract', compact('pageTitle', 'invests', 'general'));
     }
 
     public function home()

@@ -105,8 +105,8 @@ class InvestController extends Controller {
         $invest->project_duration = $project->project_duration;
         $invest->project_closed = $investClosed ?? null;
         $invest->repeat_times = $project->repeat_times ?? 0;
-        $invest->time_name = $project->time->name;
-        $invest->hours = $project->time->hours;
+        $invest->time_name = $project->time->name ?? 'Tháng';
+        $invest->hours = $project->time->hours ?? 24;
         $invest->recurring_pay = $recurringAmount;
         $invest->contract_content = generateContractContent($project, $user, $invest->invest_no, $invest->status);
         $invest->contract_confirmed = true;
@@ -136,28 +136,6 @@ class InvestController extends Controller {
 
         $user = auth()->user();
         
-        // Check if user has enough balance
-        if ($user->balance < $invest->total_price) {
-            $notify[] = ['error', 'Số dư tài khoản không đủ để thực hiện đầu tư.'];
-            return back()->withNotify($notify);
-        }
-
-        // Deduct balance
-        $user->balance -= $invest->total_price;
-        $user->save();
-
-        // Create transaction record
-        $transaction = new Transaction();
-        $transaction->user_id = $user->id;
-        $transaction->invest_id = $invest->id;
-        $transaction->amount = $invest->total_price;
-        $transaction->post_balance = $user->balance;
-        $transaction->trx_type = '-';
-        $transaction->details = 'Đầu tư vào dự án ' . $invest->project->title;
-        $transaction->remark = 'payment';
-        $transaction->trx = $invest->invest_no;
-        $transaction->save();
-
         // Update investment status
         $invest->status = Status::INVEST_PENDING_ADMIN_REVIEW;
         $invest->save();
@@ -267,7 +245,8 @@ class InvestController extends Controller {
 
         // Kiểm tra dự án có hợp lệ không
         if (!$project->maturity_time || $project->maturity_time <= 0) {
-            abort(400, 'Dự án không có thông tin kỳ hạn hợp lệ.');
+            // Sử dụng giá trị mặc định 12 tháng nếu không có thông tin kỳ hạn
+            $project->maturity_time = 12;
         }
 
         $schedule = [];
@@ -369,7 +348,8 @@ class InvestController extends Controller {
 
         // Kiểm tra dự án có hợp lệ không
         if (!$project->maturity_time || $project->maturity_time <= 0) {
-            abort(400, 'Dự án không có thông tin kỳ hạn hợp lệ.');
+            // Sử dụng giá trị mặc định 12 tháng nếu không có thông tin kỳ hạn
+            $project->maturity_time = 12;
         }
 
         $schedule = [];

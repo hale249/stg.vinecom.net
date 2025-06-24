@@ -95,12 +95,12 @@
                         <!-- Quantity -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>@lang('Quantity'):</span>
-                            <span class="fw-bold">{{ $invest->quantity }}</span>
+                            <span class="fw-bold">{{ $invest->quantity > 0 ? $invest->quantity : 1 }}</span>
                         </li>
                         <!-- Price -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span>@lang('Price'):</span>
-                            <span class="fw-bold">{{ showAmount($invest->unit_price) }}</span>
+                            <span class="fw-bold">{{ showAmount($invest->unit_price > 0 ? $invest->unit_price : $invest->total_price) }}</span>
                         </li>
                         <!-- Subtotal -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -124,7 +124,7 @@
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span>@lang('Return Repeat Times'):</span>
                                 <span class="fw-bold">{{ $invest->project->repeat_times }}
-                                    {{ __($invest->project->time->name) }}</span>
+                                    {{ __($invest->project->time->name ?? '') }}</span>
                             </li>
                         @endif
                     </ul>
@@ -137,22 +137,22 @@
         <div class="col-md-6">
             @php
                 // Calculate Total Earnings and Profit
-                $quantity = $invest->quantity;
+                $quantity = $invest->quantity > 0 ? $invest->quantity : 1;
                 $roiAmount = $invest->roi_amount;
-                $roiPercentage = $invest->roi_percentage;
+                $roiPercentage = $invest->roi_percentage > 0 ? $invest->roi_percentage : 0;
                 $capitalBack = $invest->project->capital_back;
                 $returnType = $invest->project->return_type;
                 $projectDuration = $invest->project->project_duration;
                 $repeatTimes = $invest->repeat_times;
-                $timeName = $invest->project->time->name;
+                $timeName = $invest->project->time->name ?? '';
                 $currencySymbol = gs('cur_sym');
 
                 $totalEarnings = 0;
 
                 if ($returnType == Status::LIFETIME) {
                     $totalMonths = $projectDuration;
-                    $payHours = $invest->project->time->hours;
-                    $payAmount = $roiAmount;
+                    $payHours = $invest->project->time->hours ?? 24;
+                    $payAmount = $roiAmount > 0 ? $roiAmount : 0;
 
                     $totalHours = $totalMonths * 720;
 
@@ -160,7 +160,7 @@
 
                     $totalEarnings = $totalPayments * $payAmount * $quantity;
                 } else {
-                    $payAmount = $roiAmount;
+                    $payAmount = $roiAmount > 0 ? $roiAmount : 0;
                     $totalEarnings = $payAmount * $repeatTimes * $quantity;
                 }
 
@@ -174,7 +174,7 @@
                 }
 
                 // Earning ROI Amount per interval
-                $earningROIAmount = $roiAmount * $quantity;
+                $earningROIAmount = $payAmount * $quantity;
             @endphp
             <div class="card">
                 <div class="card-header bg-primary">

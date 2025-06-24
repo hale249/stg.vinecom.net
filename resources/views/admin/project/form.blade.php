@@ -234,59 +234,13 @@
     <div class="col-md-4">
         <div class="form-group">
             <label>
-                @lang('Maturity Time')
+                @lang('Kỳ hạn (tháng)')
                 <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
-                    title="Users will begin to receive their investment returns after the maturity period. The maturity time is calculated from the project's end date. It is the total duration from the end date plus the specified maturity time."></i>
+                    title="Thời gian đáo hạn của dự án tính bằng tháng."></i>
             </label>
-            <div class="input-group">
-                <input type="number" class="form-control maturity_time" name="maturity_time"
-                    value="{{ old('maturity_time', @$project->maturity_time) }}" step="0" required>
-                <span class="input-group-text">@lang('Months')</span>
-            </div>
-        </div>
-    </div>
-
-</div>
-<div class="row">
-    <div class="col-md-6 return-type-wrapper">
-        <label>
-            @lang('Return Type')
-            <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
-                title="The form in which the returns are provided."></i>
-        </label>
-        <select class="form-control select2" name="return_type" data-search="false" required>
-            <option value="" selected disabled>@lang('Select Return Type')</option>
-            <option value="-1" @selected(old('return_type', @$project->return_type) == -1 ? 'selected' : '')>@lang('Lifetime')</option>
-            <option value="2" @selected(old('return_type', @$project->return_type) == 2 ? 'selected' : '')>@lang('Repeat')</option>
-        </select>
-    </div>
-    <div class="col-md-6 time-settings-wrapper">
-        <div class="form-group">
-            <label>
-                @lang('Time')
-                <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
-                    title="The specific timeframe for receiving returns."></i>
-            </label>
-            <select class="form-control select2" name="time_id" data-search="false" required>
-                <option value="" selected disabled>@lang('Select Time')</option>
-                @foreach ($times as $time)
-                    <option value="{{ $time->id }}" @selected(old('time_id', $project->time_id ?? null) == $time->id)>
-                        {{ $time->name }}</option>
-                @endforeach
-            </select>
-        </div>
-    </div>
-    <div class="col-md-4 return_timespan">
-        <div class="form-group">
-            <label>
-                @lang('Return Repeat Times')
-                <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
-                    title="The number of times returns will be repeated."></i>
-            </label>
-            <div class="input-group">
-                <input type="number" class="form-control return_timespan" id="repeat_times" name="repeat_times"
-                    value="{{ old('repeat_times', @$project->repeat_times) }}" step="0" required>
-            </div>
+            <input type="number" class="form-control" name="maturity_time"
+                value="{{ old('maturity_time', isset($project) ? $project->maturity_time : 5) }}" 
+                min="1" max="60" required>
         </div>
     </div>
 </div>

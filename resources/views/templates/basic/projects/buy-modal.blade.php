@@ -739,8 +739,27 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modal_quantity').value = quantity;
         document.getElementById('investment_amount').value = amount;
         
-        // Tính lãi dự kiến cho thời hạn đầu tư
-        const totalProfit = Math.round(amount * (roiPercentage / 100) * (months / 12));
+        // Tính lãi dự kiến cho thời hạn đầu tư (với logging để debug)
+        console.log('Calculating profit with:', {amount, roiPercentage, months, maturityMonths});
+        
+        // Đảm bảo tất cả các giá trị là số hợp lệ
+        const validAmount = parseFloat(amount) || unitPrice;
+        const validRoi = parseFloat(roiPercentage) || 0;
+        const validMonths = parseInt(months) || parseInt(maturityMonths) || 1;
+        
+        // Tính toán lãi theo công thức: Số tiền * (Lãi suất / 100) * (Số tháng / 12)
+        const annualInterest = validAmount * (validRoi / 100);
+        const monthlyFactor = validMonths / 12;
+        const totalProfit = Math.round(annualInterest * monthlyFactor);
+        
+        console.log('Profit calculation:', {
+            validAmount,
+            validRoi,
+            validMonths,
+            annualInterest,
+            monthlyFactor,
+            totalProfit
+        });
         
         // Cập nhật giá trị hiển thị và giá trị ẩn
         document.getElementById('total_profit').textContent = formatCurrency(totalProfit);
@@ -752,7 +771,8 @@ document.addEventListener('DOMContentLoaded', function() {
         setDates(months);
     }
 
-    window.updateModalValues(unitPrice);
+    // Gọi hàm updateModalValues ngay khi trang tải xong với số tiền mặc định
+    window.updateModalValues(unitPrice, maturityMonths);
 
     const bitModal = document.getElementById('bitModal');
     if (bitModal) {
@@ -768,7 +788,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Cập nhật modal với số tiền đã nhập
-            window.updateModalValues(projectDetailsAmount);
+            window.updateModalValues(projectDetailsAmount, maturityMonths);
+            
+            // Thêm một event listener để tự động cập nhật khi số tiền thay đổi
+            const investmentInput = document.getElementById('investment_amount');
+            if (investmentInput) {
+                // Kích hoạt sự kiện input một lần để đảm bảo tính toán được thực hiện
+                setTimeout(() => {
+                    const event = new Event('input', { bubbles: true });
+                    investmentInput.dispatchEvent(event);
+                }, 100);
+            }
         });
     }
 

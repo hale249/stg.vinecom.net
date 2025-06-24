@@ -496,8 +496,7 @@ function getInvestmentRemaining($invest) {
             $investmentEndDate,
         );
 
-        // Return interval in hours
-        $returnIntervalHours = $invest->project->time->hours;
+        $returnIntervalHours = $invest->project->time && $invest->project->time->hours ? $invest->project->time->hours : 24;
 
         // Total number of returns
         $totalReturns = floor($totalDurationHours / $returnIntervalHours);
@@ -526,8 +525,8 @@ function getTotalReturns($invest) {
             $investmentEndDate,
         );
 
-        // Return interval in hours
-        $returnIntervalHours = $invest->project->time->hours;
+        // Return interval in hours - default to 24 if time object is null
+        $returnIntervalHours = $invest->project->time && $invest->project->time->hours ? $invest->project->time->hours : 24;
 
         // Total number of returns
         $totalReturns = floor($totalDurationHours / $returnIntervalHours);

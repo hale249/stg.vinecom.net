@@ -239,6 +239,7 @@ Route::middleware('admin')->group(function () {
         Route::get('notification/history', 'notificationHistory')->name('notification.history');
         Route::get('email/detail/{id}', 'emailDetails')->name('email.details');
         Route::get('invest/history', 'investHistory')->name('invest.history');
+        Route::get('contract/revenue', 'contractRevenue')->name('contract.revenue');
     });
 
     // Admin Support

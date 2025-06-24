@@ -420,7 +420,6 @@ class AdminController extends Controller
             $endDate = now()->subMonths($i)->endOfMonth();
             
             $months[] = now()->subMonths($i)->format('M Y');
-            
             // Calculate revenue as the total investment amount from all contracts in this month
             $revenue = \App\Models\Invest::whereBetween('created_at', [$startDate, $endDate])
                 ->sum('total_price');

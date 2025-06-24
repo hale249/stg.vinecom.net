@@ -14,7 +14,6 @@
                                     <th>@lang('Payment Status')</th>
                                     <th>@lang('Invest Status')</th>
                                     <th>@lang('Capital Back') | @lang('is Backed?')</th>
-                                    <th>@lang('Paid | Remaining')</th>
                                     <th>@lang('Created At')</th>
                                     <th>@lang('Action')</th>
                                 </tr>
@@ -35,26 +34,6 @@
                                                 @php echo $invest->isBackedBadge @endphp
                                             @endif
                                         </td>
-
-                                        <td>
-                                            @php
-                                                $remaining = getInvestmentRemaining($invest);
-                                            @endphp
-
-                                            <span data-toggle="tooltip" data-placement="top"
-                                                title="@lang('Paid: ') {{ __($invest->period) }} @lang('returns')">
-                                                {{ __($invest->period) }}
-                                            </span>
-
-                                            @if ($invest->project->return_type != Status::LIFETIME)
-                                                |
-                                                <span data-toggle="tooltip" data-placement="top"
-                                                    title="@lang('Remaining: ') {{ __($remaining) }} @lang('returns')">
-                                                    {{ __($remaining) }}
-                                                </span>
-                                            @endif
-                                        </td>
-
 
                                         <td>{{ showDateTime($invest->created_at) }}</td>
                                         <td>

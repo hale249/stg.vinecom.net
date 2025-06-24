@@ -9,7 +9,7 @@
                         <div class="card-header">
                             <div class="row g-2 align-items-center">
                                 <div class="col-sm-6">
-                                    <h5 class="card-title mb-0">@lang('Total Invests')</h5>
+                                    <h5 class="card-title mb-0">Tổng số đầu tư</h5>
                                 </div>
                                 <div class="col-sm-6 text-sm-end">
                                     <div class="d-flex justify-content-sm-end gap-2">
@@ -19,9 +19,9 @@
                                                 onclick="closeFullscreen();"></i>
                                         </button>
                                         <select class="widget_select" name="invest_time">
-                                            <option value="week">@lang('Current Week')</option>
-                                            <option value="month">@lang('Current Month')</option>
-                                            <option value="year" selected>@lang('Current Year')</option>
+                                            <option value="week">Tuần này</option>
+                                            <option value="month">Tháng này</option>
+                                            <option value="year" selected>Năm nay</option>
                                         </select>
                                     </div>
                                 </div>
@@ -30,7 +30,7 @@
                         <div class="card-body text-center pb-0 px-0">
                             <div class="row align-items-center">
                                 <div class="col-md-4">
-                                    <p>@lang('This') <span class="time_type"></span> @lang('invest')</p>
+                                    <p>Đầu tư <span class="time_type"></span> này</p>
                                 </div>
                                 <div class="col-md-4">
                                     <h3><span>{{ gs('cur_sym') }}</span><span class="total_invest"></span></h3>
@@ -41,7 +41,10 @@
                                     </p>
                                 </div>
                             </div>
-                            <div class="my_invest_canvas"></div>
+                            <div class="my_invest_canvas" style="background:#f8f9fa;min-height:180px;position:relative;border-radius:8px;">
+                                <canvas height="150" id="invest_chart" class="chartjs-chart mt-4"></canvas>
+                                <div id="no-data-message" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#888;font-size:16px;">Không có dữ liệu để hiển thị</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -52,7 +55,7 @@
                                 <div class="card-container">
                                     <div class="investments-scheme">
                                         <div class="d-flex justify-content-between">
-                                            <h3 class="mb-0">@lang('Total Investments') →</h3>
+                                            <h3 class="mb-0">Tổng đầu tư →</h3>
                                             <h3 class="mb-6">
                                                 {{ showAmount($widget['total_invest']) }}
                                             </h3>
@@ -60,7 +63,7 @@
                                     </div>
                                 </div>
                             @else
-                                <h5 class="text-center">@lang('Invest not found')</h5>
+                                <h5 class="text-center">Không tìm thấy đầu tư</h5>
                             @endif
                         </div>
                     </div>
@@ -70,7 +73,7 @@
                         <div class="card-header">
                             <div class="row align-items-center">
                                 <div class="col-6">
-                                    <h5 class="card-title mb-0">@lang('Profit to Pay')</h5>
+                                    <h5 class="card-title mb-0">Lợi nhuận cần trả</h5>
                                 </div>
                             </div>
                         </div>
@@ -79,7 +82,7 @@
                                 <div class="card-container">
                                     <div class="row align-items-center pb-3 pb-xxl-0">
                                         <div class="col-6">
-                                            <p>@lang('Should Pay')</p>
+                                            <p>Cần trả</p>
                                             <h3 class="deposit-amount">
                                                 <sup>{{ gs('cur_sym') }}</sup>{{ showAmount($widget['profit_to_give'], currencyFormat: false) }}
                                             </h3>
@@ -91,10 +94,9 @@
                                     </div>
                                     <div class="progress-info">
                                         <div class="progress-info-content">
-                                            <p>@lang('Paid')
+                                            <p>Đã trả
                                                 @if ($widget['profit_paid'] + $widget['profit_to_give'] != 0)
-                                                    {{ showAmount(($widget['profit_paid'] / ($widget['profit_paid'] + $widget['profit_to_give'])) * 100, currencyFormat: false) }}
-                                                    %
+                                                    {{ showAmount(($widget['profit_paid'] / ($widget['profit_paid'] + $widget['profit_to_give'])) * 100, currencyFormat: false) }}%
                                                 @else
                                                     0%
                                                 @endif
@@ -112,11 +114,10 @@
                                             style="width: {{ $widget['profit_paid'] + $widget['profit_to_give'] != 0 ? getAmount(($widget['profit_paid'] / ($widget['profit_paid'] + $widget['profit_to_give'])) * 100) : 0 }}%;">
                                         </div>
                                     </div>
-                                    <p class="font-12 mb-0">
-                                        *@lang('This statistics showing data excluding lifetime investment.')</p>
+                                    <p class="font-12 mb-0">*Thống kê này không bao gồm đầu tư trọn đời.</p>
                                 </div>
                             @else
-                                <h5 class="text-center">@lang('No invest found to paid!')</h5>
+                                <h5 class="text-center">Không có đầu tư cần trả!</h5>
                             @endif
                         </div>
                     </div>
@@ -126,7 +127,7 @@
                         <div class="card-header">
                             <div class="row align-items-center">
                                 <div class="col">
-                                    <h5 class="card-title mb-0">@lang('Interest Statistics by Project')</h5>
+                                    <h5 class="card-title mb-0">Thống kê lãi theo dự án</h5>
                                 </div>
                             </div>
                         </div>
@@ -143,7 +144,7 @@
                                                 <li class="chart-info-list-item">
                                                     <i
                                                         class="fas fa-plane projectPointInterest me-2"></i>{{ __($key) }}
-                                                    {{ showAmount(($invest / $totalInterest) * 100, currencyFormat: false) }}
+                                                    {{ $totalInterest > 0 ? showAmount(($invest / $totalInterest) * 100, currencyFormat: false) : 0 }}
                                                     %
                                                 </li>
                                             @endforeach
@@ -168,15 +169,15 @@
                                 <div class="col-12">
                                     <div class="row g-2 align-items-center">
                                         <div class="col-sm-6">
-                                            <h5 class="card-title mb-0">@lang('Invest & Interest')</h5>
+                                            <h5 class="card-title mb-0">Đầu tư & Lãi</h5>
                                         </div>
                                         <div class="col-sm-6 text-sm-end">
                                             <select class="widget_select" id="project_statistics_time"
                                                 name="invest_interest_time">
-                                                <option value="all">@lang('All Time')</option>
-                                                <option value="week">@lang('Current Week')</option>
-                                                <option value="month">@lang('Current Month')</option>
-                                                <option value="year">@lang('Current Year')</option>
+                                                <option value="all">Tất cả thời gian</option>
+                                                <option value="week">Tuần này</option>
+                                                <option value="month">Tháng này</option>
+                                                <option value="year">Năm nay</option>
                                             </select>
                                         </div>
                                     </div>
@@ -186,7 +187,7 @@
                         <div class="card-body">
                             <div class="interest-scheme">
                                 <div class="interest-scheme__content">
-                                    <p class="mb-0">@lang('Running Invest')</p>
+                                    <p class="mb-0">Đầu tư đang chạy</p>
                                     <h5 class="mb-1 text-success runningInvests"></h5>
                                     <p class="mb-0">
                                         <a class="btn btn-sm btn-outline-success font-12 px-2"
@@ -194,7 +195,7 @@
                                     </p>
                                 </div>
                                 <div class="interest-scheme__content text-sm-center">
-                                    <p class="mb-0 font-12">@lang('Completed Invest')</p>
+                                    <p class="mb-0 font-12">Đầu tư đã hoàn thành</p>
                                     <h5 class="mb-1 text-warning counter completedInvests"></h5>
                                     <p class="mb-0">
                                         <a
@@ -205,7 +206,7 @@
                                     </p>
                                 </div>
                                 <div class="interest-scheme__content text-sm-end">
-                                    <p class="mb-0 font-12">@lang('Interest')</p>
+                                    <p class="mb-0 font-12">Lãi</p>
                                     <h5 class="mb-1 text-primary interests"></h5>
                                     <p class="mb-0">
                                         <a class="btn btn-sm btn-outline-primary font-12 px-2 speedUp"
@@ -221,20 +222,20 @@
                         <div class="card-header">
                             <div class="row g-2 align-items-center">
                                 <div class="col-sm-6 col-md-12 col-xl-5">
-                                    <h5 class="card-title mb-0">@lang('Investment Statistics by Project')</h5>
+                                    <h5 class="card-title mb-0">Thống kê đầu tư theo dự án</h5>
                                 </div>
                                 <div class="col-sm-6 col-md-12 col-xl-7">
                                     <div class="pair-option justify-content-md-start justify-content-xl-end">
                                         <select class="widget_select" name="project_statistics_invests">
-                                            <option value="all">@lang('All Invests')</option>
-                                            <option value="active">@lang('Running Invests')</option>
-                                            <option value="closed">@lang('Closed Invests')</option>
+                                            <option value="all">Tất cả đầu tư</option>
+                                            <option value="active">Đang chạy</option>
+                                            <option value="closed">Đã đóng</option>
                                         </select>
                                         <select class="widget_select" name="project_statistics_time">
-                                            <option value="all">@lang('All Time')</option>
-                                            <option value="week">@lang('Current Week')</option>
-                                            <option value="month">@lang('Current Month')</option>
-                                            <option value="year">@lang('Current Year')</option>
+                                            <option value="all">Tất cả thời gian</option>
+                                            <option value="week">Tuần này</option>
+                                            <option value="month">Tháng này</option>
+                                            <option value="year">Năm nay</option>
                                         </select>
                                     </div>
                                 </div>
@@ -263,7 +264,7 @@
                         <div class="card-header">
                             <div class="row align-items-center g-2">
                                 <div class="col-sm-6">
-                                    <h5 class="card-title mb-0">@lang('Invest & Interest')</h5>
+                                    <h5 class="card-title mb-0">Đầu tư & Lãi</h5>
                                 </div>
                                 @if (@$firstInvestYear->date)
                                     <div class="col-sm-6">
@@ -277,30 +278,18 @@
                                                 @endfor
                                             </select>
                                             <select class="widget_select" name="invest_interest_month">
-                                                <option value="01" @if (date('m') == '01') selected @endif>
-                                                    @lang('January')</option>
-                                                <option value="02" @if (date('m') == '02') selected @endif>
-                                                    @lang('February')</option>
-                                                <option value="03" @if (date('m') == '03') selected @endif>
-                                                    @lang('March')</option>
-                                                <option value="04" @if (date('m') == '04') selected @endif>
-                                                    @lang('April')</option>
-                                                <option value="05" @if (date('m') == '05') selected @endif>
-                                                    @lang('May')</option>
-                                                <option value="06" @if (date('m') == '06') selected @endif>
-                                                    @lang('June')</option>
-                                                <option value="07" @if (date('m') == '07') selected @endif>
-                                                    @lang('July')</option>
-                                                <option value="08" @if (date('m') == '08') selected @endif>
-                                                    @lang('August')</option>
-                                                <option value="09" @if (date('m') == '09') selected @endif>
-                                                    @lang('September')</option>
-                                                <option value="10" @if (date('m') == '10') selected @endif>
-                                                    @lang('October')</option>
-                                                <option value="11" @if (date('m') == '11') selected @endif>
-                                                    @lang('November')</option>
-                                                <option value="12" @if (date('m') == '12') selected @endif>
-                                                    @lang('December')</option>
+                                                <option value="01" @if (date('m') == '01') selected @endif>Tháng 1</option>
+                                                <option value="02" @if (date('m') == '02') selected @endif>Tháng 2</option>
+                                                <option value="03" @if (date('m') == '03') selected @endif>Tháng 3</option>
+                                                <option value="04" @if (date('m') == '04') selected @endif>Tháng 4</option>
+                                                <option value="05" @if (date('m') == '05') selected @endif>Tháng 5</option>
+                                                <option value="06" @if (date('m') == '06') selected @endif>Tháng 6</option>
+                                                <option value="07" @if (date('m') == '07') selected @endif>Tháng 7</option>
+                                                <option value="08" @if (date('m') == '08') selected @endif>Tháng 8</option>
+                                                <option value="09" @if (date('m') == '09') selected @endif>Tháng 9</option>
+                                                <option value="10" @if (date('m') == '10') selected @endif>Tháng 10</option>
+                                                <option value="11" @if (date('m') == '11') selected @endif>Tháng 11</option>
+                                                <option value="12" @if (date('m') == '12') selected @endif>Tháng 12</option>
                                             </select>
                                         </div>
                                     </div>
@@ -315,45 +304,36 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
-                            <div class="card-title mb-0">@lang('Recent Investments')</div>
+                            <div class="card-title mb-0">Đầu tư gần đây</div>
                         </div>
                         <div class="card-body">
                             <div class="plan-list d-flex flex-wrap flex-xxl-column gap-3 gap-xxl-0">
                                 @foreach ($recentInvests as $invest)
                                     <div class="plan-item-two">
                                         <div class="plan-info plan-inner-div">
-                                            <div class="plan-name fw-bold">{{ $invest->project->title }} -
-                                                @lang('Every')
-                                                {{ __($invest->time_name) }}
-                                                {{ $invest->project->return_type != Status::LIFETIME ? gs('cur_sym') : '' }}{{ showAmount($invest->project->share_amount, currencyFormat: false) }}
-                                                @lang('for') @if ($invest->project->return_type == Status::REPEAT)
-                                                    {{ __($invest->project->repeat_time) }}
-                                                    {{ __(@$invest->project->time->name) }}
-                                                @else
-                                                    @lang('LIFETIME')
-                                                @endif
-                                            </div>
-                                            <div class="plan-desc text-end text-xl-start">@lang('Invested'): <span
+                                            <div class="plan-name fw-bold">{{ $invest->project->title }} - Mỗi {{ __($invest->time_name) }} {{ $invest->project->return_type != Status::LIFETIME ? gs('cur_sym') : '' }}{{ showAmount($invest->project->share_amount, currencyFormat: false) }} cho @if ($invest->project->return_type == Status::REPEAT) {{ __($invest->project->repeat_time) }} {{ __(@$invest->project->time->name) }} @else Trọn đời @endif</div>
+                                            <div class="plan-desc text-end text-xl-start">Đã đầu tư: <span
                                                     class="fw-bold">{{ showAmount($invest->total_price) }}</span></div>
                                         </div>
                                         <div class="plan-start plan-inner-div">
-                                            <p class="plan-label">@lang('Mature Time')</p>
+                                            <p class="plan-label">Thời gian đáo hạn</p>
                                             <p class="plan-value date">
-                                                {{ convertMatureTime($invest->project->maturity_time) }}</p>
+                                                @if ($invest->project->return_type == Status::LIFETIME)
+                                                    Trọn đời
+                                                @else
+                                                    {{ convertMatureTime($invest->project->maturity_time) }}
+                                                @endif
+                                            </p>
                                         </div>
                                         <div class="plan-end plan-inner-div">
-                                            <p class="plan-label">@lang('Invested at')</p>
+                                            <p class="plan-label">Ngày đầu tư</p>
                                             <p class="plan-value date">
                                                 {{ showDateTime($invest->created_at, 'd M, y h:i A') }}</p>
                                         </div>
                                         <div class="plan-amount plan-inner-div text-end">
-                                            <p class="plan-label">@lang('Net Profit')</p>
+                                            <p class="plan-label">Lợi nhuận ròng</p>
                                             <p class="plan-value amount">
-                                                @if ($invest->project->return_type != Status::LIFETIME)
-                                                    {{ showAmount($invest->repeat_times * $invest->recurring_pay) }}
-                                                @else
-                                                    --
-                                                @endif
+                                                {{ $invest->project->roi_percentage }}%
                                             </p>
                                         </div>
                                     </div>
@@ -390,10 +370,10 @@
                 $.get(url, {
                     time: time
                 }, function(response) {
-                    $('.time_type').text(time);
+                    $('.time_type').text(time === 'week' ? 'tuần này' : time === 'month' ? 'tháng này' : time === 'year' ? 'năm nay' : time);
                     $('.total_invest').text(response.total_invest.toFixed(2));
 
-                    let upDown = `<small>Previous ${time} invest was zero</small>`;
+                    let upDown = `<small>Không có đầu tư trong ${time === 'week' ? 'tuần trước' : time === 'month' ? 'tháng trước' : time === 'year' ? 'năm trước' : time}</small>`;
                     if (response.invest_diff != 0) {
                         if (response.up_down == 'up') {
                             var className = 'success'
@@ -403,62 +383,40 @@
                         upDown =
                             `<span class="badge badge-${className}-inverse font-16">${response.invest_diff}%<i class="las la-arrow-${response.up_down}"></i></span>`;
                     }
-
                     $('.up_down').html(upDown);
-                    $('.my_invest_canvas').html(
-                        '<canvas height="150" id="invest_chart" class="chartjs-chart mt-4"></canvas>'
-                    )
+                    $('.my_invest_canvas').html('<canvas height="150" id="invest_chart" class="chartjs-chart mt-4"></canvas><div id="no-data-message" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#888;font-size:16px;">Không có dữ liệu để hiển thị</div>');
                     var ctx = document.getElementById('invest_chart');
+                    var chartData = response.invest_amounts || [];
+                    var chartLabels = response.months || [];
                     var myChart = new Chart(ctx, {
                         type: 'bar',
                         data: {
-                            labels: Object.keys(response.invests),
+                            labels: chartLabels,
                             datasets: [{
-                                data: Object.values(response.invests),
+                                label: 'Tổng số đầu tư theo tháng',
+                                data: chartData,
                                 backgroundColor: [
-                                    @for ($i = 0; $i < 365; $i++)
+                                    @for ($i = 0; $i < 12; $i++)
                                         '#6c5ce7',
                                     @endfor
-
                                 ],
-                                borderColor: [
-                                    'rgba(231, 80, 90, 0.75)'
-                                ],
+                                borderColor: ['rgba(231, 80, 90, 0.75)'],
                                 borderWidth: 0,
-
                             }]
                         },
                         options: {
                             aspectRatio: 1,
                             responsive: true,
                             maintainAspectRatio: true,
-                            elements: {
-                                line: {
-                                    tension: 0 // disables bezier curves
-                                }
-                            },
-                            scales: {
-                                xAxes: [{
-                                    display: false
-                                }],
-                                yAxes: [{
-                                    ticks: {
-                                        suggestedMin: 0, // Set a minimum value
-                                    },
-                                    display: false
-                                }]
-                            },
-                            legend: {
-                                display: false,
-                            },
-                            tooltips: {
-                                callbacks: {
-                                    label: (tooltipItem, data) => data.datasets[0].data[
-                                        tooltipItem.index] + ' {{ gs('cur_text') }}'
-                                }
-                            }
+                            elements: { line: { tension: 0 } },
+                            scales: { xAxes: [{ display: true }], yAxes: [{ ticks: { suggestedMin: 0 }, display: true }] },
+                            legend: { display: true },
+                            tooltips: { callbacks: { label: (tooltipItem, data) => data.datasets[0].data[tooltipItem.index] + ' {{ gs('cur_text') }}' } }
                         }
                     });
+                    if (!chartData.length || chartData.every(v => v === 0)) {
+                        $('#no-data-message').show();
+                    }
                 });
             }).change();
 
@@ -478,7 +436,7 @@
                     let planName = [];
                     let planUrl = "{{ route('admin.report.invest.history') }}";
                     $.each(invests, function(key, invest) {
-                        let investPercent = (invest.investAmount / response.total_invest) * 100;
+                        let investPercent = response.total_invest > 0 ? (invest.investAmount / response.total_invest) * 100 : 0;
                         investAmount.push(parseFloat(invest.investAmount).toFixed(2));
                         planName.push(invest.project.title);
                         planInfo +=

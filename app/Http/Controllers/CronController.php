@@ -91,7 +91,7 @@ class CronController extends Controller
     private function processInvestment($invest, $now)
     {
         $user    = $invest->user;
-        $hours   = (int)$invest->project?->time->hours;
+        $hours   = (int)($invest->project?->time?->hours ?? 24);
         $next    = $now->addHours($hours)->toDateTimeString();
 
         // Process investment

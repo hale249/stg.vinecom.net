@@ -599,24 +599,32 @@
         "submenu": [
             {
                 "keyword": [
-                    "Transaction Log",
                     "Report",
                     "Transaction report",
                     "Transaction history",
-                    "Transaction activity",
-                    "balance sheet",
-                    "balance log",
-                    "balance history"
+                    "Transaction log",
+                    "Transaction data",
+                    "Transaction record"
                 ],
-                "title": "Transaction History",
+                "title": "Transactions",
                 "route_name": "admin.report.transaction",
                 "menu_active": [
                     "admin.report.transaction",
                     "admin.report.transaction.search"
+                ]
+            },
+            {
+                "keyword": [
+                    "Report",
+                    "Revenue report",
+                    "Contract revenue",
+                    "Revenue by contract",
+                    "Contract revenue data",
+                    "Revenue record"
                 ],
-                "params": {
-                    "user_id": ""
-                }
+                "title": "Doanh số hợp đồng",
+                "route_name": "admin.report.contract.revenue",
+                "menu_active": "admin.report.contract.revenue"
             },
             {
                 "keyword": [
