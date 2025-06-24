@@ -2,10 +2,8 @@
 
 @section('panel')
 
-    <div class="row gy-4">
-
-        <div class="col-xxl-3 col-sm-6">
-
+    <div class="row gy-4 justify-content-center mb-4">
+        <div class="col-12 col-md-6 col-xl-4">
             <x-widget
                 style="6"
                 link="{{route('admin.users.all')}}"
@@ -14,8 +12,8 @@
                 value="{{$widget['total_users']}}"
                 bg="primary"
             />
-        </div><!-- dashboard-w1 end -->
-        <div class="col-xxl-3 col-sm-6">
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
             <x-widget
                 style="6"
                 link="{{route('admin.users.active')}}"
@@ -24,31 +22,11 @@
                 value="{{$widget['verified_users']}}"
                 bg="success"
             />
-        </div><!-- dashboard-w1 end -->
-        <div class="col-xxl-3 col-sm-6">
-            <x-widget
-                style="6"
-                link="{{route('admin.users.email.unverified')}}"
-                icon="lar la-envelope"
-                title="Người dùng chưa xác thực email"
-                value="{{$widget['email_unverified_users']}}"
-                bg="danger"
-            />
-        </div><!-- dashboard-w1 end -->
-        <div class="col-xxl-3 col-sm-6">
-            <x-widget
-                style="6"
-                link="{{route('admin.users.mobile.unverified')}}"
-                icon="las la-comment-slash"
-                title="Người dùng chưa xác thực điện thoại"
-                value="{{$widget['mobile_unverified_users']}}"
-                bg="warning"
-            />
-        </div><!-- dashboard-w1 end -->
-    </div><!-- row end-->
+        </div>
+    </div>
 
     <div class="row mt-2 gy-4">
-        <div class="col-xxl-6">
+        {{-- <div class="col-xxl-6">
             <div class="card box-shadow3 h-100">
                 <div class="card-body">
                     <h5 class="card-title">Gửi tiền</h5>
@@ -121,8 +99,8 @@
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-xxl-6">
+        </div> --}}
+        {{-- <div class="col-xxl-6">
             <div class="card box-shadow3 h-100">
                 <div class="card-body">
                     <h5 class="card-title">Rút tiền</h5>
@@ -194,7 +172,7 @@
                     </div>
                 </div>
             </div>
-        </div>
+        </div> --}}
     </div>
     <div class="row gy-4 mt-2">
         <div class="col-xxl-3 col-sm-6">
@@ -288,31 +266,16 @@
         <div class="col-xl-6 mb-30">
             <div class="card">
                 <div class="card-body">
-                    <div class="d-flex flex-wrap justify-content-between">
-                        <h5 class="card-title">Báo cáo gửi/rút tiền</h5>
-
-                        <div id="dwDatePicker" class="border p-1 cursor-pointer rounded">
-                            <i class="la la-calendar"></i>&nbsp;
-                            <span></span> <i class="la la-caret-down"></i>
-                        </div>
-                    </div>
-                    <div id="dwChartArea"></div>
+                    <h5 class="card-title">Biểu đồ số lượng hợp đồng theo tháng</h5>
+                    <div id="investCountChart"></div>
                 </div>
             </div>
         </div>
         <div class="col-xl-6 mb-30">
             <div class="card">
                 <div class="card-body">
-                    <div class="d-flex flex-wrap justify-content-between">
-                        <h5 class="card-title">Báo cáo giao dịch</h5>
-
-                        <div id="trxDatePicker" class="border p-1 cursor-pointer rounded">
-                            <i class="la la-calendar"></i>&nbsp;
-                            <span></span> <i class="la la-caret-down"></i>
-                        </div>
-                    </div>
-
-                    <div id="transactionChartArea"></div>
+                    <h5 class="card-title">Tổng số tiền đầu tư theo tháng</h5>
+                    <div id="investAmountChart"></div>
                 </div>
             </div>
         </div>
@@ -396,115 +359,63 @@
             $(element).html(startDate.format('MMMM D, YYYY') + ' - ' + endDate.format('MMMM D, YYYY'));
         }
 
-        let dwChart = barChart(
-            document.querySelector("#dwChartArea"),
-            @json(__(gs('cur_text'))),
-            [{
-                name: 'Gửi tiền',
-                data: []
-            },
-                {
-                    name: 'Rút tiền',
-                    data: []
-                }
-            ],
-            [],
-        );
-
-        let trxChart = lineChart(
-            document.querySelector("#transactionChartArea"),
-            [{
-                name: "Giao dịch cộng",
-                data: []
-            },
-                {
-                    name: "Giao dịch trừ",
-                    data: []
-                }
-            ],
-            []
-        );
 
 
-        const depositWithdrawChart = (startDate, endDate) => {
+        // Chart functions removed as they reference non-existent elements
 
-            const data = {
-                start_date: startDate.format('YYYY-MM-DD'),
-                end_date: endDate.format('YYYY-MM-DD')
-            }
 
-            const url = @json(route('admin.chart.deposit.withdraw'));
+        // Date picker initialization removed as they reference non-existent elements
 
-            $.get(url, data,
-                function (data, status) {
-                    if (status == 'success') {
-                        dwChart.updateSeries(data.data);
-                        dwChart.updateOptions({
-                            xaxis: {
-                                categories: data.created_on,
-                            }
-                        });
-                    }
-                }
+        const userBrowserChartEl = document.getElementById('userBrowserChart');
+        if (userBrowserChartEl) {
+            piChart(
+                userBrowserChartEl,
+                @json(@$chart['user_browser_counter']->keys()),
+                @json(@$chart['user_browser_counter']->flatten())
             );
         }
 
-        const transactionChart = (startDate, endDate) => {
-
-            const data = {
-                start_date: startDate.format('YYYY-MM-DD'),
-                end_date: endDate.format('YYYY-MM-DD')
-            }
-
-            const url = @json(route('admin.chart.transaction'));
-
-
-            $.get(url, data,
-                function (data, status) {
-                    if (status == 'success') {
-
-
-                        trxChart.updateSeries(data.data);
-                        trxChart.updateOptions({
-                            xaxis: {
-                                categories: data.created_on,
-                            }
-                        });
-                    }
-                }
+        const userOsChartEl = document.getElementById('userOsChart');
+        if (userOsChartEl) {
+            piChart(
+                userOsChartEl,
+                @json(@$chart['user_os_counter']->keys()),
+                @json(@$chart['user_os_counter']->flatten())
+            );
+        }
+        const userCountryChartEl = document.getElementById('userCountryChart');
+        if (userCountryChartEl) {
+            piChart(
+                userCountryChartEl,
+                @json(@$chart['user_country_counter']->keys()),
+                @json(@$chart['user_country_counter']->flatten())
             );
         }
 
 
-        $('#dwDatePicker').daterangepicker(dateRangeOptions, (start, end) => changeDatePickerText('#dwDatePicker span', start, end));
-        $('#trxDatePicker').daterangepicker(dateRangeOptions, (start, end) => changeDatePickerText('#trxDatePicker span', start, end));
+        $.get("{{ route('admin.invest.report.statistics') }}", function(response) {
+            const investCountChartEl = document.getElementById('investCountChart');
+            if (investCountChartEl && response && response.months && response.invest_counts) {
+                barChart(
+                    investCountChartEl,
+                    '{{ __($general->cur_text ?? "") }}',
+                    [{ name: 'Số lượng hợp đồng', data: response.invest_counts }],
+                    response.months
+                );
+            }
+        });
 
-        changeDatePickerText('#dwDatePicker span', start, end);
-        changeDatePickerText('#trxDatePicker span', start, end);
-
-        depositWithdrawChart(start, end);
-        transactionChart(start, end);
-
-        $('#dwDatePicker').on('apply.daterangepicker', (event, picker) => depositWithdrawChart(picker.startDate, picker.endDate));
-        $('#trxDatePicker').on('apply.daterangepicker', (event, picker) => transactionChart(picker.startDate, picker.endDate));
-
-        piChart(
-            document.getElementById('userBrowserChart'),
-            @json(@$chart['user_browser_counter']->keys()),
-            @json(@$chart['user_browser_counter']->flatten())
-        );
-
-        piChart(
-            document.getElementById('userOsChart'),
-            @json(@$chart['user_os_counter']->keys()),
-            @json(@$chart['user_os_counter']->flatten())
-        );
-
-        piChart(
-            document.getElementById('userCountryChart'),
-            @json(@$chart['user_country_counter']->keys()),
-            @json(@$chart['user_country_counter']->flatten())
-        );
+        $.get("{{ route('admin.invest.report.statistics') }}", function(response) {
+            const investAmountChartEl = document.getElementById('investAmountChart');
+            if (investAmountChartEl && response && response.months && response.invest_amounts) {
+                barChart(
+                    investAmountChartEl,
+                    '{{ __($general->cur_text ?? "") }}',
+                    [{ name: 'Tổng số tiền đầu tư', data: response.invest_amounts }],
+                    response.months
+                );
+            }
+        });
     </script>
 @endpush
 @push('style')

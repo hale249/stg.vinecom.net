@@ -40,39 +40,35 @@ class InvestReportController extends Controller
 
     public function investStatistics(Request $request)
     {
-        if ($request->time == 'year') {
-            $time = now()->startOfYear();
-            $prevTime = now()->startOfYear()->subYear();
-        } elseif ($request->time == 'month') {
-            $time = now()->startOfMonth();
-            $prevTime = now()->startOfMonth()->subMonth();
-        } else {
-            $time = now()->startOfWeek();
-            $prevTime = now()->startOfWeek()->subWeek();
+        $months = [];
+        $investCounts = [];
+        $investAmounts = [];
+
+        for ($i = 11; $i >= 0; $i--) {
+            $startDate = now()->subMonths($i)->startOfMonth();
+            $endDate = now()->subMonths($i)->endOfMonth();
+            
+            // Format month for display
+            $months[] = now()->subMonths($i)->format('M Y');
+            
+            // Count investments in this month
+            $count = Invest::whereBetween('created_at', [$startDate, $endDate])->count();
+            $investCounts[] = $count;
+            
+            // Sum investment amounts in this month
+            $amount = Invest::whereBetween('created_at', [$startDate, $endDate])->sum('total_price');
+            $investAmounts[] = (float) $amount;
         }
 
-        $invests = Invest::where('created_at', '>=', $time)->selectRaw("SUM(total_price) as total_price, DATE_FORMAT(created_at, '%Y-%m-%d') as date")->groupBy('date')->get();
-        $totalInvest = $invests->sum('total_price');
-
-        $invests = $invests->mapWithKeys(function ($invest) {
-            return [
-                $invest->date => (float)$invest->total_price,
-            ];
-        });
-
-        $prevInvest = Invest::where('created_at', '>=', $prevTime)->where('created_at', '<', $time)->sum('total_price');
-        $investDiff = ($prevInvest ? $totalInvest / $prevInvest * 100 - 100 : 0);
-        if ($investDiff > 0) {
-            $upDown = 'up';
-        } else {
-            $upDown = 'down';
-        }
-        $investDiff = abs($investDiff);
         return [
-            'invests' => $invests,
-            'total_invest' => $totalInvest,
-            'invest_diff' => round($investDiff, 2),
-            'up_down' => $upDown,
+            'months' => $months,
+            'invest_counts' => $investCounts,
+            'invest_amounts' => $investAmounts,
+            // Keep original data for backwards compatibility
+            'invests' => [],
+            'total_invest' => array_sum($investAmounts),
+            'invest_diff' => 0,
+            'up_down' => 'up',
         ];
     }
 

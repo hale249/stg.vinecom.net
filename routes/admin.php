@@ -45,8 +45,10 @@ Route::middleware('admin')->group(function () {
 
 
         Route::get('download-attachments/{file_hash}', 'downloadAttachment')->name('download.attachment');
+        Route::get('chart/invest-status', 'investStatusChart')->name('chart.invest.status');
+        Route::get('chart/user-count', 'userCountChart')->name('chart.user.count');
+        Route::get('chart/revenue', 'revenueChart')->name('chart.revenue');
     });
-
     // Manage Time
     Route::controller('ManageTimeController')->name('time.')->prefix('time')->group(function () {
         Route::get('/', 'index')->name('index');
