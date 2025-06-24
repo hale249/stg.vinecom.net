@@ -39,38 +39,14 @@
                             @forelse($contracts as $contract)
                             <tr>
                                 <td>{{ $contract->invest_no }}</td>
-                                <td>{{ Str::limit($contract->project->name ?? 'N/A', 20) }}</td>
+                                <td>{{ Str::limit($contract->project->title ?? 'N/A', 20) }}</td>
                                 <td>{{ $contract->user->fullname ?? 'N/A' }}</td>
-                                <td>{{ showAmount($contract->amount) }} {{ __($general->cur_text) }}</td>
-                                <td>{{ $contract->interest_rate }}%</td>
+                                <td>{{ showAmount($contract->total_price) }} {{ __($general->cur_text) }}</td>
+                                <td>{{ $contract->display_roi_percentage }}%</td>
                                 <td>{{ showDateTime($contract->created_at) }}</td>
+                                <td>{!! $contract->statusBadge !!}</td>
                                 <td>
-                                    @php
-                                        $status = $contract->status;
-                                        $statusClass = '';
-                                        $statusText = '';
-                                        
-                                        if($status == \App\Constants\Status::INVEST_PENDING) {
-                                            $statusClass = 'warning';
-                                            $statusText = 'Chờ duyệt';
-                                        } elseif($status == \App\Constants\Status::INVEST_RUNNING) {
-                                            $statusClass = 'success';
-                                            $statusText = 'Đang chạy';
-                                        } elseif($status == \App\Constants\Status::INVEST_COMPLETED) {
-                                            $statusClass = 'primary';
-                                            $statusText = 'Hoàn thành';
-                                        } elseif($status == \App\Constants\Status::INVEST_REJECTED) {
-                                            $statusClass = 'danger';
-                                            $statusText = 'Từ chối';
-                                        } elseif($status == \App\Constants\Status::INVEST_CANCELED) {
-                                            $statusClass = 'dark';
-                                            $statusText = 'Đã hủy';
-                                        }
-                                    @endphp
-                                    <span class="badge badge--{{ $statusClass }}">{{ __($statusText) }}</span>
-                                </td>
-                                <td>
-                                    <a href="{{ route('user.staff.staff.contract_details', $contract->id) }}" class="btn btn-sm btn-outline--primary">
+                                    <a href="{{ route('user.staff.staff.contract.details', $contract->id) }}" class="btn btn-sm btn-outline--primary">
                                         <i class="las la-eye"></i> @lang('Chi tiết')
                                     </a>
                                     

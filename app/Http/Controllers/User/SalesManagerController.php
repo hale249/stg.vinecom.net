@@ -193,7 +193,7 @@ class SalesManagerController extends Controller
             return back()->withNotify($notify);
         }
         
-        $invest->status = Status::INVEST_REJECTED;
+        $invest->status = Status::INVEST_CANCELED;
         $invest->rejection_reason = $request->rejection_reason;
         $invest->save();
         

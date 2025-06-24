@@ -216,15 +216,6 @@
             }
         ]
     },
-    "comment": {
-        "keyword": [
-            "Comment"
-        ],
-        "title": "Comments",
-        "icon": "las la-comment-dots",
-        "menu_active": "admin.comment*",
-        "route_name": "admin.comment.index"
-    },
     "manage_frontend": {
         "keyword": [
             "frontend",

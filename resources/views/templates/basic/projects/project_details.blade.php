@@ -177,13 +177,6 @@
                                     </button>
                                 </li>
                                 
-                                <li class="nav-item" role="presentation">
-                                    <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments" type="button" role="tab">
-                                        <i class="las la-comments"></i>
-                                        Bình luận <span class="comment-count">({{ $commentCount }})</span>
-                                    </button>
-                                </li>
-                                
                                 @if($documents->isNotEmpty())
                                     <li class="nav-item" role="presentation">
                                         <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
@@ -268,6 +261,13 @@
                                         </div>
                                     </div>
                                 </div>
+
+                                <!-- Documents Tab -->
+                                @if($documents->isNotEmpty())
+                                    <div class="tab-pane fade" id="documents" role="tabpanel">
+                                        @include('components.project-documents')
+                                    </div>
+                                @endif
 
                                 <!-- Comments Tab -->
                                 <div class="tab-pane fade" id="comments" role="tabpanel">

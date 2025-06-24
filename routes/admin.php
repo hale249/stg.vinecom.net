@@ -111,6 +111,14 @@ Route::middleware('admin')->group(function () {
         Route::post('delete/{documentId}', 'destroy')->name('delete');
         Route::get('download/{documentId}', 'download')->name('download');
     });
+    
+    // Contract Documents Management
+    Route::controller('ContractDocumentController')->name('invest.documents.')->prefix('invest/{investId}/documents')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('upload', 'upload')->name('upload');
+        Route::get('download/{documentId}', 'download')->name('download');
+        Route::post('delete/{documentId}', 'delete')->name('delete');
+    });
 
     // Invest Report
     Route::controller('InvestReportController')->name('invest.report.')->prefix('invest/report')->group(function () {

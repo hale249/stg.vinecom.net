@@ -56,6 +56,11 @@ class Invest extends Model
         return $this->hasMany(Transaction::class);
     }
 
+    public function documents()
+    {
+        return $this->hasMany(ContractDocument::class);
+    }
+
     public function scopeCompleted($query)
     {
         return $query->where('status', Status::INVEST_COMPLETED);
@@ -164,5 +169,13 @@ class Invest extends Model
 
             return $html;
         });
+    }
+
+    public function getDisplayRoiPercentageAttribute()
+    {
+        if ($this->roi_percentage && $this->roi_percentage != 0) {
+            return $this->roi_percentage;
+        }
+        return $this->project ? $this->project->roi_percentage : 0;
     }
 }

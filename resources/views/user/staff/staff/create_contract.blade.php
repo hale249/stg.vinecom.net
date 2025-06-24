@@ -31,8 +31,8 @@
                                 <select name="project_id" class="form-control form--control" required>
                                     <option value="">@lang('-- Chọn dự án --')</option>
                                     @foreach($projects as $project)
-                                        <option value="{{ $project->id }}" data-min="{{ getAmount($project->minimum) }}" data-max="{{ getAmount($project->maximum) }}" data-fixed="{{ $project->fixed_amount }}">
-                                            {{ $project->name }}
+                                        <option value="{{ $project->id }}" data-share-amount="{{ number_format($project->share_amount, 0, ',', '.') }}" data-roi-percentage="{{ rtrim(rtrim(number_format($project->roi_percentage, 2, ',', '.'), '0'), ',') }}">
+                                            {{ $project->title }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -63,7 +63,7 @@
                         <div class="col-md-6">
                             <div class="form-group mb-3">
                                 <label class="form-label">@lang('Thời hạn (tháng)') <span class="text-danger">*</span></label>
-                                <input type="number" name="period" class="form-control form--control" required>
+                                <input type="number" name="duration" class="form-control form--control" required>
                             </div>
                         </div>
                         
@@ -107,11 +107,13 @@
         
         $('select[name=project_id]').on('change', function() {
             var option = $(this).find('option:selected');
-            var minAmount = option.data('min') || 0;
-            var maxAmount = option.data('max') || 0;
-            var isFixed = option.data('fixed') || 0;
+            var minAmount = option.data('share-amount') || 0;
+            var roi = option.data('roi-percentage') || 0;
+            var isFixed = 0;
             
             $('.min-amount').text(minAmount);
+            $('input[name=amount]').attr('min', minAmount).val('');
+            $('input[name=interest_rate]').val(roi);
             
             if(isFixed == 1) {
                 $('input[name=amount]').val(minAmount).prop('readonly', true);
@@ -119,7 +121,9 @@
                 $('input[name=amount]').prop('readonly', false);
             }
         });
-        
+        $(function(){
+            $('select[name=project_id]').trigger('change');
+        });
     })(jQuery);
 </script>
 @endpush 

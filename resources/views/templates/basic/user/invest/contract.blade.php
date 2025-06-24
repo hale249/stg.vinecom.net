@@ -13,6 +13,9 @@
                             <a href="{{ route('user.invest.contract.download', $invest->id) }}" class="btn btn-sm btn-outline--success">
                                 <i class="las la-download"></i> @lang('Download PDF')
                             </a>
+                            <a href="{{ route('user.invest.documents', $invest->id) }}" class="btn btn-sm btn-outline--info">
+                                <i class="las la-file-upload"></i> @lang('Contract Documents')
+                            </a>
                         </div>
                     </div>
                     <div class="card-body">

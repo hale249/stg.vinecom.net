@@ -112,6 +112,12 @@
 @push('breadcrumb-plugins')
     <x-back route="{{ route('admin.invest.index') }}" />
 
+    <!-- Document Management Button -->
+    <a href="{{ route('admin.invest.documents.index', $invest->id) }}" class="btn btn-sm btn-outline--info">
+        <i class="las la-file-upload"></i>
+        @lang('Contract Documents')
+    </a>
+
     <!-- Stop/Start Returns Button -->
     @if ($invest->project->return_type == Status::LIFETIME && $invest->status == Status::INVEST_RUNNING)
         <!-- Button for stopping returns -->
