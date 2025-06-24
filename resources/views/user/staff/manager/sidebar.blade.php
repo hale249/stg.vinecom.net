@@ -53,10 +53,16 @@
                         <span class="menu-title">@lang('Lương & Thu nhập')</span>
                     </a>
                 </li>
+                <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.hr.attendance') ? 'active' : '' }}">
+                    <a href="{{ route('user.staff.manager.hr.attendance') }}" class="nav-link">
+                        <i class="menu-icon las la-calendar-check"></i>
+                        <span class="menu-title">@lang('Quản lý Chấm công')</span>
+                    </a>
+                </li>
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.hr.kpi') ? 'active' : '' }}">
                     <a href="{{ route('user.staff.manager.hr.kpi') }}" class="nav-link">
                         <i class="menu-icon las la-bullseye"></i>
-                        <span class="menu-title">@lang('KPI & Chỉ số')</span>
+                        <span class="menu-title">@lang('KPI & Hiệu suất')</span>
                     </a>
                 </li>
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.hr.performance') ? 'active' : '' }}">

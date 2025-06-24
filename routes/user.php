@@ -142,6 +142,13 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::get('hr/kpi', 'kpiDashboard')->name('hr.kpi');
                 Route::post('hr/kpi', 'storeKPI')->name('hr.kpi.store');
                 Route::get('hr/performance', 'performanceDashboard')->name('hr.performance');
+                
+                // Attendance Management Routes
+                Route::get('hr/attendance', 'attendanceDashboard')->name('hr.attendance');
+                Route::post('hr/attendance/store', 'storeAttendance')->name('hr.attendance.store');
+                Route::post('hr/attendance/delete/{id}', 'deleteAttendance')->name('hr.attendance.delete');
+                Route::get('hr/attendance/export', 'exportAttendance')->name('hr.attendance.export');
+                Route::post('hr/attendance/import', 'importAttendance')->name('hr.attendance.import');
             });
         });
         

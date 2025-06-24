@@ -8,11 +8,15 @@ use App\Models\Invest;
 use App\Models\User;
 use App\Models\StaffSalary;
 use App\Models\StaffKPI;
+use App\Models\StaffAttendance;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
+use League\Csv\Reader;
+use League\Csv\Writer;
 
 class SalesManagerController extends Controller
 {
@@ -314,6 +318,310 @@ class SalesManagerController extends Controller
         ];
         
         return view('user.staff.manager.salary_commission', compact('pageTitle', 'salaries', 'staffMembers', 'summary', 'month', 'staffId'));
+    }
+
+    /**
+     * HR Management: Attendance Dashboard
+     */
+    public function attendanceDashboard(Request $request)
+    {
+        $pageTitle = 'Quản lý Chấm công';
+        $user = Auth::user();
+        
+        // Get filter parameters
+        $month = $request->get('month', now()->format('Y-m'));
+        $staffId = $request->get('user_id');
+        $year = substr($month, 0, 4);
+        $monthNum = substr($month, 5, 2);
+        
+        // Get staff members
+        $staffMembers = $user->staffMembers;
+        
+        // Build query for attendance
+        $query = StaffAttendance::with(['staff'])
+            ->whereHas('staff', function($q) use ($user) {
+                $q->where('manager_id', $user->id);
+            })
+            ->whereYear('date', $year)
+            ->whereMonth('date', $monthNum);
+            
+        if ($staffId) {
+            $query->where('staff_id', $staffId);
+        }
+        
+        $attendances = $query->orderBy('date', 'desc')->paginate(getPaginate());
+        
+        // Calculate summary statistics by employee
+        $summaryByEmployee = StaffAttendance::with(['staff'])
+            ->whereHas('staff', function($q) use ($user) {
+                $q->where('manager_id', $user->id);
+            })
+            ->whereYear('date', $year)
+            ->whereMonth('date', $monthNum)
+            ->select('staff_id', 'employee_code', DB::raw('SUM(working_day) as total_working_days'), DB::raw('COUNT(*) as total_days'))
+            ->groupBy('staff_id', 'employee_code')
+            ->get();
+        
+        // Return JSON if requested
+        if ($request->get('format') === 'json') {
+            return response()->json([
+                'attendances' => $attendances->items(),
+                'summary' => $summaryByEmployee
+            ]);
+        }
+        
+        return view('user.staff.manager.attendance', compact('pageTitle', 'attendances', 'staffMembers', 'summaryByEmployee', 'month', 'staffId'));
+    }
+
+    /**
+     * Store new attendance record
+     */
+    public function storeAttendance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'staff_id' => 'required|exists:users,id',
+            'date' => 'required|date',
+            'working_day' => 'required|numeric|min:0|max:1',
+            'note' => 'nullable|string|max:255',
+        ]);
+        
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+        
+        $user = Auth::user();
+        $staff = User::findOrFail($request->staff_id);
+        
+        // Check if manager has permission to add attendance for this staff
+        if ($staff->manager_id != $user->id && !auth()->user()->is_admin) {
+            $notify[] = ['error', 'Bạn không có quyền thêm chấm công cho nhân viên này'];
+            return back()->withNotify($notify);
+        }
+        
+        // Check if attendance already exists for this date and employee
+        $existingAttendance = StaffAttendance::where('staff_id', $request->staff_id)
+            ->where('date', $request->date)
+            ->first();
+            
+        if ($existingAttendance) {
+            // Update existing record
+            $existingAttendance->working_day = $request->working_day;
+            $existingAttendance->note = $request->note;
+            $existingAttendance->updated_by = $user->id;
+            $existingAttendance->save();
+            
+            $notify[] = ['success', 'Cập nhật chấm công thành công'];
+        } else {
+            // Create new record
+            $attendance = new StaffAttendance();
+            $attendance->staff_id = $request->staff_id;
+            $attendance->employee_code = $staff->username; // Using username as employee code
+            $attendance->date = $request->date;
+            $attendance->working_day = $request->working_day;
+            $attendance->note = $request->note;
+            $attendance->created_by = $user->id;
+            $attendance->save();
+            
+            $notify[] = ['success', 'Thêm chấm công thành công'];
+        }
+        
+        return back()->withNotify($notify);
+    }
+
+    /**
+     * Delete attendance record
+     */
+    public function deleteAttendance(Request $request, $id)
+    {
+        $user = Auth::user();
+        $attendance = StaffAttendance::findOrFail($id);
+        
+        // Check if manager has permission to delete attendance for this staff
+        $staff = User::findOrFail($attendance->staff_id);
+        if ($staff->manager_id != $user->id && !auth()->user()->is_admin) {
+            $notify[] = ['error', 'Bạn không có quyền xóa chấm công của nhân viên này'];
+            return back()->withNotify($notify);
+        }
+        
+        $attendance->delete();
+        
+        $notify[] = ['success', 'Xóa chấm công thành công'];
+        return back()->withNotify($notify);
+    }
+
+    /**
+     * Export attendance data to CSV
+     */
+    public function exportAttendance(Request $request)
+    {
+        $user = Auth::user();
+        $month = $request->get('month', now()->format('Y-m'));
+        $staffId = $request->get('user_id');
+        $year = substr($month, 0, 4);
+        $monthNum = substr($month, 5, 2);
+        
+        // Build query for attendance
+        $query = StaffAttendance::with(['staff'])
+            ->whereHas('staff', function($q) use ($user) {
+                $q->where('manager_id', $user->id);
+            })
+            ->whereYear('date', $year)
+            ->whereMonth('date', $monthNum);
+            
+        if ($staffId) {
+            $query->where('staff_id', $staffId);
+        }
+        
+        $attendances = $query->orderBy('date')->get();
+        
+        // Create CSV
+        $csv = Writer::createFromString('');
+        $csv->insertOne(['employee_code', 'employee_name', 'date', 'working_day', 'note']);
+        
+        foreach ($attendances as $attendance) {
+            $csv->insertOne([
+                $attendance->employee_code,
+                $attendance->staff->fullname ?? 'N/A',
+                $attendance->date->format('Y-m-d'),
+                $attendance->working_day,
+                $attendance->note ?? '',
+            ]);
+        }
+        
+        $filename = 'attendance_' . $month . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+        
+        return response($csv->getContent(), 200, $headers);
+    }
+
+    /**
+     * Import attendance data from CSV
+     */
+    public function importAttendance(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'csv_file' => 'required|file|mimes:csv,txt',
+            'overwrite' => 'nullable|boolean',
+        ]);
+        
+        if ($validator->fails()) {
+            return back()->withErrors($validator)->withInput();
+        }
+        
+        $user = Auth::user();
+        $overwrite = $request->has('overwrite') ? true : false;
+        
+        try {
+            $csv = Reader::createFromPath($request->file('csv_file')->getPathname(), 'r');
+            $csv->setHeaderOffset(0);
+            
+            $records = $csv->getRecords();
+            $importCount = 0;
+            $updateCount = 0;
+            $errorCount = 0;
+            $errors = [];
+            
+            DB::beginTransaction();
+            
+            foreach ($records as $offset => $record) {
+                // Validate required fields
+                if (empty($record['employee_code']) || empty($record['date']) || !isset($record['working_day'])) {
+                    $errors[] = "Hàng " . ($offset + 2) . ": Thiếu thông tin bắt buộc";
+                    $errorCount++;
+                    continue;
+                }
+                
+                // Find staff by employee code
+                $staff = User::where('username', $record['employee_code'])
+                    ->orWhere('email', $record['employee_code'])
+                    ->first();
+                    
+                if (!$staff) {
+                    $errors[] = "Hàng " . ($offset + 2) . ": Không tìm thấy nhân viên với mã " . $record['employee_code'];
+                    $errorCount++;
+                    continue;
+                }
+                
+                // Check if manager has permission to add attendance for this staff
+                if ($staff->manager_id != $user->id && !auth()->user()->is_admin) {
+                    $errors[] = "Hàng " . ($offset + 2) . ": Bạn không có quyền thêm chấm công cho nhân viên " . $staff->fullname;
+                    $errorCount++;
+                    continue;
+                }
+                
+                // Validate date format
+                try {
+                    $date = Carbon::createFromFormat('Y-m-d', $record['date'])->toDateString();
+                } catch (\Exception $e) {
+                    $errors[] = "Hàng " . ($offset + 2) . ": Định dạng ngày không hợp lệ, phải là YYYY-MM-DD";
+                    $errorCount++;
+                    continue;
+                }
+                
+                // Validate working_day
+                $workingDay = (float) $record['working_day'];
+                if ($workingDay < 0 || $workingDay > 1) {
+                    $errors[] = "Hàng " . ($offset + 2) . ": Số công không hợp lệ, phải từ 0 đến 1";
+                    $errorCount++;
+                    continue;
+                }
+                
+                // Check if attendance already exists
+                $existingAttendance = StaffAttendance::where('staff_id', $staff->id)
+                    ->where('date', $date)
+                    ->first();
+                    
+                if ($existingAttendance) {
+                    if ($overwrite) {
+                        // Update existing record
+                        $existingAttendance->working_day = $workingDay;
+                        $existingAttendance->note = $record['note'] ?? '';
+                        $existingAttendance->updated_by = $user->id;
+                        $existingAttendance->save();
+                        $updateCount++;
+                    } else {
+                        // Skip if not overwriting
+                        $errors[] = "Hàng " . ($offset + 2) . ": Đã tồn tại chấm công cho nhân viên " . $staff->fullname . " vào ngày " . $date;
+                        $errorCount++;
+                        continue;
+                    }
+                } else {
+                    // Create new record
+                    $attendance = new StaffAttendance();
+                    $attendance->staff_id = $staff->id;
+                    $attendance->employee_code = $record['employee_code'];
+                    $attendance->date = $date;
+                    $attendance->working_day = $workingDay;
+                    $attendance->note = $record['note'] ?? '';
+                    $attendance->created_by = $user->id;
+                    $attendance->save();
+                    $importCount++;
+                }
+            }
+            
+            DB::commit();
+            
+            $message = "Nhập dữ liệu thành công. Thêm mới: $importCount, Cập nhật: $updateCount";
+            if ($errorCount > 0) {
+                $message .= ", Lỗi: $errorCount";
+            }
+            
+            $notify[] = ['success', $message];
+            
+            if (!empty($errors)) {
+                session()->flash('import_errors', $errors);
+            }
+            
+            return back()->withNotify($notify);
+            
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $notify[] = ['error', 'Lỗi khi nhập dữ liệu: ' . $e->getMessage()];
+            return back()->withNotify($notify);
+        }
     }
 
     /**
