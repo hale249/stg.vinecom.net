@@ -1371,6 +1371,15 @@
         .comment-form {
             width: 100%;
         }
+        .project-header {
+            margin-bottom: 24px;
+        }
+        .project-meta-header {
+            margin-bottom: 16px;
+        }
+        .main-image-container {
+            margin-top: 0;
+        }
     }
 
     @media (max-width: 576px) {
@@ -1390,6 +1399,15 @@
         .investment-card,
         .related-projects {
             padding: 20px;
+        }
+        .project-header {
+            margin-bottom: 20px;
+        }
+        .project-meta-header {
+            margin-bottom: 12px;
+        }
+        .main-image-container {
+            margin-top: 0;
         }
     }
     </style>
