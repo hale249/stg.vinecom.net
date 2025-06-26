@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\DB;
 use League\Csv\Reader;
 use League\Csv\Writer;
+use App\Services\HonorService;
 
 class SalesManagerController extends Controller
 {
@@ -27,6 +28,10 @@ class SalesManagerController extends Controller
     {
         $pageTitle = 'Sales Manager Dashboard';
         $user = Auth::user();
+        
+        // Check for active honor
+        $honorService = new HonorService();
+        $honor = $honorService->getActiveHonor();
         
         // Get all staff members managed by this manager
         $staffMembers = $user->staffMembers;
@@ -70,7 +75,7 @@ class SalesManagerController extends Controller
             ->limit(10)
             ->get();
         
-        return view('user.staff.manager.dashboard', compact('pageTitle', 'user', 'staffMembers', 'stats', 'interestAlerts', 'maturityAlerts'));
+        return view('user.staff.manager.dashboard', compact('pageTitle', 'user', 'staffMembers', 'stats', 'interestAlerts', 'maturityAlerts', 'honor'));
     }
     
     /**
@@ -683,10 +688,62 @@ class SalesManagerController extends Controller
     /**
      * HR Management: Performance Dashboard
      */
-    public function performanceDashboard()
+    public function performanceDashboard(Request $request)
     {
         $pageTitle = 'Hiệu suất làm việc';
-            return view('user.staff.manager.performance_dashboard', compact('pageTitle'));
+        $user = Auth::user();
+        $month = $request->get('month', now()->format('Y-m'));
+        $staffId = $request->get('user_id');
+        $projectId = $request->get('project_id');
+
+        // Get all staff under this manager
+        $staffMembers = $user->staffMembers;
+        $projects = \App\Models\Project::all();
+
+        // Build query for performance data
+        $query = \App\Models\Invest::query()
+            ->where('status', \App\Constants\Status::INVEST_COMPLETED)
+            ->whereYear('created_at', substr($month, 0, 4))
+            ->whereMonth('created_at', substr($month, 5, 2));
+        if ($staffId) {
+            $query->where('staff_id', $staffId);
+        } else {
+            $query->whereIn('staff_id', $staffMembers->pluck('id'));
+        }
+        if ($projectId) {
+            $query->where('project_id', $projectId);
+        }
+        $invests = $query->get();
+
+        // Prepare performance data
+        $performanceData = [];
+        foreach ($staffMembers as $staff) {
+            if ($staffId && $staff->id != $staffId) continue;
+            $staffInvests = $invests->where('staff_id', $staff->id);
+            if ($projectId) {
+                // Only for selected project
+                $projectInvests = $staffInvests->where('project_id', $projectId);
+                $contracts = $projectInvests->count();
+                $sales = $projectInvests->sum('total_price');
+            } else {
+                $contracts = $staffInvests->count();
+                $sales = $staffInvests->sum('total_price');
+            }
+            // Get KPI for this staff/month
+            $kpi = \App\Models\StaffKPI::where('staff_id', $staff->id)
+                ->where('month_year', $month)
+                ->first();
+            $kpiPercent = $kpi ? $kpi->overall_kpi_percentage : 0;
+            $kpiStatus = $kpi ? $kpi->kpi_status : 'not_achieved';
+            $performanceData[] = [
+                'staff' => $staff,
+                'contracts' => $contracts,
+                'sales' => $sales,
+                'kpi_percent' => $kpiPercent,
+                'kpi_status' => $kpiStatus,
+            ];
+        }
+        return view('user.staff.manager.performance_dashboard', compact('pageTitle', 'performanceData', 'staffMembers', 'projects', 'month', 'staffId', 'projectId'));
     }
 
     /**
@@ -764,5 +821,194 @@ class SalesManagerController extends Controller
 
         $notify[] = ['success', 'KPI đã được tạo thành công.'];
         return back()->withNotify($notify);
+    }
+
+    /**
+     * Show KPI details
+     */
+    public function showKPI($id)
+    {
+        $user = Auth::user();
+        $kpi = StaffKPI::where('id', $id)
+            ->where('manager_id', $user->id)
+            ->with(['staff'])
+            ->firstOrFail();
+
+        $html = view('user.staff.manager.partials.kpi_detail', compact('kpi'))->render();
+        
+        return response()->json([
+            'success' => true,
+            'html' => $html
+        ]);
+    }
+
+    /**
+     * Edit KPI form data
+     */
+    public function editKPI($id)
+    {
+        $user = Auth::user();
+        $kpi = StaffKPI::where('id', $id)
+            ->where('manager_id', $user->id)
+            ->firstOrFail();
+
+        return response()->json([
+            'success' => true,
+            'kpi' => $kpi
+        ]);
+    }
+
+    /**
+     * Update KPI data
+     */
+    public function updateKPI(Request $request, $id)
+    {
+        $request->validate([
+            'staff_id' => 'required|exists:users,id',
+            'month_year' => 'required|date_format:Y-m',
+            'target_contracts' => 'nullable|integer|min:0',
+            'actual_contracts' => 'nullable|integer|min:0',
+            'target_sales' => 'nullable|numeric|min:0',
+            'actual_sales' => 'nullable|numeric|min:0',
+            'target_customers' => 'nullable|integer|min:0',
+            'actual_customers' => 'nullable|integer|min:0',
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
+        $user = Auth::user();
+        $kpi = StaffKPI::where('id', $id)
+            ->where('manager_id', $user->id)
+            ->firstOrFail();
+
+        // Check if KPI already exists for this staff and month (excluding current record)
+        $existingKPI = StaffKPI::where('staff_id', $request->staff_id)
+            ->where('month_year', $request->month_year)
+            ->where('manager_id', $user->id)
+            ->where('id', '!=', $id)
+            ->first();
+
+        if ($existingKPI) {
+            return response()->json([
+                'success' => false,
+                'message' => 'KPI cho nhân viên này trong tháng này đã tồn tại.'
+            ]);
+        }
+
+        // Calculate completion rates
+        $contractCompletionRate = $request->target_contracts > 0 ? 
+            ($request->actual_contracts / $request->target_contracts) * 100 : 0;
+        $salesCompletionRate = $request->target_sales > 0 ? 
+            ($request->actual_sales / $request->target_sales) * 100 : 0;
+        $customerCompletionRate = $request->target_customers > 0 ? 
+            ($request->actual_customers / $request->target_customers) * 100 : 0;
+        
+        // Calculate overall KPI (average of 3 rates)
+        $overallKpiPercentage = ($contractCompletionRate + $salesCompletionRate + $customerCompletionRate) / 3;
+
+        // Determine KPI status
+        if ($overallKpiPercentage >= 120) {
+            $kpiStatus = 'exceeded';
+        } elseif ($overallKpiPercentage >= 100) {
+            $kpiStatus = 'achieved';
+        } elseif ($overallKpiPercentage >= 80) {
+            $kpiStatus = 'near_achieved';
+        } else {
+            $kpiStatus = 'not_achieved';
+        }
+
+        // Update KPI record
+        $kpi->update([
+            'staff_id' => $request->staff_id,
+            'month_year' => $request->month_year,
+            'target_contracts' => $request->target_contracts ?? 0,
+            'actual_contracts' => $request->actual_contracts ?? 0,
+            'target_sales' => $request->target_sales ?? 0,
+            'actual_sales' => $request->actual_sales ?? 0,
+            'target_customers' => $request->target_customers ?? 0,
+            'actual_customers' => $request->actual_customers ?? 0,
+            'contract_completion_rate' => $contractCompletionRate,
+            'sales_completion_rate' => $salesCompletionRate,
+            'customer_completion_rate' => $customerCompletionRate,
+            'overall_kpi_percentage' => $overallKpiPercentage,
+            'kpi_status' => $kpiStatus,
+            'notes' => $request->notes,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'KPI đã được cập nhật thành công.'
+        ]);
+    }
+
+    /**
+     * Delete KPI
+     */
+    public function destroyKPI($id)
+    {
+        $user = Auth::user();
+        $kpi = StaffKPI::where('id', $id)
+            ->where('manager_id', $user->id)
+            ->firstOrFail();
+
+        $kpi->delete();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'KPI đã được xóa thành công.'
+        ]);
+    }
+
+    /**
+     * Export KPI to Excel
+     */
+    public function exportKPI(Request $request)
+    {
+        $user = Auth::user();
+        $month = $request->get('month', now()->format('Y-m'));
+        $staffId = $request->get('user_id');
+        $kpiStatus = $request->get('kpi_status');
+
+        // Build query for KPIs
+        $query = StaffKPI::with(['staff'])
+            ->where('manager_id', $user->id)
+            ->where('month_year', $month);
+            
+        if ($staffId) {
+            $query->where('staff_id', $staffId);
+        }
+        if ($kpiStatus) {
+            $query->where('kpi_status', $kpiStatus);
+        }
+        
+        $kpis = $query->get();
+
+        // Create CSV
+        $csv = Writer::createFromString('');
+        $csv->insertOne([
+            'Nhân viên', 'Tháng', 'Chỉ tiêu HĐ', 'Thực tế HĐ', 'Chỉ tiêu DS', 
+            'Thực tế DS', 'KPI (%)', 'Trạng thái', 'Ghi chú'
+        ]);
+
+        foreach ($kpis as $kpi) {
+            $csv->insertOne([
+                $kpi->staff->fullname ?? $kpi->staff->username,
+                \Carbon\Carbon::createFromFormat('Y-m', $kpi->month_year)->format('m/Y'),
+                $kpi->target_contracts,
+                $kpi->actual_contracts,
+                number_format($kpi->target_sales, 0, ',', '.'),
+                number_format($kpi->actual_sales, 0, ',', '.'),
+                number_format($kpi->overall_kpi_percentage, 1) . '%',
+                $kpi->kpi_status,
+                $kpi->notes ?? '',
+            ]);
+        }
+
+        $filename = 'kpi_' . $month . '.csv';
+        $headers = [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="' . $filename . '"',
+        ];
+
+        return response($csv->getContent(), 200, $headers);
     }
 } 

@@ -7,16 +7,18 @@
             <div class="card-header d-flex flex-wrap gap-2 align-items-center justify-content-between">
                 <h5 class="mb-0">@lang('Dashboard Hiệu suất làm việc')</h5>
                 <form action="" method="GET" class="d-flex flex-wrap gap-2 align-items-center">
-                    <input type="month" name="month" class="form-control form-control-sm" value="{{ request('month', '2025-06') }}">
+                    <input type="month" name="month" class="form-control form-control-sm" value="{{ request('month', $month) }}">
                     <select name="user_id" class="form-select form-select-sm">
                         <option value="">@lang('Tất cả nhân viên')</option>
-                        <option value="1">Nguyễn A</option>
-                        <option value="2">Trần B</option>
+                        @foreach($staffMembers as $staff)
+                            <option value="{{ $staff->id }}" @if(request('user_id') == $staff->id) selected @endif>{{ $staff->fullname ?? $staff->username }}</option>
+                        @endforeach
                     </select>
                     <select name="project_id" class="form-select form-select-sm">
                         <option value="">@lang('Tất cả dự án')</option>
-                        <option value="1">Dự án Alpha</option>
-                        <option value="2">Dự án Beta</option>
+                        @foreach($projects as $project)
+                            <option value="{{ $project->id }}" @if(request('project_id') == $project->id) selected @endif>{{ $project->title }}</option>
+                        @endforeach
                     </select>
                     <button class="btn btn-sm btn-primary" type="submit"><i class="las la-filter"></i> @lang('Lọc')</button>
                 </form>
@@ -43,30 +45,28 @@
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
-                                <td>Nguyễn A</td>
-                                <td>06/2025</td>
-                                <td>7</td>
-                                <td>2.200.000.000</td>
-                                <td><span class="badge bg-success">110%</span></td>
-                                <td><span class="badge bg-success"><i class="las la-trophy"></i> Xuất sắc</span></td>
-                            </tr>
-                            <tr>
-                                <td>Trần B</td>
-                                <td>06/2025</td>
-                                <td>4</td>
-                                <td>800.000.000</td>
-                                <td><span class="badge bg-warning">80%</span></td>
-                                <td><span class="badge bg-warning"><i class="las la-thumbs-up"></i> Đạt yêu cầu</span></td>
-                            </tr>
-                            <tr>
-                                <td>Lê C</td>
-                                <td>06/2025</td>
-                                <td>2</td>
-                                <td>400.000.000</td>
-                                <td><span class="badge bg-danger">40%</span></td>
-                                <td><span class="badge bg-danger"><i class="las la-thumbs-down"></i> Cần cải thiện</span></td>
-                            </tr>
+                            @forelse($performanceData as $row)
+                                <tr>
+                                    <td>{{ $row['staff']->fullname ?? $row['staff']->username }}</td>
+                                    <td>{{ \Carbon\Carbon::parse($month.'-01')->format('m/Y') }}</td>
+                                    <td>{{ $row['contracts'] }}</td>
+                                    <td>{{ number_format($row['sales'], 0, ',', '.') }}</td>
+                                    <td><span class="badge {{ $row['kpi_percent'] >= 100 ? 'bg-success' : ($row['kpi_percent'] >= 80 ? 'bg-warning' : 'bg-danger') }}">{{ round($row['kpi_percent']) }}%</span></td>
+                                    <td>
+                                        @if($row['kpi_status'] == 'exceeded')
+                                            <span class="badge bg-success"><i class="las la-trophy"></i> Xuất sắc</span>
+                                        @elseif($row['kpi_status'] == 'achieved')
+                                            <span class="badge bg-success"><i class="las la-thumbs-up"></i> Đạt KPI</span>
+                                        @elseif($row['kpi_status'] == 'near_achieved')
+                                            <span class="badge bg-warning"><i class="las la-thumbs-up"></i> Gần đạt</span>
+                                        @else
+                                            <span class="badge bg-danger"><i class="las la-thumbs-down"></i> Cần cải thiện</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                            @empty
+                                <tr><td colspan="6" class="text-center text-muted">@lang('Không có dữ liệu hiệu suất cho bộ lọc này.')</td></tr>
+                            @endforelse
                         </tbody>
                     </table>
                 </div>
@@ -87,20 +87,23 @@
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('performanceChart').getContext('2d');
+        const labels = @json(collect($performanceData)->pluck('staff')->map(function($s){return $s->fullname ?? $s->username;}));
+        const contracts = @json(collect($performanceData)->pluck('contracts'));
+        const sales = @json(collect($performanceData)->pluck('sales'));
         new Chart(ctx, {
             type: 'bar',
             data: {
-                labels: ['Nguyễn A', 'Trần B', 'Lê C'],
+                labels: labels,
                 datasets: [
                     {
                         label: 'Số hợp đồng hoàn thành',
                         backgroundColor: '#6366f1',
-                        data: [7, 4, 2],
+                        data: contracts,
                     },
                     {
                         label: 'Tổng doanh số',
-                        backgroundColor: ['#22c55e', '#f59e42', '#ef4444'],
-                        data: [2200000000, 800000000, 400000000],
+                        backgroundColor: '#22c55e',
+                        data: sales,
                     }
                 ]
             },

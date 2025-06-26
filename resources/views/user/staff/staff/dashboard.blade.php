@@ -234,4 +234,6 @@
         </div>
     </div>
 </div>
+
+@include('user.staff.staff.partials.honor_modal')
 @endsection 

@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\HonorService;
 
 class SalesStaffController extends Controller
 {
@@ -20,6 +21,10 @@ class SalesStaffController extends Controller
         $pageTitle = 'Sales Staff Dashboard';
         $user = Auth::user();
         $general = gs();
+        
+        // Check for active honor
+        $honorService = new HonorService();
+        $honor = $honorService->getActiveHonor();
         
         // Dashboard statistics
         $stats = [

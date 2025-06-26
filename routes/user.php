@@ -141,6 +141,11 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::get('hr/salary', 'salaryDashboard')->name('hr.salary');
                 Route::get('hr/kpi', 'kpiDashboard')->name('hr.kpi');
                 Route::post('hr/kpi', 'storeKPI')->name('hr.kpi.store');
+                Route::get('hr/kpi/export', 'exportKPI')->name('hr.kpi.export');
+                Route::get('hr/kpi/{id}', 'showKPI')->name('hr.kpi.show');
+                Route::get('hr/kpi/{id}/edit', 'editKPI')->name('hr.kpi.edit');
+                Route::put('hr/kpi/{id}', 'updateKPI')->name('hr.kpi.update');
+                Route::delete('hr/kpi/{id}', 'destroyKPI')->name('hr.kpi.destroy');
                 Route::get('hr/performance', 'performanceDashboard')->name('hr.performance');
                 
                 // Attendance Management Routes

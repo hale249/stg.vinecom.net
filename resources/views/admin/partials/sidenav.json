@@ -216,6 +216,24 @@
             }
         ]
     },
+    "manage_honors": {
+        "keyword": [
+            "honors",
+            "staff honors",
+            "employee recognition",
+            "achievement awards",
+            "staff accolades",
+            "employee awards",
+            "recognition system",
+            "performance recognition",
+            "top performers",
+            "staff achievements"
+        ],
+        "title": "Vinh danh",
+        "icon": "las la-trophy",
+        "route_name": "admin.honors.index",
+        "menu_active": "admin.honors*"
+    },
     "manage_frontend": {
         "keyword": [
             "frontend",

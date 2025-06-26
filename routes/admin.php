@@ -170,6 +170,17 @@ Route::middleware('admin')->group(function () {
         Route::get('notification-log/{id}', 'notificationLog')->name('notification.log');
     });
 
+    // Honor Management
+    Route::controller('HonorController')->name('honors.')->prefix('honors')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('destroy/{id}', 'destroy')->name('destroy');
+        Route::post('status/{id}', 'status')->name('status');
+    });
+
     // Deposit Gateway
     Route::name('gateway.')->prefix('gateway')->group(function () {
         // Automatic Gateway

@@ -253,6 +253,11 @@
             </div>
         </div>
     </div>
+
+
+</div>
+
+@include('user.staff.manager.partials.honor_modal')
 @endsection
 
 @push('style')
