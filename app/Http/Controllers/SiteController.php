@@ -139,7 +139,7 @@ class SiteController extends Controller {
         $imgWidth  = explode('x', $size)[0];
         $imgHeight = explode('x', $size)[1];
         $text      = $imgWidth . '×' . $imgHeight;
-        $fontFile  = realpath('assets/font/solaimanLipi_bold.ttf');
+        $fontFile  = public_path('assets/font/solaimanLipi_bold.ttf');
         $fontSize  = round(($imgWidth - 50) / 8);
         if ($fontSize <= 9) {
             $fontSize = 9;

@@ -86,6 +86,15 @@
                     </a>
                 </li>
                 
+                <li class="sidebar__menu-header text-white opacity-75 text-uppercase small px-3 my-2">@lang('Tài liệu')</li>
+                
+                <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.documents*') ? 'active' : '' }}">
+                    <a href="{{ route('user.staff.manager.documents') }}" class="nav-link">
+                        <i class="menu-icon las la-file-alt"></i>
+                        <span class="menu-title">@lang('Tài liệu tham khảo')</span>
+                    </a>
+                </li>
+                
                 <li class="sidebar__menu-header text-white opacity-75 text-uppercase small px-3 my-2">@lang('Báo cáo')</li>
                 
                 <li class="sidebar-menu-item sidebar-dropdown {{ request()->routeIs('user.staff.manager.reports') || request()->routeIs('user.staff.manager.report.transactions') || request()->routeIs('user.staff.manager.report.interests') || request()->routeIs('user.staff.manager.report.commissions') ? 'active' : '' }}">

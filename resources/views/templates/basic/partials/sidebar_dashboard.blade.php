@@ -50,6 +50,17 @@
                     <span>@lang('Transactions')</span>
                 </a>
             </li>
+            
+            @if($user->is_staff)
+            <li class="offcanvas-sidebar-menu__item">
+                <a class="offcanvas-sidebar-menu__link {{ menuActive('reference.documents*') }}"
+                    href="{{ route('reference.documents') }}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>@lang('Tài liệu tham khảo')</span>
+                </a>
+            </li>
+            @endif
+            
             <li class="offcanvas-sidebar-menu__item {{ menuActive('ticket*') }}">
                 <button class="offcanvas-sidebar-menu__btn collapsed" data-bs-toggle="collapse"
                     data-bs-target="#offcanvas-sidebar-support-collapse" aria-expanded="false" type="button">

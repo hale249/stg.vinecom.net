@@ -7,18 +7,22 @@
     <title>{{ gs()->siteName($pageTitle ?? '') }}</title>
 
     <link rel="shortcut icon" type="image/png" href="{{siteFavicon()}}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS Libraries -->
     <link rel="stylesheet" href="{{ asset('assets/global/css/bootstrap.min.css') }}">
     <link rel="stylesheet" href="{{asset('assets/admin/css/vendor/bootstrap-toggle.min.css')}}">
     <link rel="stylesheet" href="{{asset('assets/global/css/all.min.css')}}">
     <link rel="stylesheet" href="{{asset('assets/global/css/line-awesome.min.css')}}">
-
-    @stack('style-lib')
-
     <link rel="stylesheet" href="{{asset('assets/global/css/select2.min.css')}}">
     <link rel="stylesheet" href="{{asset('assets/admin/css/app.css')}}">
-    <link rel="stylesheet" href="{{asset('assets/global/css/custom.css')}}">
 
+    @stack('style-lib')
+    @stack('style')
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
     <style>
         :root {
             --primary-color: #6366f1;
@@ -91,12 +95,11 @@
             border-radius: 0.5rem;
         }
     </style>
-
-    @stack('style')
 </head>
 <body>
 @yield('content')
 
+<!-- Scripts -->
 <script src="{{asset('assets/global/js/jquery-3.7.1.min.js')}}"></script>
 <script src="{{asset('assets/global/js/bootstrap.bundle.min.js')}}"></script>
 <script src="{{asset('assets/admin/js/vendor/bootstrap-toggle.min.js')}}"></script>

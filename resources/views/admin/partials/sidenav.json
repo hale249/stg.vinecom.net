@@ -55,7 +55,7 @@
         "menu_active": "admin.invest.report.index"
     },
     "manage_invest": {
-        "title": "Investments",
+        "title": "Đầu tư",
         "icon": "las la-hand-holding-usd",
         "counters": [
             "runningInvestments"
@@ -77,7 +77,7 @@
                     "Investment status",
                     "Investment activity"
                 ],
-                "title": "All Investments",
+                "title": "Tất cả đầu tư",
                 "route_name": "admin.invest.index",
                 "menu_active": "admin.invest.index*"
             },
@@ -90,7 +90,7 @@
                     "Review Investment",
                     "Investment activity"
                 ],
-                "title": "Review",
+                "title": "Xem xét",
                 "route_name": "admin.invest.review",
                 "menu_active": "admin.invest.review*"
             },
@@ -103,7 +103,7 @@
                     "Running Investment",
                     "Investment activity"
                 ],
-                "title": "Running",
+                "title": "Đang chạy",
                 "counter": "runningInvestments",
                 "route_name": "admin.invest.running",
                 "menu_active": "admin.invest.running*"
@@ -117,7 +117,7 @@
                     "Completed Investment",
                     "Investment activity"
                 ],
-                "title": "Completed",
+                "title": "Đã hoàn thành",
                 "route_name": "admin.invest.completed",
                 "menu_active": "admin.invest.completed*"
             }
@@ -158,7 +158,7 @@
         "route_name": "admin.category.index"
     },
     "manage_projects": {
-        "title": "Projects",
+        "title": "Dự án",
         "icon": "las la-project-diagram",
         "menu_active": "admin.project*",
         "submenu": [
@@ -171,7 +171,7 @@
                     "Project status",
                     "Project activity"
                 ],
-                "title": "All Projects",
+                "title": "Tất cả dự án",
                 "route_name": "admin.project.index",
                 "menu_active": "admin.project.index*"
             },
@@ -184,7 +184,7 @@
                     "Lifetime Project",
                     "Lifetime Project activity"
                 ],
-                "title": "Lifetime",
+                "title": "Trọn đời",
                 "route_name": "admin.project.lifetime",
                 "menu_active": "admin.project.lifetime"
             },
@@ -197,7 +197,7 @@
                     "Lifetime Project",
                     "Lifetime Project activity"
                 ],
-                "title": "Repeat",
+                "title": "Lặp lại",
                 "route_name": "admin.project.repeat",
                 "menu_active": "admin.project.repeat"
             },
@@ -210,7 +210,7 @@
                     "Closed Project",
                     "Project activity"
                 ],
-                "title": "Closed Projects",
+                "title": "Dự án đã đóng",
                 "route_name": "admin.project.closed",
                 "menu_active": "admin.project.closed"
             }
@@ -234,6 +234,53 @@
         "route_name": "admin.honors.index",
         "menu_active": "admin.honors*"
     },
+    "manage_documents": {
+        "keyword": [
+            "documents",
+            "reference documents",
+            "staff documents",
+            "manager documents",
+            "training materials",
+            "learning resources",
+            "document library",
+            "document categories",
+            "file repository",
+            "learning materials"
+        ],
+        "title": "Tài liệu tham khảo",
+        "icon": "las la-file-alt",
+        "menu_active": [
+            "admin.document.categories*", 
+            "admin.documents*"
+        ],
+        "submenu": [
+            {
+                "keyword": [
+                    "document categories",
+                    "document types",
+                    "category management",
+                    "document classification",
+                    "filing categories"
+                ],
+                "title": "Danh mục tài liệu",
+                "route_name": "admin.document.categories.index",
+                "menu_active": "admin.document.categories*"
+            },
+            {
+                "keyword": [
+                    "all documents",
+                    "document library",
+                    "document management",
+                    "file management",
+                    "document repository",
+                    "resource library"
+                ],
+                "title": "Tài liệu",
+                "route_name": "admin.documents.index",
+                "menu_active": "admin.documents*"
+            }
+        ]
+    },
     "manage_frontend": {
         "keyword": [
             "frontend",
@@ -255,7 +302,7 @@
         ]
     },
     "manage_users": {
-        "title": "Manage Users",
+        "title": "Quản lý người dùng",
         "icon": "las la-users",
         "counters": [
             "bannedUsersCount",
@@ -276,7 +323,7 @@
                     "User activity",
                     "User analytics"
                 ],
-                "title": "Active Users",
+                "title": "Người dùng hoạt động",
                 "route_name": "admin.users.active",
                 "menu_active": "admin.users.active"
             },
@@ -288,7 +335,7 @@
                     "Account bans",
                     "User activity"
                 ],
-                "title": "Banned Users",
+                "title": "Người dùng bị cấm",
                 "route_name": "admin.users.banned",
                 "menu_active": "admin.users.banned",
                 "counter": "bannedUsersCount"
@@ -301,7 +348,7 @@
                     "User authentication",
                     "User management"
                 ],
-                "title": "Email Unverified",
+                "title": "Email chưa xác minh",
                 "route_name": "admin.users.email.unverified",
                 "menu_active": "admin.users.email.unverified",
                 "counter": "emailUnverifiedUsersCount"
@@ -314,7 +361,7 @@
                     "User authentication",
                     "User management"
                 ],
-                "title": "Mobile Unverified",
+                "title": "SDT chưa xác minh",
                 "route_name": "admin.users.mobile.unverified",
                 "menu_active": "admin.users.mobile.unverified",
                 "counter": "mobileUnverifiedUsersCount"
@@ -327,7 +374,7 @@
                     "User authentication",
                     "User management"
                 ],
-                "title": "KYC Unverified",
+                "title": "KYC chưa xác minh",
                 "route_name": "admin.users.kyc.unverified",
                 "menu_active": "admin.users.kyc.unverified",
                 "counter": "kycUnverifiedUsersCount"
@@ -340,7 +387,7 @@
                     "User authentication",
                     "User management"
                 ],
-                "title": "KYC Pending",
+                "title": "KYC đang chờ",
                 "route_name": "admin.users.kyc.pending",
                 "menu_active": "admin.users.kyc.pending",
                 "counter": "kycPendingUsersCount"
@@ -624,7 +671,7 @@
                     "Transaction data",
                     "Transaction record"
                 ],
-                "title": "Transactions",
+                "title": "Giao dịch",
                 "route_name": "admin.report.transaction",
                 "menu_active": [
                     "admin.report.transaction",
@@ -652,7 +699,7 @@
                     "Project purchase",
                     "Purchase history"
                 ],
-                "title": "Invest History",
+                "title": "Lịch sử đầu tư",
                 "route_name": "admin.report.invest.history",
                 "menu_active": [
                     "admin.report.invest.history",
@@ -667,7 +714,7 @@
                     "Login history",
                     "Login activity"
                 ],
-                "title": "Login History",
+                "title": "Lịch sử đăng nhập",
                 "route_name": "admin.report.login.history",
                 "menu_active": [
                     "admin.report.login.history",
@@ -688,7 +735,7 @@
                     "push notification log",
                     "push notification history"
                 ],
-                "title": "Notification History",
+                "title": "Lịch sử thông báo",
                 "route_name": "admin.report.notification.history",
                 "menu_active": "admin.report.notification.history"
             }
@@ -703,7 +750,7 @@
             "Configuration management",
             "System setup"
         ],
-        "title": "System Setting",
+        "title": "Cài đặt hệ thống",
         "icon": "las la-life-ring",
         "route_name": "admin.setting.system",
         "menu_active": [

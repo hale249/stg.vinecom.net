@@ -114,6 +114,28 @@ Route::middleware('admin')->group(function () {
         Route::get('download/{documentId}', 'download')->name('download');
     });
     
+    // Reference Documents Management
+    Route::controller('DocumentCategoryController')->name('document.categories.')->prefix('document/categories')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('destroy/{id}', 'destroy')->name('destroy');
+        Route::post('status/{id}', 'status')->name('status');
+    });
+    
+    Route::controller('ReferenceDocumentController')->name('documents.')->prefix('documents')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('destroy/{id}', 'destroy')->name('destroy');
+        Route::post('status/{id}', 'status')->name('status');
+        Route::get('download/{id}', 'download')->name('download');
+    });
+    
     // Contract Documents Management
     Route::controller('ContractDocumentController')->name('invest.documents.')->prefix('invest/{investId}/documents')->group(function () {
         Route::get('/', 'index')->name('index');

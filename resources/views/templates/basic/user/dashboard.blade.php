@@ -91,7 +91,7 @@
                         </div>
 
                         <div class="dashboard-analytics-card__content">
-                            <span class="dashboard-analytics-card__name">@lang('Tổng lợi nhuận nhận được')</span>
+                            <span class="dashboard-analytics-card__name">@lang('Tổng lợi tức theo giá trị HĐ')</span>
                             <h5 class="dashboard-analytics-card__total">{{ __(showAmount($investData['total_earning'])) }}</h5>
                         </div>
 

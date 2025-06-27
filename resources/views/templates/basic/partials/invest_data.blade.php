@@ -40,7 +40,7 @@
                                     </div>
                                     @if ($invest->status == Status::INVEST_RUNNING)
                                         <span>
-                                            @lang('Next Pay'): 
+                                            @lang('Ngày nhận lãi kỳ tiếp theo'): 
                                             @php
                                                 $nextTime = \Carbon\Carbon::parse($invest->next_time);
                                                 $now = \Carbon\Carbon::now();
@@ -50,11 +50,9 @@
                                                     echo $nextTime->format('d/m/Y H:i');
                                                 }
                                             @endphp
-                                            @if ($invest->period < 1)
-                                                <i class="las la-info-circle" data-toggle="tooltip" data-placement="top"
-                                                    title="@lang('You will begin to receive your investment returns after the maturity period. The maturity period is calculated from the project\'s end date plus the specified maturity time.')">
-                                                </i>
-                                            @endif
+                                            <i class="las la-info-circle" data-toggle="tooltip" data-placement="top"
+                                                title="@lang('Đây là ngày nhận lãi tiếp theo theo kỳ hạn của hợp đồng. Thời điểm thanh toán sẽ tự động cập nhật sau mỗi kỳ.')">
+                                            </i>
                                         </span>
                                     @endif
 

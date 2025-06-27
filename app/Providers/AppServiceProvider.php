@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         Builder::mixin(new Searchable);
+        
+        // Register the RouteServiceProvider
+        $this->app->register(RouteServiceProvider::class);
     }
 
     /**
