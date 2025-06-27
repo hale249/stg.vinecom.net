@@ -25,161 +25,12 @@
         </div>
     </div>
 
-    <div class="row mt-2 gy-4">
-        {{-- <div class="col-xxl-6">
-            <div class="card box-shadow3 h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Gửi tiền</h5>
-                    <div class="widget-card-wrapper">
-
-                        <div class="widget-card bg--success">
-                            <a href="{{ route('admin.deposit.list') }}" class="widget-card-link"></a>
-                            <div class="widget-card-left">
-                                <div class="widget-card-icon">
-                                    <i class="fas fa-hand-holding-usd"></i>
-                                </div>
-                                <div class="widget-card-content">
-                                    <h6 class="widget-card-amount">{{ showAmount($deposit['total_deposit_amount']) }}</h6>
-                                    <p class="widget-card-title">Tổng số tiền đã gửi</p>
-                                </div>
-                            </div>
-                            <span class="widget-card-arrow">
-                                <i class="las la-angle-right"></i>
-                            </span>
-                        </div>
-
-                        <div class="widget-card bg--warning">
-                            <a href="{{ route('admin.deposit.pending') }}" class="widget-card-link"></a>
-                            <div class="widget-card-left">
-                                <div class="widget-card-icon">
-                                    <i class="fas fa-spinner"></i>
-                                </div>
-                                <div class="widget-card-content">
-                                    <h6 class="widget-card-amount">{{ $deposit['total_deposit_pending'] }}</h6>
-                                    <p class="widget-card-title">Gửi tiền đang chờ xử lý</p>
-                                </div>
-                            </div>
-                            <span class="widget-card-arrow">
-                                <i class="las la-angle-right"></i>
-                            </span>
-                        </div>
-
-                        <div class="widget-card bg--danger">
-                            <a href="{{ route('admin.deposit.rejected') }}" class="widget-card-link"></a>
-                            <div class="widget-card-left">
-                                <div class="widget-card-icon">
-                                    <i class="fas fa-ban"></i>
-                                </div>
-                                <div class="widget-card-content">
-                                    <h6 class="widget-card-amount">{{ $deposit['total_deposit_rejected'] }}</h6>
-                                    <p class="widget-card-title">Gửi tiền bị từ chối</p>
-                                </div>
-                            </div>
-                            <span class="widget-card-arrow">
-                                <i class="las la-angle-right"></i>
-                            </span>
-                        </div>
-
-                        <div class="widget-card bg--primary">
-                            <a href="{{ route('admin.deposit.list') }}" class="widget-card-link"></a>
-                            <div class="widget-card-left">
-                                <div class="widget-card-icon">
-                                    <i class="fas fa-percentage"></i>
-                                </div>
-                                <div class="widget-card-content">
-                                    <h6 class="widget-card-amount">{{ showAmount($deposit['total_deposit_charge']) }}</h6>
-                                    <p class="widget-card-title">Phí gửi tiền</p>
-                                </div>
-                            </div>
-                            <span class="widget-card-arrow">
-                                <i class="las la-angle-right"></i>
-                            </span>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div> --}}
-        {{-- <div class="col-xxl-6">
-            <div class="card box-shadow3 h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Rút tiền</h5>
-                    <div class="widget-card-wrapper">
-                        <div class="widget-card bg--success">
-                            <a href="{{ route('admin.withdraw.data.all') }}" class="widget-card-link"></a>
-                            <div class="widget-card-left">
-                                <div class="widget-card-icon">
-                                    <i class="lar la-credit-card"></i>
-                                </div>
-                                <div class="widget-card-content">
-                                    <h6 class="widget-card-amount">{{ showAmount($withdrawals['total_withdraw_amount']) }}</h6>
-                                    <p class="widget-card-title">Tổng số tiền đã rút</p>
-                                </div>
-                            </div>
-                            <span class="widget-card-arrow">
-                                <i class="las la-angle-right"></i>
-                            </span>
-                        </div>
-
-                        <div class="widget-card bg--warning">
-                            <a href="{{ route('admin.withdraw.data.pending') }}" class="widget-card-link"></a>
-                            <div class="widget-card-left">
-                                <div class="widget-card-icon">
-                                    <i class="fas fa-spinner"></i>
-                                </div>
-                                <div class="widget-card-content">
-                                    <h6 class="widget-card-amount">{{ $withdrawals['total_withdraw_pending'] }}</h6>
-                                    <p class="widget-card-title">Rút tiền đang chờ xử lý</p>
-                                </div>
-                            </div>
-                            <span class="widget-card-arrow">
-                                <i class="las la-angle-right"></i>
-                            </span>
-                        </div>
-
-                        <div class="widget-card bg--danger">
-                            <a href="{{ route('admin.withdraw.data.rejected') }}" class="widget-card-link"></a>
-                            <div class="widget-card-left">
-                                <div class="widget-card-icon">
-                                    <i class="las la-times-circle"></i>
-                                </div>
-                                <div class="widget-card-content">
-                                    <h6 class="widget-card-amount">{{ $withdrawals['total_withdraw_rejected'] }}</h6>
-                                    <p class="widget-card-title">Rút tiền bị từ chối</p>
-                                </div>
-                            </div>
-                            <span class="widget-card-arrow">
-                                <i class="las la-angle-right"></i>
-                            </span>
-                        </div>
-
-                        <div class="widget-card bg--primary">
-                            <a href="{{ route('admin.withdraw.data.all') }}" class="widget-card-link"></a>
-                            <div class="widget-card-left">
-                                <div class="widget-card-icon">
-                                    <i class="las la-percent"></i>
-                                </div>
-                                <div class="widget-card-content">
-                                    <h6 class="widget-card-amount">{{ showAmount($withdrawals['total_withdraw_charge']) }}</h6>
-                                    <p class="widget-card-title">Phí rút tiền</p>
-                                </div>
-                            </div>
-                            <span class="widget-card-arrow">
-                                <i class="las la-angle-right"></i>
-                            </span>
-                        </div>
-
-                    </div>
-                </div>
-            </div>
-        </div> --}}
-    </div>
     <div class="row gy-4 mt-2">
         <div class="col-xxl-3 col-sm-6">
             <x-widget
                 style="6"
                 link="{{ route('admin.report.invest.history') }}"
-                title="Tổng số hợp đồng đầu tư"
+                title="Tổng GTHĐ đầu tư"
                 icon="las la-chart-bar"
                 value="{{ showAmount($invest['total_invests']) }}"
                 bg="primary"
@@ -189,7 +40,7 @@
             <x-widget
                 style="6"
                 link="{{ route('admin.report.transaction') }}?remark=profit"
-                title="Tổng số tiền lãi"
+                title="Tổng lợi tức"
                 icon="las la-chart-pie"
                 value="{{ showAmount($invest['total_interests']) }}"
                 bg="1"
@@ -209,7 +60,7 @@
             <x-widget
                 style="6"
                 link="{{ route('admin.report.invest.history') }}?status={{ Status::INVEST_COMPLETED }}"
-                title="Hợp đồng đã hoàn thành"
+                title="Tổng GTHĐ tất toán"
                 icon="las la-chart-line"
                 value="{{ showAmount($invest['completed_invests']) }}"
                 bg="9"
@@ -261,7 +112,73 @@
         </div>
     </div>
     <!-- End Alert Summary Section -->
-
+    <!-- Add Recent Investments Table -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="las la-list text-primary me-2"></i>Hợp đồng gần đây
+                    </h5>
+                    <a href="{{ route('admin.report.invest.history') }}" class="btn btn-sm btn-outline--primary">
+                        <i class="las la-list-alt"></i> Xem tất cả
+                    </a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive--sm table-responsive">
+                        <table class="table table--light style--two">
+                            <thead>
+                                <tr>
+                                    <th>Mã HĐ</th>
+                                    <th>Người dùng</th>
+                                    <th>Dự án</th>
+                                    <th>Số lượng</th>
+                                    <th>Số tiền</th>
+                                    <th>Lợi nhuận</th>
+                                    <th>Hình thức trả</th>
+                                    <th>Cần trả</th>
+                                    <th>Đã trả</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @forelse($recentInvests as $invest)
+                                    <tr>
+                                        <td>{{ $invest->invest_no }}</td>
+                                        <td>
+                                            <span class="fw-bold">{{ $invest->user->fullname }}</span>
+                                            <br>
+                                            <span class="small"><a href="{{ route('admin.users.detail', $invest->user_id) }}"><span>@</span>{{ $invest->user->username }}</a></span>
+                                        </td>
+                                        <td>{{ __($invest->project->title) }}</td>
+                                        <td>{{ __($invest->quantity) }} @lang('Units')</td>
+                                        <td>{{ showAmount($invest->total_price) }}</td>
+                                        <td>{{ showAmount($invest->total_earning) }}</td>
+                                        <td> @php echo $invest->project->typeBadge @endphp </td>
+                                        <td>{{ $invest->project->return_type != Status::LIFETIME ? showAmount($invest->recurring_pay) : '**' }}</td>
+                                        <td>{{ showAmount($invest->paid) }}</td>
+                                        <td>@php echo $invest->statusBadge @endphp</td>
+                                        <td>
+                                            <div class="button--group">
+                                                <a class="btn btn-outline--primary btn-sm" href="{{ route('admin.invest.details', $invest->id) }}">
+                                                    <i class="las la-desktop"></i> Chi tiết
+                                                </a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td class="text-muted text-center" colspan="100%">Không có dữ liệu</td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="row mb-none-30 mt-30">
         <div class="col-xl-6 mb-30">
             <div class="card">
@@ -317,7 +234,6 @@
         <i class="las la-server"></i>Thiết lập Cron
     </button>
 @endpush
-
 
 @push('script-lib')
     <script src="{{ asset('assets/admin/js/vendor/apexcharts.min.js') }}"></script>

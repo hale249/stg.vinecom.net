@@ -60,14 +60,46 @@ class FrontendController extends Controller
 
 
 
-    public function frontendSections($key)
+    public function frontendSections($key, $category = null)
     {
         $section = @getPageSections()->$key;
         abort_if(!$section || !$section->builder, 404);
-        $content = Frontend::where('data_keys', $key . '.content')->where('tempname', activeTemplateName())->orderBy('id', 'desc')->first();
-        $elements = Frontend::where('data_keys', $key . '.element')->where('tempname', activeTemplateName())->orderBy('id', 'desc')->get();
+        
+        // Get title based on category
         $pageTitle = $section->name;
-        return view('admin.frontend.section', compact('section', 'content', 'elements', 'key', 'pageTitle'));
+        if ($key == 'blog') {
+            switch ($category) {
+                case 'company':
+                    $pageTitle = 'Tin tức doanh nghiệp';
+                    break;
+                case 'market':
+                    $pageTitle = 'Tin tức thị trường';
+                    break;
+                default:
+                    $pageTitle = 'Tin tức';
+                    break;
+            }
+        }
+        
+        // Filter content by category if specified
+        $content = Frontend::where('data_keys', $key . '.content')->where('tempname', activeTemplateName());
+        
+        if ($key == 'blog' && $category) {
+            $content = $content->where('category', $category);
+        }
+        
+        $content = $content->orderBy('id', 'desc')->first();
+        
+        // Filter elements by category if specified
+        $elements = Frontend::where('data_keys', $key . '.element')->where('tempname', activeTemplateName());
+        
+        if ($key == 'blog' && $category) {
+            $elements = $elements->where('category', $category);
+        }
+        
+        $elements = $elements->orderBy('id', 'desc')->get();
+        
+        return view('admin.frontend.section', compact('section', 'content', 'elements', 'key', 'pageTitle', 'category'));
     }
 
 
@@ -76,7 +108,7 @@ class FrontendController extends Controller
     public function frontendContent(Request $request, $key)
     {
         $purifier = new \HTMLPurifier();
-        $valInputs = $request->except('_token', 'image_input', 'key', 'status', 'type', 'id', 'slug');
+        $valInputs = $request->except('_token', 'image_input', 'key', 'status', 'type', 'id', 'slug', 'category');
         foreach ($valInputs as $keyName => $input) {
             if (gettype($input) == 'array') {
                 $inputContentValue[$keyName] = $input;
@@ -157,6 +189,12 @@ class FrontendController extends Controller
         }
         $content->data_values = $inputContentValue;
         $content->slug = slug($request->slug);
+        
+        // Set category if blog post
+        if ($key == 'blog' && $request->has('category')) {
+            $content->category = $request->category;
+        }
+        
         if ($type != 'data') {
             $content->tempname = activeTemplateName();
         }

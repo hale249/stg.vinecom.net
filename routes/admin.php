@@ -413,6 +413,7 @@ Route::middleware('admin')->group(function () {
             Route::get('templates', 'templates')->name('templates');
             Route::post('templates', 'templatesActive')->name('templates.active');
             Route::get('frontend-sections/{key?}', 'frontendSections')->name('sections');
+            Route::get('frontend-sections/blog/{category}', 'frontendSections')->name('sections.blog.category');
             Route::post('frontend-content/{key}', 'frontendContent')->name('sections.content');
             Route::get('frontend-element/{key}/{id?}', 'frontendElement')->name('sections.element');
             Route::get('frontend-slug-check/{key}/{id?}', 'frontendElementSlugCheck')->name('sections.element.slug.check');

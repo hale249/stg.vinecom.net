@@ -13,6 +13,20 @@
                                 @php
                                     $imgCount = 0;
                                 @endphp
+                                
+                                @if($key == 'blog')
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>@lang('Category')</label>
+                                        <select name="category" class="form-control" required>
+                                            <option value="" disabled selected>@lang('Select Category')</option>
+                                            <option value="company" {{ @$content && @$content->category == 'company' ? 'selected' : '' }}>@lang('Tin tức doanh nghiệp')</option>
+                                            <option value="market" {{ @$content && @$content->category == 'market' ? 'selected' : '' }}>@lang('Tin tức thị trường')</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                @endif
+                                
                                 @foreach ($section->content as $k => $item)
                                     @if ($k == 'images')
                                         @php
@@ -211,6 +225,17 @@
                         @csrf
                         <input type="hidden" name="type" value="element">
                         <div class="modal-body">
+                            @if($key == 'blog')
+                            <div class="form-group">
+                                <label>@lang('Category')</label>
+                                <select name="category" class="form-control" required>
+                                    <option value="" disabled selected>@lang('Select Category')</option>
+                                    <option value="company">@lang('Tin tức doanh nghiệp')</option>
+                                    <option value="market">@lang('Tin tức thị trường')</option>
+                                </select>
+                            </div>
+                            @endif
+                            
                             @foreach ($section->element as $k => $type)
                                 @if ($k != 'modal')
                                     @if ($type == 'icon')

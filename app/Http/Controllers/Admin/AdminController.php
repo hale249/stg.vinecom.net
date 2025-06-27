@@ -77,10 +77,17 @@ class AdminController extends Controller
         $withdrawals['total_withdraw_rejected'] = Withdrawal::rejected()->count();
         $withdrawals['total_withdraw_charge'] = Withdrawal::approved()->sum('charge');
 
+        // Investments data
         $invest['total_invests'] = Invest::where('status', Status::INVEST_RUNNING)->sum('total_price');
         $invest['total_interests'] = Transaction::where('remark', 'profit')->sum('amount');
-        $invest['running_invests'] = Invest::where('status', Status::INVEST_RUNNING)->sum('total_price');
-        $invest['completed_invests'] = Invest::where('status', Status::INVEST_COMPLETED)->sum('total_price');
+        $invest['running_invests'] = Invest::where('status', Status::INVEST_RUNNING)->count();
+        $invest['completed_invests'] = Invest::whereIn('status', [Status::INVEST_COMPLETED, Status::INVEST_CLOSED])->sum('total_price');
+        
+        // Get recent investments for dashboard
+        $recentInvests = Invest::with(['project', 'user'])
+                            ->orderBy('id', 'desc')
+                            ->limit(10)
+                            ->get();
 
         // Alert dashboard data
         $today = Carbon::now();
@@ -99,10 +106,12 @@ class AdminController extends Controller
                                     ->where('project_closed', '<=', $alertDate)
                                     ->count(),
                                     
+            'total_contracts' => Invest::where('status', Status::INVEST_RUNNING)->count(),
+                                    
             'alert_period' => $alertPeriod
         ];
 
-        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'withdrawals', 'invest', 'alertSummary'));
+        return view('admin.dashboard', compact('pageTitle', 'widget', 'chart', 'deposit', 'withdrawals', 'invest', 'alertSummary', 'recentInvests'));
     }
 
     public function depositAndWithdrawReport(Request $request)

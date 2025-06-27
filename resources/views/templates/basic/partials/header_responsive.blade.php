@@ -77,9 +77,17 @@
                                    href="{{ route('pages', [$page->slug]) }}">{{ __($page->name) }}</a>
                             </li>
                         @endforeach
-                        <li class="nav-item">
-                            <a class="nav-link {{ menuActive(['blogs', 'blog.details']) }}"
-                               href="{{ route('blogs') }}">@lang('Blogs')</a>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle {{ menuActive(['blogs', 'blogs.category', 'blog.details']) }}"
+                               href="{{ route('blogs') }}" id="navbarDropdown" role="button"
+                               data-bs-toggle="dropdown" aria-expanded="false">
+                               Tin tức
+                            </a>
+                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
+                                <li><a class="dropdown-item" href="{{ route('blogs') }}">Tất cả</a></li>
+                                <li><a class="dropdown-item" href="{{ route('blogs.category', 'company') }}">Tin tức doanh nghiệp</a></li>
+                                <li><a class="dropdown-item" href="{{ route('blogs.category', 'market') }}">Tin tức thị trường</a></li>
+                            </ul>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ menuActive('contact') }}"

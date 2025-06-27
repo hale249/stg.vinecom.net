@@ -103,12 +103,28 @@ class SiteController extends Controller {
         return back();
     }
 
-    public function blogs() {
-        $blogs     = Frontend::where('tempname', activeTemplateName())->where('data_keys', 'blog.element')->latest()->paginate(getPaginate(12));
-        $pageTitle = 'Blogs';
-        $page      = Page::where('tempname', activeTemplate())->where('slug', 'blog')->first();
-        $sections  = $page->secs;
-        return view('Template::blog', compact('blogs', 'pageTitle', 'sections'));
+    public function blogs($category = null) {
+        $blogsQuery = Frontend::where('tempname', activeTemplateName())->where('data_keys', 'blog.element');
+        
+        if ($category) {
+            $blogsQuery->where('category', $category);
+        }
+        
+        $blogs = $blogsQuery->latest()->paginate(getPaginate(12));
+        
+        // Set page title based on category
+        if ($category == 'company') {
+            $pageTitle = 'Tin tức doanh nghiệp';
+        } elseif ($category == 'market') {
+            $pageTitle = 'Tin tức thị trường';
+        } else {
+            $pageTitle = 'Tin tức';
+        }
+        
+        $page = Page::where('tempname', activeTemplate())->where('slug', 'blog')->first();
+        $sections = $page->secs;
+        
+        return view('Template::blog', compact('blogs', 'pageTitle', 'sections', 'category'));
     }
 
     public function blogDetails($slug) {

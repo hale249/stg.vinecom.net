@@ -7,6 +7,22 @@
                     <div class="blog-item style-two bg-white">
                         <div class="blog-item__thumb">
                             <img src="{{ frontendImage('blog', @$blog->data_values->image, '830x420') }}" alt="blog_image" class="blog-detail-image">
+                            @php
+                                $categoryClass = '';
+                                $categoryName = '';
+                                
+                                if($blog->category == 'company') {
+                                    $categoryClass = 'company-news';
+                                    $categoryName = 'Tin tức doanh nghiệp';
+                                } elseif($blog->category == 'market') {
+                                    $categoryClass = 'market-news';
+                                    $categoryName = 'Tin tức thị trường';
+                                }
+                            @endphp
+                            
+                            @if($blog->category)
+                            <span class="blog-category-badge {{ $categoryClass }}">{{ $categoryName }}</span>
+                            @endif
                         </div>
                         <div class="blog-item__content">
                             <ul class="text-list inline">
@@ -50,6 +66,17 @@
 
                 <div class="col-xl-4 col-lg-5">
                     <div class="blog-sidebar">
+                        <h6 class="blog-sidebar__title">@lang('Blog Categories')</h6>
+                        <div class="blog-sidebar__content">
+                            <div class="category-links mb-4">
+                                <a href="{{ route('blogs') }}" class="category-link">Tất cả</a>
+                                <a href="{{ route('blogs.category', 'company') }}" class="category-link">Tin tức doanh nghiệp</a>
+                                <a href="{{ route('blogs.category', 'market') }}" class="category-link">Tin tức thị trường</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="blog-sidebar mt-4">
                         <h6 class="blog-sidebar__title">@lang('Latest Blog Posts')</h6>
                         <div class="blog-sidebar__content">
                             <div class="row gy-4">
@@ -61,6 +88,23 @@
                                                     <img src="{{ frontendImage('blog', 'thumb_' . @$latestBlog->data_values->image, '415x210') }}"
                                                         alt="image">
                                                 </a>
+                                                
+                                                @php
+                                                    $latestCategoryClass = '';
+                                                    $latestCategoryName = '';
+                                                    
+                                                    if($latestBlog->category == 'company') {
+                                                        $latestCategoryClass = 'company-news';
+                                                        $latestCategoryName = 'Tin tức doanh nghiệp';
+                                                    } elseif($latestBlog->category == 'market') {
+                                                        $latestCategoryClass = 'market-news';
+                                                        $latestCategoryName = 'Tin tức thị trường';
+                                                    }
+                                                @endphp
+                                                
+                                                @if($latestBlog->category)
+                                                <span class="sidebar-blog-category {{ $latestCategoryClass }}">{{ $latestCategoryName }}</span>
+                                                @endif
                                             </div>
                                             <div class="latest-blog__content">
                                                 <h4 class="latest-blog__title">
@@ -106,6 +150,28 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
+    }
+    
+    .blog-category-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        padding: 6px 15px;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        z-index: 1;
+        text-transform: uppercase;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    .blog-category-badge.company-news {
+        background-color: #3498db;
+    }
+    
+    .blog-category-badge.market-news {
+        background-color: #e74c3c;
     }
     
     .blog-item__content {
@@ -163,6 +229,55 @@
     .social__links a:hover {
         background: var(--base);
         color: #fff;
+    }
+    
+    .category-links {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .category-link {
+        display: block;
+        padding: 10px 15px;
+        background: #f8f9fa;
+        color: #555;
+        border-left: 3px solid transparent;
+        transition: all 0.3s;
+        font-weight: 500;
+        border-radius: 0 4px 4px 0;
+    }
+    
+    .category-link:hover {
+        background: #f0f0f0;
+        color: var(--primary-color);
+        border-left-color: var(--primary-color);
+    }
+    
+    .latest-blog__thumb {
+        position: relative;
+    }
+    
+    .sidebar-blog-category {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 3px 8px;
+        border-radius: 3px;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 600;
+        z-index: 1;
+        text-transform: uppercase;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .sidebar-blog-category.company-news {
+        background-color: #3498db;
+    }
+    
+    .sidebar-blog-category.market-news {
+        background-color: #e74c3c;
     }
 </style>
 @endpush
