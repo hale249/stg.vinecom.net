@@ -76,7 +76,7 @@ class SalesStaffController extends Controller
         
         $emptyMessage = 'No data found';
         
-        return view('user.staff.staff.dashboard', compact('pageTitle', 'user', 'stats', 'interestAlerts', 'maturityAlerts', 'recentContracts', 'pending_notifications', 'notifications', 'general', 'emptyMessage'));
+        return view('user.staff.staff.dashboard', compact('pageTitle', 'user', 'stats', 'interestAlerts', 'maturityAlerts', 'recentContracts', 'pending_notifications', 'notifications', 'general', 'emptyMessage', 'honor'));
     }
     
     /**

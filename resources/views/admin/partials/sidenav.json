@@ -123,23 +123,7 @@
             }
         ]
     },
-    "time_settings": {
-        "keyword": [
-            "Time Settings",
-            "Time Configuration",
-            "Time Management",
-            "Clock Settings",
-            "Schedule Settings",
-            "Timing Preferences",
-            "System Time",
-            "Time Zone Settings",
-            "Timing Control"
-        ],
-        "title": "Time Settings",
-        "icon": "las la-clock",
-        "menu_active": "admin.time*",
-        "route_name": "admin.time.index"
-    },
+
     "manage_category": {
         "keyword": [
             "Manage Category",
@@ -283,14 +267,14 @@
     },
     "manage_frontend": {
         "keyword": [
-            "frontend",
-            "template",
-            "manage frontend",
-            "frontend contents",
-            "frontend settings",
-            "content management"
+            "giao diện người dùng",
+            "mẫu giao diện",
+            "quản lý giao diện",
+            "nội dung giao diện",
+            "cài đặt giao diện",
+            "quản lý nội dung"
         ],
-        "title": "Manage Content",
+        "title": "Quản lý nội dung",
         "icon": "las la-edit",
         "route_name": "admin.frontend.sections",
         "params": ["blog"],
