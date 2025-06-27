@@ -3,12 +3,43 @@
     <div class="row">
         <div class="col-lg-12">
             <div class="card b-radius--10">
+                <div class="card-header d-flex justify-content-between">
+                    <h5 class="card-title mb-0">
+                        <i class="las la-file-alt me-2"></i>@lang('Tài liệu tham khảo')
+                    </h5>
+                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                        <div class="d-inline">
+                            <div class="input-group">
+                                <select class="form-control" name="category_id" id="category_filter">
+                                    <option value="">@lang('Tất cả danh mục')</option>
+                                    @foreach($categories as $category)
+                                        <option value="{{ $category->id }}" {{ request()->category_id == $category->id ? 'selected' : '' }}>
+                                            {{ $category->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                <button class="btn btn--primary input-group-text" type="button" id="filter_btn"><i class="las la-filter"></i></button>
+                            </div>
+                        </div>
+
+                        <form action="{{ route('admin.documents.index') }}" method="GET" class="form-inline">
+                            <div class="input-group">
+                                <input type="text" name="search" class="form-control bg--white" placeholder="@lang('Tìm theo tiêu đề...')" value="{{ request()->search }}">
+                                <button class="btn btn--primary input-group-text" type="submit"><i class="las la-search"></i></button>
+                            </div>
+                        </form>
+                        
+                        <a href="{{ route('admin.documents.create') }}" class="btn btn-sm btn--primary">
+                            <i class="las la-plus"></i>@lang('Thêm mới')
+                        </a>
+                    </div>
+                </div>
                 <div class="card-body p-0">
                     <div class="table-responsive--md table-responsive">
                         <table class="table--light style--two table">
                             <thead>
                                 <tr>
-                                    <th>@lang('S.N.')</th>
+                                    <th>@lang('STT')</th>
                                     <th>@lang('Tiêu đề')</th>
                                     <th>@lang('Danh mục')</th>
                                     <th>@lang('File')</th>
@@ -22,7 +53,9 @@
                                 @forelse($documents as $document)
                                     <tr>
                                         <td>{{ $loop->iteration }}</td>
-                                        <td>{{ Str::limit($document->title, 30) }}</td>
+                                        <td>
+                                            <div class="text-wrap">{{ Str::limit($document->title, 30) }}</div>
+                                        </td>
                                         <td>
                                             <span class="badge badge--primary">
                                                 <i class="{{ $document->category->icon ?? 'las la-folder' }}"></i>
@@ -30,11 +63,17 @@
                                             </span>
                                         </td>
                                         <td>
-                                            <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $document->file_name }}">
-                                                {{ Str::limit($document->file_name, 15) }}
-                                                <br>
-                                                <small>{{ $document->file_size_formatted }}</small>
-                                            </span>
+                                            <div class="d-flex flex-column">
+                                                <span data-bs-toggle="tooltip" data-bs-placement="top" title="{{ $document->file_name }}">
+                                                    <i class="las la-file-alt me-1"></i>{{ Str::limit($document->file_name, 15) }}
+                                                    <small class="d-block text-muted">{{ $document->file_size_formatted }}</small>
+                                                </span>
+                                                @if(isset($document->file_exists) && !$document->file_exists)
+                                                    <span class="badge badge--danger mt-1">
+                                                        <i class="las la-exclamation-triangle me-1"></i>@lang('File missing!')
+                                                    </span>
+                                                @endif
+                                            </div>
                                         </td>
                                         <td>
                                             @if($document->for_manager && $document->for_staff)
@@ -56,11 +95,11 @@
                                         <td>
                                             <div class="button--group">
                                                 <a href="{{ route('admin.documents.edit', $document->id) }}" class="btn btn-sm btn-outline--primary">
-                                                    <i class="las la-edit"></i> @lang('Edit')
+                                                    <i class="las la-edit"></i>
                                                 </a>
 
                                                 <a href="{{ route('admin.documents.download', $document->id) }}" class="btn btn-sm btn-outline--info">
-                                                    <i class="las la-download"></i> @lang('Download')
+                                                    <i class="las la-download"></i>
                                                 </a>
 
                                                 @if ($document->status)
@@ -68,28 +107,33 @@
                                                         class="btn btn-sm btn-outline--danger confirmationBtn"
                                                         data-action="{{ route('admin.documents.status', $document->id) }}"
                                                         data-question="@lang('Bạn có chắc chắn muốn vô hiệu hóa tài liệu này?')">
-                                                        <i class="la la-eye-slash"></i> @lang('Disable')
+                                                        <i class="la la-eye-slash"></i>
                                                     </button>
                                                 @else
                                                     <button type="button"
                                                         class="btn btn-sm btn-outline--success confirmationBtn"
                                                         data-action="{{ route('admin.documents.status', $document->id) }}"
                                                         data-question="@lang('Bạn có chắc chắn muốn kích hoạt tài liệu này?')">
-                                                        <i class="la la-eye"></i> @lang('Enable')
+                                                        <i class="la la-eye"></i>
                                                     </button>
                                                 @endif
                                                 
                                                 <button class="btn btn-sm btn-outline--danger confirmationBtn"
                                                     data-action="{{ route('admin.documents.destroy', $document->id) }}"
                                                     data-question="@lang('Bạn có chắc chắn muốn xóa tài liệu này?')">
-                                                    <i class="la la-trash"></i> @lang('Delete')
+                                                    <i class="la la-trash"></i>
                                                 </button>
                                             </div>
                                         </td>
                                     </tr>
                                 @empty
                                     <tr>
-                                        <td class="text-muted text-center" colspan="100%">{{ __($emptyMessage) }}</td>
+                                        <td class="text-muted text-center" colspan="100%">
+                                            <div class="empty-data py-4">
+                                                <i class="las la-folder-open fa-3x text-muted"></i>
+                                                <h5 class="mt-3">{{ __($emptyMessage) }}</h5>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforelse
                             </tbody>
@@ -108,33 +152,20 @@
     <x-confirmation-modal />
 @endsection
 
-@push('breadcrumb-plugins')
-    <div class="d-flex flex-wrap justify-content-end gap-2 align-items-center">
-        <div class="d-inline">
-            <div class="input-group justify-content-end">
-                <select class="form-control" name="category_id" id="category_filter">
-                    <option value="">@lang('Tất cả danh mục')</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ request()->category_id == $category->id ? 'selected' : '' }}>
-                            {{ $category->name }}
-                        </option>
-                    @endforeach
-                </select>
-                <button class="btn btn--primary input-group-text" type="button" id="filter_btn"><i class="las la-filter"></i></button>
-            </div>
-        </div>
-
-        <form action="{{ route('admin.documents.index') }}" method="GET" class="form-inline float-sm-end">
-            <div class="input-group justify-content-end">
-                <input type="text" name="search" class="form-control bg--white" placeholder="@lang('Tìm theo tiêu đề...')" value="{{ request()->search }}">
-                <button class="btn btn--primary input-group-text" type="submit"><i class="las la-search"></i></button>
-            </div>
-        </form>
-        
-        <a href="{{ route('admin.documents.create') }}" class="btn btn-sm btn--primary box--shadow1 text--small">
-            <i class="fa fa-fw fa-plus"></i>@lang('Thêm mới')
-        </a>
-    </div>
+@push('style')
+<style>
+    .empty-data {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .text-wrap {
+        max-width: 200px;
+        white-space: normal;
+    }
+</style>
 @endpush
 
 @push('script')

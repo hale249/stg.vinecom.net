@@ -73,7 +73,7 @@ class DocumentController extends Controller
             return redirect()->route('user.home')->with('error', 'Bạn không có quyền truy cập trang này');
         }
         
-        $document = ReferenceDocument::where('status', true)->findOrFail($id);
+        $document = ReferenceDocument::with('category')->where('status', true)->findOrFail($id);
         
         // Check if user can access the document
         if (!$this->canUserAccessDocument($user, $document)) {
@@ -93,13 +93,25 @@ class DocumentController extends Controller
         
         $isManager = request()->is('user/manager*');
         $layout = $isManager ? 'user.staff.layouts.app' : 'user.staff.layouts.staff_app';
+        $routePrefix = $isManager ? 'user.staff.manager' : 'user.staff.staff';
         
         if (!$viewable) {
-            $routePrefix = $isManager ? 'user.staff.manager' : 'user.staff.staff';
             return redirect()->route("$routePrefix.documents.download", $id);
         }
         
-        return view('user.staff.documents.view', compact('pageTitle', 'document', 'viewable', 'isManager', 'layout'));
+        // Verify file exists
+        $filePath = storage_path('app/public/' . $document->file_path);
+        if (!file_exists($filePath)) {
+            return back()->with('error', 'File không tồn tại. Vui lòng liên hệ quản trị viên.');
+        }
+        
+        return view('user.staff.documents.view', compact(
+            'pageTitle', 
+            'document',
+            'viewable', 
+            'isManager', 
+            'layout'
+        ));
     }
     
     /**
@@ -139,6 +151,60 @@ class DocumentController extends Controller
         ];
         
         return Response::download($filePath, $document->file_name, $headers);
+    }
+    
+    /**
+     * Stream a document file (for direct viewing in browser)
+     */
+    public function stream($id)
+    {
+        $user = auth()->user();
+        
+        // Kiểm tra nếu không phải staff hoặc manager, trả về lỗi
+        if (!$user->is_staff) {
+            return redirect()->route('user.home')->with('error', 'Bạn không có quyền truy cập trang này');
+        }
+        
+        $document = ReferenceDocument::with('category')->where('status', true)->findOrFail($id);
+        
+        // Check if user can access the document
+        if (!$this->canUserAccessDocument($user, $document)) {
+            abort(403, 'Bạn không có quyền xem tài liệu này');
+        }
+        
+        // Check if document category is active
+        if (!$document->category || !$document->category->status) {
+            abort(404, 'Tài liệu không tồn tại hoặc đã bị xóa');
+        }
+        
+        // Check if file exists
+        $filePath = storage_path('app/public/' . $document->file_path);
+        if (!file_exists($filePath)) {
+            abort(404, 'File không tồn tại');
+        }
+        
+        // Determine file type
+        $extension = pathinfo($document->file_name, PATHINFO_EXTENSION);
+        $mimeType = null;
+        
+        if (strtolower($extension) === 'pdf') {
+            $mimeType = 'application/pdf';
+        } elseif (in_array(strtolower($extension), ['jpg', 'jpeg'])) {
+            $mimeType = 'image/jpeg';
+        } elseif (strtolower($extension) === 'png') {
+            $mimeType = 'image/png';
+        } elseif (strtolower($extension) === 'gif') {
+            $mimeType = 'image/gif';
+        } else {
+            $routePrefix = request()->is('user/manager*') ? 'user.staff.manager' : 'user.staff.staff';
+            return redirect()->route("$routePrefix.documents.download", $id);
+        }
+        
+        // Stream the file directly to the browser
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . $document->file_name . '"',
+        ]);
     }
     
     /**

@@ -48,6 +48,11 @@ class ReferenceDocumentController extends Controller
         $documents = $query->paginate(20);
         $categories = DocumentCategory::active()->get();
         
+        // Check which documents have missing files
+        foreach ($documents as $document) {
+            $document->file_exists = $this->verifyFileExists($document);
+        }
+        
         return view('admin.reference_documents.index', compact('pageTitle', 'documents', 'categories'));
     }
     
@@ -92,8 +97,8 @@ class ReferenceDocumentController extends Controller
         $document->status = $request->status;
         
         // Process the uploaded document
-        if ($request->hasFile('document')) {
-            \Log::info('Document file found in request');
+        if ($request->hasFile('document') && $request->file('document')->isValid()) {
+            \Log::info('Document file found in request and valid');
             
             $file = $request->file('document');
             $originalName = $file->getClientOriginalName();
@@ -108,27 +113,41 @@ class ReferenceDocumentController extends Controller
                 'path' => $path
             ]);
             
-            // Create directory if it doesn't exist
+            // Ensure storage directory exists with correct permissions
             $fullPath = storage_path("app/public/$path");
             if (!file_exists($fullPath)) {
                 \Log::info("Creating directory: $fullPath");
                 mkdir($fullPath, 0755, true);
+                \Log::info("Directory created");
             }
             
             try {
-                // Store the file
-                $file->storeAs("public/$path", $filename);
-                \Log::info('File stored successfully');
-                
-                $document->file_path = "$path/$filename";
-                $document->file_name = $originalName;
-                $document->file_size = $file->getSize();
+                // Store the file with a more direct approach to verify it's saved
+                $fullFilePath = "$fullPath/$filename";
+                if (copy($file->getRealPath(), $fullFilePath)) {
+                    \Log::info('File stored successfully at: ' . $fullFilePath);
+                    
+                    // Double-check file exists
+                    if (!file_exists($fullFilePath)) {
+                        \Log::error('File was not saved properly! Expected at: ' . $fullFilePath);
+                        throw new \Exception('Failed to save file');
+                    }
+                    
+                    $document->file_path = "$path/$filename";
+                    $document->file_name = $originalName;
+                    $document->file_size = $file->getSize();
+                } else {
+                    \Log::error('Failed to copy file to destination');
+                    throw new \Exception('Failed to copy file');
+                }
             } catch (\Exception $e) {
                 \Log::error('Error storing file: ' . $e->getMessage());
                 throw $e;
             }
         } else {
-            \Log::warning('No document file found in request');
+            \Log::warning('No document file found in request or file is invalid');
+            $notify[] = ['error', 'Tập tin tải lên không hợp lệ'];
+            return back()->withInput()->withNotify($notify);
         }
         
         try {
@@ -256,13 +275,42 @@ class ReferenceDocumentController extends Controller
      */
     public function download($id)
     {
-        $document = ReferenceDocument::findOrFail($id);
+        $document = ReferenceDocument::with('category')->findOrFail($id);
+        \Log::info('Attempting document download', [
+            'document_id' => $document->id,
+            'title' => $document->title,
+            'stored_path' => $document->file_path
+        ]);
+        
+        // Check if file exists
         $filePath = storage_path('app/public/' . $document->file_path);
-
+        \Log::info('Full file path', ['path' => $filePath]);
+        
         if (!file_exists($filePath)) {
-            abort(404, 'File not found.');
+            \Log::error('File not found at path', ['path' => $filePath]);
+            
+            // Try to recreate document directories if they don't exist
+            $directory = dirname($filePath);
+            if (!file_exists($directory)) {
+                \Log::info('Attempting to create missing directory', ['directory' => $directory]);
+                mkdir($directory, 0755, true);
+            }
+            
+            $notify[] = ['error', 'File không tồn tại. Vui lòng liên hệ quản trị viên.'];
+            return back()->withNotify($notify);
         }
-
+        
+        \Log::info('File found, starting download');
         return response()->download($filePath, $document->file_name);
+    }
+
+    protected function verifyFileExists($document)
+    {
+        if (!$document->file_path) {
+            return false;
+        }
+        
+        $filePath = storage_path('app/public/' . $document->file_path);
+        return file_exists($filePath);
     }
 } 

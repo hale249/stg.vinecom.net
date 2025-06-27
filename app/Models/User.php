@@ -212,7 +212,8 @@ class User extends Authenticatable
         return $this->is_staff && (
             $this->role === 'sales_manager' || 
             $this->role === 'manager' || 
-            str_contains($this->role, 'manager')
+            strtolower($this->role) === 'manager' ||
+            str_contains(strtolower($this->role), 'manager')
         );
     }
     

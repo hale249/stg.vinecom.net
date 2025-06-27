@@ -87,7 +87,8 @@
                                 <div class="col-12">
                                     <div class="text-center">
                                         <i class="far fa-folder-open fa-3x text-muted mb-3"></i>
-                                        <h5 class="text-muted">@lang('Không tìm thấy tài liệu nào')</h5>
+                                        <h5 class="text-muted">@lang('Không tìm thấy tài liệu tham khảo')</h5>
+                                        <p class="text-muted">@lang('Không có tài liệu phù hợp với điều kiện tìm kiếm hoặc không có tài liệu nào cho vai trò của bạn.')</p>
                                     </div>
                                 </div>
                             @endforelse

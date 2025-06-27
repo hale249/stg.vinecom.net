@@ -42,17 +42,27 @@
                                     $extension = pathinfo($document->file_name, PATHINFO_EXTENSION);
                                     $isPdf = strtolower($extension) === 'pdf';
                                     $isImage = in_array(strtolower($extension), ['jpg', 'jpeg', 'png', 'gif']);
-                                    $filePath = asset('storage/' . $document->file_path);
+                                    $publicPath = asset('storage/' . $document->file_path);
+                                    $streamPath = route('reference.document.stream', $document->id);
                                 @endphp
                                 
                                 <div class="document-viewer mt-3">
                                     @if($isPdf)
-                                        <div class="ratio ratio-16x9" style="height: 80vh;">
-                                            <iframe src="{{ $filePath }}#toolbar=0" class="w-100 h-100 border rounded" allowfullscreen></iframe>
+                                        <div class="pdf-container" style="height: 80vh;">
+                                            <!-- Primary method - Object tag -->
+                                            <object data="{{ $streamPath }}" type="application/pdf" width="100%" height="100%" class="w-100 h-100 border rounded">
+                                                <!-- Fallback - iframe -->
+                                                <iframe src="{{ $streamPath }}" width="100%" height="100%" style="border: 1px solid #ddd; border-radius: 4px;">
+                                                    <!-- Final fallback - download link -->
+                                                    <p>@lang('Trình duyệt của bạn không hỗ trợ xem PDF. Vui lòng')
+                                                    <a href="{{ route('reference.document.download', $document->id) }}">@lang('tải xuống tài liệu')</a>
+                                                    @lang('để xem').</p>
+                                                </iframe>
+                                            </object>
                                         </div>
                                     @elseif($isImage)
                                         <div class="text-center">
-                                            <img src="{{ $filePath }}" alt="{{ $document->title }}" class="img-fluid border rounded">
+                                            <img src="{{ $streamPath }}" alt="{{ $document->title }}" class="img-fluid border rounded">
                                         </div>
                                     @else
                                         <div class="text-center py-5">
@@ -77,4 +87,30 @@
         </div>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('style')
+<style>
+    .document-viewer {
+        width: 100%;
+        overflow: hidden;
+    }
+    
+    .document-viewer object,
+    .document-viewer iframe {
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    
+    .document-viewer img {
+        max-width: 100%;
+        max-height: 80vh;
+        object-fit: contain;
+    }
+    
+    .pdf-container {
+        position: relative;
+        width: 100%;
+    }
+</style>
+@endpush 

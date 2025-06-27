@@ -83,6 +83,7 @@ Route::middleware(['auth', 'staff'])->group(function () {
         Route::get('documents', 'index')->name('documents');
         Route::get('document/view/{id}', 'view')->name('document.view');
         Route::get('document/download/{id}', 'download')->name('document.download');
+        Route::get('document/stream/{id}', 'stream')->name('document.stream');
     });
 });
 
@@ -110,6 +111,7 @@ Route::middleware(['auth'])->prefix('user/staff')->name('user.staff.staff.')->gr
         Route::get('documents', 'index')->name('documents');
         Route::get('documents/view/{id}', 'view')->name('documents.view');
         Route::get('documents/download/{id}', 'download')->name('documents.download');
+        Route::get('documents/stream/{id}', 'stream')->name('documents.stream');
     });
 });
 
@@ -126,6 +128,7 @@ Route::middleware(['auth'])->prefix('user/manager')->name('user.staff.manager.')
         Route::get('documents', 'index')->name('documents');
         Route::get('documents/view/{id}', 'view')->name('documents.view');
         Route::get('documents/download/{id}', 'download')->name('documents.download');
+        Route::get('documents/stream/{id}', 'stream')->name('documents.stream');
     });
 
     // HR Routes
