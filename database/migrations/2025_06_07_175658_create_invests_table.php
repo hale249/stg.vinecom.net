@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('invests')) {
+            return; // Table already created by earlier migration
+        }
+        
         Schema::create('invests', function (Blueprint $table) {
             $table->id();
             $table->string('invest_no', 255)->nullable();

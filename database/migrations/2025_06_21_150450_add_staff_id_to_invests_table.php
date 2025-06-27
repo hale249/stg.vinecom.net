@@ -11,9 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (!Schema::hasTable('invests')) {
+            // If the invests table doesn't exist yet, we'll skip this migration
+            // It will be created by the create_invests_table migration
+            return;
+        }
+
         Schema::table('invests', function (Blueprint $table) {
-            $table->unsignedInteger('staff_id')->nullable()->after('user_id');
-            $table->index('staff_id');
+            $table->foreignId('staff_id')->nullable()->after('user_id');
         });
     }
 
@@ -22,8 +27,11 @@ return new class extends Migration
      */
     public function down(): void
     {
+        if (!Schema::hasTable('invests')) {
+            return;
+        }
+        
         Schema::table('invests', function (Blueprint $table) {
-            $table->dropIndex(['staff_id']);
             $table->dropColumn('staff_id');
         });
     }

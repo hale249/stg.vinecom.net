@@ -611,7 +611,7 @@
         ]
     },
     "reports": {
-        "title": "Report",
+        "title": "Báo cáo",
         "icon": "la la-list",
         "menu_active": "admin.report*",
         "submenu": [

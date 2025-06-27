@@ -11,6 +11,17 @@ return new class extends Migration
      */
     public function up(): void
     {
+        // First, temporarily create the invests table if it doesn't exist
+        if (!Schema::hasTable('invests')) {
+            Schema::create('invests', function (Blueprint $table) {
+                $table->id();
+                $table->string('invest_no', 255)->nullable();
+                $table->unsignedInteger('user_id')->default(0);
+                $table->unsignedInteger('project_id')->default(0);
+                $table->timestamps();
+            });
+        }
+
         Schema::create('contract_documents', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('invest_id');
