@@ -69,6 +69,10 @@ Route::middleware('admin')->group(function () {
         Route::get('completed', 'completed')->name('completed');
         Route::post('stop-returns/{id}', 'stopReturns')->name('stop.returns');
         Route::post('start-returns/{id}', 'startReturns')->name('start.returns');
+        Route::get('process-roi', 'processROI')->name('process.roi');
+        Route::get('fix-roi-transactions', 'fixROITransactions')->name('fix.roi.transactions');
+        Route::get('recalculate-roi-transactions', 'recalculateROITransactions')->name('recalculate.roi.transactions');
+        Route::get('fix-user-balances', 'fixUserBalances')->name('fix.user.balances');
     });
 
     Route::controller('CategoryController')->name('category.')->prefix('category')->group(function () {

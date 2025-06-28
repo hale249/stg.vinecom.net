@@ -75,7 +75,9 @@ class SalesManagerController extends Controller
             ->limit(10)
             ->get();
         
-        return view('user.staff.manager.dashboard', compact('pageTitle', 'user', 'staffMembers', 'stats', 'interestAlerts', 'maturityAlerts', 'honor'));
+        $general = \App\Models\GeneralSetting::first();
+        
+        return view('user.staff.manager.dashboard', compact('pageTitle', 'user', 'staffMembers', 'stats', 'interestAlerts', 'maturityAlerts', 'honor', 'general'));
     }
     
     /**
@@ -141,7 +143,9 @@ class SalesManagerController extends Controller
             ->latest()
             ->paginate(getPaginate());
             
-        return view('user.staff.manager.contracts', compact('pageTitle', 'contracts'));
+        $general = \App\Models\GeneralSetting::first();
+            
+        return view('user.staff.manager.contracts', compact('pageTitle', 'contracts', 'general'));
     }
     
     /**
@@ -271,15 +275,93 @@ class SalesManagerController extends Controller
 
     public function reportTransactions() {
         $pageTitle = 'Báo cáo giao dịch';
-        return view('user.staff.manager.report_transactions', compact('pageTitle'));
+        
+        // Lấy thông tin chung
+        $general = \App\Models\GeneralSetting::first();
+        
+        // Khởi tạo các biến thống kê
+        $totalTransactions = 0;
+        $totalInvestment = 0;
+        $totalWithdrawal = 0;
+        $totalInterest = 0;
+        
+        // Lấy dữ liệu biểu đồ (có thể phát triển thêm sau)
+        $chartData = [
+            'months' => ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+            'investment' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            'withdrawal' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+            'interest' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ];
+        
+        return view('user.staff.manager.report_transactions', compact(
+            'pageTitle', 
+            'general', 
+            'totalTransactions', 
+            'totalInvestment', 
+            'totalWithdrawal', 
+            'totalInterest',
+            'chartData'
+        ));
     }
     public function reportInterests() {
         $pageTitle = 'Báo cáo lãi suất';
-        return view('user.staff.manager.report_interests', compact('pageTitle'));
+        
+        // Lấy thông tin chung
+        $general = \App\Models\GeneralSetting::first();
+        
+        // Khởi tạo các biến thống kê
+        $totalInterestAmount = 0;
+        $paidInterestAmount = 0;
+        $pendingInterestAmount = 0;
+        $averageInterestRate = 0;
+        
+        // Lấy danh sách lãi suất (có thể phát triển thêm sau)
+        $interests = [];
+        
+        return view('user.staff.manager.report_interests', compact(
+            'pageTitle', 
+            'general', 
+            'totalInterestAmount', 
+            'paidInterestAmount', 
+            'pendingInterestAmount', 
+            'averageInterestRate',
+            'interests'
+        ));
     }
     public function reportCommissions() {
         $pageTitle = 'Báo cáo hoa hồng';
-        return view('user.staff.manager.report_commissions', compact('pageTitle'));
+        
+        // Lấy thông tin chung
+        $general = \App\Models\GeneralSetting::first();
+        
+        // Khởi tạo các biến thống kê
+        $totalCommission = 0;
+        $receivedCommission = 0;
+        $pendingCommission = 0;
+        $averageCommissionRate = 0;
+        
+        // Lấy dữ liệu nhân viên (có thể phát triển thêm sau)
+        $staffData = [
+            'names' => ['Nhân viên 1', 'Nhân viên 2', 'Nhân viên 3', 'Nhân viên 4'],
+            'values' => [25, 25, 25, 25]
+        ];
+        
+        // Lấy dữ liệu biểu đồ (có thể phát triển thêm sau)
+        $chartData = [
+            'months' => ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+            'commission' => [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        ];
+        
+        return view('user.staff.manager.report_commissions', compact(
+            'pageTitle', 
+            'general', 
+            'totalCommission', 
+            'receivedCommission', 
+            'pendingCommission', 
+            'averageCommissionRate',
+            'staffData',
+            'chartData'
+        ));
     }
 
     /**

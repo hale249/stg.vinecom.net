@@ -5,7 +5,7 @@
         <div class="col-md-6">
             <div class="row g-4">
                 <div class="col-12">
-                    <div class="card full-view">
+                    <div class="card full-view animate-fade-in delay-100">
                         <div class="card-header">
                             <div class="row g-2 align-items-center">
                                 <div class="col-sm-6">
@@ -28,20 +28,20 @@
                             </div>
                         </div>
                         <div class="card-body text-center pb-0 px-0">
-                            <div class="row align-items-center">
+                            <div class="row align-items-center animate-fade-in delay-200">
                                 <div class="col-md-4">
-                                    <p>Đầu tư <span class="time_type"></span> này</p>
+                                    <p>Đầu tư <span class="time_type"></span> </p>
                                 </div>
                                 <div class="col-md-4">
-                                    <h3><span>{{ gs('cur_sym') }}</span><span class="total_invest"></span></h3>
+                                    <h3 class="animate-pulse"><span>{{ gs('cur_sym') }}</span><span class="total_invest"></span></h3>
                                 </div>
                                 <div class="col-md-4">
-                                    <p class="up_down">
+                                    <p class="up_down animate-fade-in delay-300">
 
                                     </p>
                                 </div>
                             </div>
-                            <div class="my_invest_canvas" style="background:#f8f9fa;min-height:180px;position:relative;border-radius:8px;">
+                            <div class="my_invest_canvas animate-slide-up delay-300" style="background:#f8f9fa;min-height:180px;position:relative;border-radius:8px;box-shadow: inset 0 0 15px rgba(0,0,0,0.05);">
                                 <canvas height="150" id="invest_chart" class="chartjs-chart mt-4"></canvas>
                                 <div id="no-data-message" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#888;font-size:16px;">Không có dữ liệu để hiển thị</div>
                             </div>
@@ -69,7 +69,7 @@
                     </div>
                 </div>
                 <div class="col-xxl-12">
-                    <div class="card h-100">
+                    <div class="card h-100 animate-slide-up delay-200">
                         <div class="card-header">
                             <div class="row align-items-center">
                                 <div class="col-6">
@@ -79,11 +79,11 @@
                         </div>
                         <div class="card-body">
                             @if ($widget['profit_to_give'])
-                                <div class="card-container">
+                                <div class="card-container animate-fade-in delay-300">
                                     <div class="row align-items-center pb-3 pb-xxl-0">
                                         <div class="col-6">
                                             <p>Cần trả</p>
-                                            <h3 class="deposit-amount">
+                                            <h3 class="deposit-amount animate-pulse">
                                                 <sup>{{ gs('cur_sym') }}</sup>{{ showAmount($widget['profit_to_give'], currencyFormat: false) }}
                                             </h3>
                                         </div>
@@ -92,7 +92,7 @@
                                                 href="{{ route('admin.report.invest.history') }}">@lang('History')</a>
                                         </div>
                                     </div>
-                                    <div class="progress-info">
+                                    <div class="progress-info animate-fade-in delay-400">
                                         <div class="progress-info-content">
                                             <p>Đã trả
                                                 @if ($widget['profit_paid'] + $widget['profit_to_give'] != 0)
@@ -110,20 +110,20 @@
                                         </div>
                                     </div>
                                     <div class="progress mb-2 my-progressbar">
-                                        <div class="progress-bar" role="progressbar"
+                                        <div class="progress-bar animate-fade-in delay-500" role="progressbar"
                                             style="width: {{ $widget['profit_paid'] + $widget['profit_to_give'] != 0 ? getAmount(($widget['profit_paid'] / ($widget['profit_paid'] + $widget['profit_to_give'])) * 100) : 0 }}%;">
                                         </div>
                                     </div>
-                                    <p class="font-12 mb-0">*Thống kê này không bao gồm đầu tư trọn đời.</p>
+                                    <p class="font-12 mb-0 animate-fade-in delay-500">*Thống kê này không bao gồm đầu tư trọn đời.</p>
                                 </div>
                             @else
-                                <h5 class="text-center">Không có đầu tư cần trả!</h5>
+                                <h5 class="text-center animate-fade-in">Không có đầu tư cần trả!</h5>
                             @endif
                         </div>
                     </div>
                 </div>
                 <div class="col-12">
-                    <div class="card h-100">
+                    <div class="card h-100 animate-scale delay-300">
                         <div class="card-header">
                             <div class="row align-items-center">
                                 <div class="col">
@@ -132,7 +132,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="chart-container">
+                            <div class="chart-container animate-fade-in delay-400">
                                 <div class="chart-info">
                                     <a class="chart-info-toggle" href="#">
                                         <img class="chart-info-img" src="{{ asset('assets/images/collapse.svg') }}"
@@ -141,7 +141,7 @@
                                     <div class="chart-info-content">
                                         <ul class="chart-info-list">
                                             @foreach ($interestByProjects as $key => $invest)
-                                                <li class="chart-info-list-item">
+                                                <li class="chart-info-list-item animate-fade-in" style="animation-delay: {{ 0.05 * $loop->index }}s">
                                                     <i
                                                         class="fas fa-plane projectPointInterest me-2"></i>{{ __($key) }}
                                                     {{ $totalInterest > 0 ? showAmount(($invest / $totalInterest) * 100, currencyFormat: false) : 0 }}
@@ -151,7 +151,7 @@
                                         </ul>
                                     </div>
                                 </div>
-                                <div class="chart-area">
+                                <div class="chart-area animate-fade-in delay-500">
                                     <canvas class="chartjs-chart" id="interest_by_project" height="250"></canvas>
                                 </div>
                             </div>
@@ -163,7 +163,7 @@
         <div class="col-md-6">
             <div class="row g-4">
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card animate-fade-in delay-200">
                         <div class="card-header">
                             <div class="row align-items-center">
                                 <div class="col-12">
@@ -185,10 +185,10 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="interest-scheme">
+                            <div class="interest-scheme animate-fade-in delay-300">
                                 <div class="interest-scheme__content">
                                     <p class="mb-0">Đầu tư đang chạy</p>
-                                    <h5 class="mb-1 text-success runningInvests"></h5>
+                                    <h5 class="mb-1 text-success runningInvests animate-pulse"></h5>
                                     <p class="mb-0">
                                         <a class="btn btn-sm btn-outline-success font-12 px-2"
                                             href="{{ route('admin.report.invest.history') }}?status={{ Status::INVEST_RUNNING }}">@lang('History')</a>
@@ -196,7 +196,7 @@
                                 </div>
                                 <div class="interest-scheme__content text-sm-center">
                                     <p class="mb-0 font-12">Đầu tư đã hoàn thành</p>
-                                    <h5 class="mb-1 text-warning counter completedInvests"></h5>
+                                    <h5 class="mb-1 text-warning counter completedInvests animate-pulse"></h5>
                                     <p class="mb-0">
                                         <a
                                             href="{{ route('admin.report.invest.history') }}?status={{ Status::INVEST_COMPLETED }}">
@@ -207,7 +207,7 @@
                                 </div>
                                 <div class="interest-scheme__content text-sm-end">
                                     <p class="mb-0 font-12">Lãi</p>
-                                    <h5 class="mb-1 text-primary interests"></h5>
+                                    <h5 class="mb-1 text-primary interests animate-pulse"></h5>
                                     <p class="mb-0">
                                         <a class="btn btn-sm btn-outline-primary font-12 px-2 speedUp"
                                             href="{{ route('admin.report.transaction') }}?remark=profit">@lang('History')</a>
@@ -218,7 +218,7 @@
                     </div>
                 </div>
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card animate-fade-in delay-300">
                         <div class="card-header">
                             <div class="row g-2 align-items-center">
                                 <div class="col-sm-6 col-md-12 col-xl-5">
@@ -242,7 +242,7 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <div class="chart-container">
+                            <div class="chart-container animate-fade-in delay-400">
                                 <div class="chart-info">
                                     <a class="chart-info-toggle" href="#">
                                         <img class="chart-info-img" src="{{ asset('assets/images/collapse.svg') }}"
@@ -252,7 +252,7 @@
                                         <ul class="chart-info-list project-info-data"></ul>
                                     </div>
                                 </div>
-                                <div class="chart-area chart-area--fixed">
+                                <div class="chart-area chart-area--fixed animate-fade-in delay-500">
                                     <div class="plan_invest_canvas"></div>
                                 </div>
                             </div>
@@ -260,7 +260,7 @@
                     </div>
                 </div>
                 <div class="col-12">
-                    <div class="card h-100">
+                    <div class="card h-100 animate-scale delay-400">
                         <div class="card-header">
                             <div class="row align-items-center g-2">
                                 <div class="col-sm-6">
@@ -297,19 +297,21 @@
                             </div>
                         </div>
                         <div class="card-body">
-                            <canvas class="chartjs-chart" id="chartjs-boundary-area-chart" height="80"></canvas>
+                            <div class="animate-fade-in delay-500">
+                                <canvas class="chartjs-chart" id="chartjs-boundary-area-chart" height="80"></canvas>
+                            </div>
                         </div>
                     </div>
                 </div>
                 <div class="col-12">
-                    <div class="card">
+                    <div class="card animate-slide-up delay-400">
                         <div class="card-header">
                             <div class="card-title mb-0">Đầu tư gần đây</div>
                         </div>
                         <div class="card-body">
                             <div class="plan-list d-flex flex-wrap flex-xxl-column gap-3 gap-xxl-0">
                                 @foreach ($recentInvests as $invest)
-                                    <div class="plan-item-two">
+                                    <div class="plan-item-two animate-fade-in" style="animation-delay: {{ 0.1 * $loop->index }}s">
                                         <div class="plan-info plan-inner-div">
                                             <div class="plan-name fw-bold">{{ $invest->project->title }} - Mỗi {{ __($invest->time_name) }} {{ $invest->project->return_type != Status::LIFETIME ? gs('cur_sym') : '' }}{{ showAmount($invest->project->share_amount, currencyFormat: false) }} cho @if ($invest->project->return_type == Status::REPEAT) {{ __($invest->project->repeat_time) }} {{ __(@$invest->project->time->name) }} @else Trọn đời @endif</div>
                                             <div class="plan-desc text-end text-xl-start">Đã đầu tư: <span
@@ -349,6 +351,8 @@
 @endsection
 @push('style-lib')
     <link rel="stylesheet" href="{{ asset('assets/admin/css/custom.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/animations.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/admin/css/report-animations.css') }}">
 @endpush
 @push('style')
     <style>
@@ -361,17 +365,35 @@
 
 @push('script')
     <script src="{{ asset('assets/admin/js/vendor/chart.js.2.8.0.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/report-animations.js') }}"></script>
     <script>
         'use strict';
         (function($) {
             $('[name=invest_time]').on('change', function() {
                 let time = $(this).val();
                 var url = "{{ route('admin.invest.report.statistics') }}";
+                
+                // Show loading indicator
+                $('.my_invest_canvas').addClass('loading').append('<div class="loading-spinner" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);"></div>');
+                
                 $.get(url, {
                     time: time
                 }, function(response) {
                     $('.time_type').text(time === 'week' ? 'tuần này' : time === 'month' ? 'tháng này' : time === 'year' ? 'năm nay' : time);
-                    $('.total_invest').text(response.total_invest.toFixed(2));
+                    
+                    // Animate number change
+                    const oldValue = parseFloat($('.total_invest').text()) || 0;
+                    const newValue = response.total_invest;
+                    $({numberValue: oldValue}).animate({numberValue: newValue}, {
+                        duration: 1000,
+                        easing: 'swing',
+                        step: function() { 
+                            $('.total_invest').text(this.numberValue.toFixed(2)); 
+                        },
+                        complete: function() {
+                            $('.total_invest').text(newValue.toFixed(2));
+                        }
+                    });
 
                     let upDown = `<small>Không có đầu tư trong ${time === 'week' ? 'tuần trước' : time === 'month' ? 'tháng trước' : time === 'year' ? 'năm trước' : time}</small>`;
                     if (response.invest_diff != 0) {
@@ -381,9 +403,13 @@
                             var className = 'danger';
                         }
                         upDown =
-                            `<span class="badge badge-${className}-inverse font-16">${response.invest_diff}%<i class="las la-arrow-${response.up_down}"></i></span>`;
+                            `<span class="badge badge-${className}-inverse font-16 animate-fade-in">${response.invest_diff}%<i class="las la-arrow-${response.up_down}"></i></span>`;
                     }
                     $('.up_down').html(upDown);
+                    
+                    // Remove loading indicator
+                    $('.my_invest_canvas').removeClass('loading').find('.loading-spinner').remove();
+                    
                     $('.my_invest_canvas').html('<canvas height="150" id="invest_chart" class="chartjs-chart mt-4"></canvas><div id="no-data-message" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#888;font-size:16px;">Không có dữ liệu để hiển thị</div>');
                     var ctx = document.getElementById('invest_chart');
                     var chartData = response.invest_amounts || [];
@@ -411,7 +437,31 @@
                             elements: { line: { tension: 0 } },
                             scales: { xAxes: [{ display: true }], yAxes: [{ ticks: { suggestedMin: 0 }, display: true }] },
                             legend: { display: true },
-                            tooltips: { callbacks: { label: (tooltipItem, data) => data.datasets[0].data[tooltipItem.index] + ' {{ gs('cur_text') }}' } }
+                            tooltips: { callbacks: { label: (tooltipItem, data) => data.datasets[0].data[tooltipItem.index] + ' {{ gs('cur_text') }}' } },
+                            animation: {
+                                duration: 1500,
+                                easing: 'easeOutQuart',
+                                onProgress: function(animation) {
+                                    const chartInstance = this.chart;
+                                    const ctx = chartInstance.ctx;
+                                    const dataset = chartInstance.data.datasets[0];
+                                    const meta = chartInstance.controller.getDatasetMeta(0);
+                                    
+                                    ctx.save();
+                                    meta.data.forEach(function(bar, index) {
+                                        const data = dataset.data[index];
+                                        ctx.fillStyle = '#fff';
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'middle';
+                                        
+                                        const position = bar.tooltipPosition();
+                                        if (data > 0) {
+                                            ctx.fillText(data, position.x, position.y - 15);
+                                        }
+                                    });
+                                    ctx.restore();
+                                }
+                            }
                         }
                     });
                     if (!chartData.length || chartData.every(v => v === 0)) {

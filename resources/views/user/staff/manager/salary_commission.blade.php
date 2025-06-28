@@ -32,7 +32,7 @@
             <div class="col-md-3 mb-3">
                 <div class="card bg-warning text-white">
                     <div class="card-body text-center">
-                        <h6 class="mb-1">@lang('Tổng lương')</h6>
+                        <h6 class="mb-1">@lang('Tổng thu nhập ')</h6>
                         <h4 class="mb-0">{{ showAmount($summary['total_salary'] ?? 0) }}</h4>
                     </div>
                 </div>

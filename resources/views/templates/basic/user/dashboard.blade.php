@@ -1,6 +1,9 @@
 @extends($activeTemplate . 'layouts.master')
 
 @section('content')
+    @php
+        $general = gs(); // Get general settings
+    @endphp
     <div class="dashboard-inner__block">
         <div class="notice"></div>
         <!-- KYC Section - Giữ nguyên -->
@@ -128,7 +131,7 @@
                                     <td>{{ showDateTime($transaction->created_at) }}</td>
                                     <td>{{ __($transaction->remark) }}</td>
                                     <td class="@if($transaction->trx_type == '+')text-success @else text-danger @endif">
-                                        {{ $transaction->trx_type }} {{ showAmount($transaction->amount) }} {{ $general->cur_text }}
+                                        {{ $transaction->trx_type }} {{ showAmount($transaction->amount) }} {{ $general->cur_text ?? '' }}
                                     </td>
                                     <td>{{ __($transaction->details) }}</td>
                                 </tr>

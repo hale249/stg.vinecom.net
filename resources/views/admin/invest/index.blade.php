@@ -102,5 +102,20 @@
 @endsection
 
 @push('breadcrumb-plugins')
-    <x-search-form placeholder="Search here..." />
+    <x-search-form placeholder="Search by invest no or project name" />
+    
+    @if(request()->routeIs('admin.invest.running'))
+    <a href="{{ route('admin.invest.process.roi') }}" class="btn btn-sm btn-outline--primary">
+        <i class="las la-money-bill-wave"></i> @lang('Process Monthly ROI')
+    </a>
+    <a href="{{ route('admin.invest.fix.roi.transactions') }}" class="btn btn-sm btn-outline--success">
+        <i class="las la-tools"></i> @lang('Fix ROI Transactions')
+    </a>
+    <a href="{{ route('admin.invest.recalculate.roi.transactions') }}" class="btn btn-sm btn-outline--info">
+        <i class="las la-calculator"></i> @lang('Recalculate ROI Payments')
+    </a>
+    <a href="{{ route('admin.invest.fix.user.balances') }}" class="btn btn-sm btn-outline--warning">
+        <i class="las la-wallet"></i> @lang('Fix User Balances')
+    </a>
+    @endif
 @endpush

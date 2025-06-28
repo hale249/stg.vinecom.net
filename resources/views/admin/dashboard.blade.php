@@ -181,18 +181,42 @@
     </div>
     <div class="row mb-none-30 mt-30">
         <div class="col-xl-6 mb-30">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Biểu đồ số lượng hợp đồng theo tháng</h5>
-                    <div id="investCountChart"></div>
+            <div class="card animate-fade-in delay-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="las la-chart-bar text-primary me-2"></i>Biểu đồ số lượng hợp đồng theo tháng
+                    </h5>
+                    <div class="chart-actions">
+                        <button class="btn btn-sm btn-outline--primary refresh-chart" data-chart="investCountChart">
+                            <i class="las la-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="chart-info text-center mb-3">
+                        <p class="text-muted mb-0">Thống kê số lượng hợp đồng được ký kết theo từng tháng</p>
+                    </div>
+                    <div id="investCountChart" class="chart-container"></div>
                 </div>
             </div>
         </div>
         <div class="col-xl-6 mb-30">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Tổng số tiền đầu tư theo tháng</h5>
-                    <div id="investAmountChart"></div>
+            <div class="card animate-fade-in delay-200">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-0">
+                        <i class="las la-money-bill-wave text-success me-2"></i>Tổng số tiền đầu tư theo tháng
+                    </h5>
+                    <div class="chart-actions">
+                        <button class="btn btn-sm btn-outline--primary refresh-chart" data-chart="investAmountChart">
+                            <i class="las la-sync-alt"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body pt-0">
+                    <div class="chart-info text-center mb-3">
+                        <p class="text-muted mb-0">Thống kê tổng giá trị đầu tư theo từng tháng</p>
+                    </div>
+                    <div id="investAmountChart" class="chart-container"></div>
                 </div>
             </div>
         </div>
@@ -241,10 +265,12 @@
     <script src="{{ asset('assets/admin/js/moment.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/daterangepicker.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/charts.js') }}"></script>
+    <script src="{{ asset('assets/admin/js/dashboard-charts.js') }}"></script>
 @endpush
 
 @push('style-lib')
     <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/daterangepicker.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ asset('assets/admin/css/dashboard-animations.css') }}">
 @endpush
 
 @push('script')
@@ -309,27 +335,75 @@
         }
 
 
-        $.get("{{ route('admin.invest.report.statistics') }}", function(response) {
-            const investCountChartEl = document.getElementById('investCountChart');
-            if (investCountChartEl && response && response.months && response.invest_counts) {
-                barChart(
-                    investCountChartEl,
-                    '{{ __($general->cur_text ?? "") }}',
-                    [{ name: 'Số lượng hợp đồng', data: response.invest_counts }],
-                    response.months
-                );
-            }
-        });
-
-        $.get("{{ route('admin.invest.report.statistics') }}", function(response) {
-            const investAmountChartEl = document.getElementById('investAmountChart');
-            if (investAmountChartEl && response && response.months && response.invest_amounts) {
-                barChart(
-                    investAmountChartEl,
-                    '{{ __($general->cur_text ?? "") }}',
-                    [{ name: 'Tổng số tiền đầu tư', data: response.invest_amounts }],
-                    response.months
-                );
+        // Store chart instances for later reference
+        let investCountChartInstance = null;
+        let investAmountChartInstance = null;
+        
+        // Function to load the contract count chart
+        function loadInvestCountChart() {
+            // Show loading state
+            $('#investCountChart').html('<div class="text-center py-5"><i class="las la-spinner fa-spin fa-3x"></i><p class="mt-2">Đang tải dữ liệu...</p></div>');
+            
+            $.get("{{ route('admin.invest.report.statistics') }}", function(response) {
+                const investCountChartEl = document.getElementById('investCountChart');
+                // Clear the loading indicator
+                $('#investCountChart').html('');
+                
+                if (investCountChartEl && response && response.months && response.invest_counts) {
+                    // Format data to ensure integers for contract counts
+                    const formattedCounts = response.invest_counts.map(count => Math.round(count));
+                    
+                    investCountChartInstance = barChart(
+                        investCountChartEl,
+                        '{{ __($general->cur_text ?? "") }}',
+                        [{ name: 'Số lượng hợp đồng', data: formattedCounts }],
+                        response.months
+                    );
+                }
+            });
+        }
+        
+        // Function to load the investment amount chart
+        function loadInvestAmountChart() {
+            // Show loading state
+            $('#investAmountChart').html('<div class="text-center py-5"><i class="las la-spinner fa-spin fa-3x"></i><p class="mt-2">Đang tải dữ liệu...</p></div>');
+            
+            $.get("{{ route('admin.invest.report.statistics') }}", function(response) {
+                const investAmountChartEl = document.getElementById('investAmountChart');
+                // Clear the loading indicator
+                $('#investAmountChart').html('');
+                
+                if (investAmountChartEl && response && response.months && response.invest_amounts) {
+                    investAmountChartInstance = barAmountChart(
+                        investAmountChartEl,
+                        '{{ __($general->cur_text ?? "") }}',
+                        [{ name: 'Tổng số tiền đầu tư', data: response.invest_amounts }],
+                        response.months
+                    );
+                }
+            });
+        }
+        
+        // Load charts initially
+        loadInvestCountChart();
+        loadInvestAmountChart();
+        
+        // Handle refresh button clicks
+        $('.refresh-chart').on('click', function() {
+            const chartId = $(this).data('chart');
+            
+            // Add spinning animation to the refresh button
+            $(this).find('i').addClass('fa-spin');
+            
+            // Remove spinning animation after 1 second
+            setTimeout(() => {
+                $(this).find('i').removeClass('fa-spin');
+            }, 1000);
+            
+            if (chartId === 'investCountChart') {
+                loadInvestCountChart();
+            } else if (chartId === 'investAmountChart') {
+                loadInvestAmountChart();
             }
         });
     </script>
@@ -338,6 +412,30 @@
     <style>
         .apexcharts-menu {
             min-width: 120px !important;
+        }
+        
+        #investCountChart .apexcharts-yaxis-label tspan,
+        #investCountChart .apexcharts-tooltip-text-y-value {
+            font-weight: 600;
+        }
+        
+        #investCountChart .apexcharts-datalabel {
+            font-weight: bold;
+        }
+        
+        /* Add animation to the charts */
+        #investCountChart, #investAmountChart {
+            transition: all 0.3s ease;
+        }
+        
+        #investCountChart:hover, #investAmountChart:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        
+        /* Make sure the y-axis values are clearly visible */
+        .apexcharts-yaxis text {
+            font-weight: 600 !important;
         }
     </style>
 @endpush

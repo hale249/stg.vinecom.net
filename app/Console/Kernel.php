@@ -14,6 +14,7 @@ class Kernel extends ConsoleKernel
      */
     protected $commands = [
         \App\Console\Commands\FixReferenceDocuments::class,
+        \App\Console\Commands\ProcessROIPayments::class,
     ];
 
     /**
@@ -27,6 +28,9 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule)
     {
         // $schedule->command('inspire')->hourly();
+        
+        // Run ROI payment processing daily at midnight
+        $schedule->command('roi:process')->daily();
     }
 
     /**

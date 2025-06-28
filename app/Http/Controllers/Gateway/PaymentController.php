@@ -140,10 +140,21 @@ class PaymentController extends Controller
         $transaction->user_id      = $user->id;
         $transaction->invest_id    = $entity->invest_id ?? 0;
         $transaction->amount       = $entity->amount ?? $entity->total_price;
-        $transaction->post_balance = $user->balance;
+        
+        // For payment transactions, don't include in balance
+        if ($remark == 'payment') {
+            // For investment payments, don't affect the balance
+            $transaction->post_balance = $user->balance;
+            $transaction->trx_type     = '-'; // Still show as negative for record keeping
+            $transaction->details      = 'Payment Via ' . $methodName;
+        } else {
+            // For deposits, add to balance
+            $transaction->post_balance = $user->balance;
+            $transaction->trx_type     = '+';
+            $transaction->details      = 'Deposit Via ' . $methodName;
+        }
+        
         $transaction->charge       = $entity->charge ?? 0;
-        $transaction->trx_type     = $remark == 'deposit' ? '+' : '-';
-        $transaction->details      = $remark == 'deposit' ? 'Deposit Via ' . $methodName : 'Payment Via ' . $methodName;
         $transaction->remark       = $remark;
         $transaction->trx          = $entity->trx ?? $entity->invest_no;
         $transaction->save();
@@ -167,11 +178,6 @@ class PaymentController extends Controller
     public static function confirmOrder($invest, $deposit = null, $user = null)
     {
         $user = $invest->user;
-        if (!$deposit || $deposit->invest_id == 0 || $invest->payment_type == Status::PAYMENT_WALLET) {
-            $user->balance -= $invest->total_price;
-            $user->save();
-        }
-
         $project = $invest->project;
         $project->available_share -= $invest->quantity;
         $project->save();

@@ -124,13 +124,19 @@ class AlertDashboardController extends Controller
                     
                     if (isset($monthlyData[$monthKey])) {
                         $monthlyData[$monthKey]['interest_alerts']++;
+                        // Calculate monthly ROI (annual ROI divided by 12)
+                        $totalInvestment = $invest->total_price;
+                        $roiPercentage = $invest->roi_percentage;
+                        $annualROI = ($totalInvestment * $roiPercentage / 100);
+                        $monthlyROI = $annualROI / 12;
+                        
                         $monthlyData[$monthKey]['interest_contracts'][] = [
                             'id' => $invest->id,
                             'invest_no' => $invest->invest_no,
                             'project_name' => $invest->project->title,
                             'payment_date' => $nextPaymentDate->format('Y-m-d'),
                             'days_remaining' => (int) round($currentDate->diffInDays($nextPaymentDate)),
-                            'amount' => $invest->recurring_pay
+                            'amount' => $monthlyROI
                         ];
                         
                         // Check if it's urgent (less than alertPeriod days)

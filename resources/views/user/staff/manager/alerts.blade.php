@@ -30,10 +30,20 @@
                                             <td>{{ showDateTime($alert->next_time) }}</td>
                                             <td>
                                                 @php
-                                                    $daysRemaining = \Carbon\Carbon::parse($alert->next_time)->diffInDays(\Carbon\Carbon::now());
+                                                    $now = \Carbon\Carbon::now();
+                                                    $nextTime = \Carbon\Carbon::parse($alert->next_time);
+                                                    $isPast = $nextTime->isPast();
+                                                    
+                                                    if ($isPast) {
+                                                        $daysRemaining = "Quá hạn " . (int)$now->diffInDays($nextTime);
+                                                        $badgeClass = 'bg-danger';
+                                                    } else {
+                                                        $daysRemaining = (int)$now->diffInDays($nextTime);
+                                                        $badgeClass = $daysRemaining <= 7 ? 'bg-danger' : ($daysRemaining <= 15 ? 'bg-warning' : 'bg-success');
+                                                    }
                                                 @endphp
-                                                <span class="badge {{ $daysRemaining <= 7 ? 'bg-danger' : ($daysRemaining <= 15 ? 'bg-warning' : 'bg-success') }}">
-                                                    {{ $daysRemaining }} @lang('ngày')
+                                                <span class="badge {{ $badgeClass }}">
+                                                    {{ $daysRemaining }} @if(!$isPast) @lang('ngày') @endif
                                                 </span>
                                             </td>
                                         </tr>
@@ -68,10 +78,20 @@
                                             <td>{{ showDateTime($alert->project_closed) }}</td>
                                             <td>
                                                 @php
-                                                    $daysRemaining = \Carbon\Carbon::parse($alert->project_closed)->diffInDays(\Carbon\Carbon::now());
+                                                    $now = \Carbon\Carbon::now();
+                                                    $closedDate = \Carbon\Carbon::parse($alert->project_closed);
+                                                    $isPast = $closedDate->isPast();
+                                                    
+                                                    if ($isPast) {
+                                                        $daysRemaining = "Quá hạn " . (int)$now->diffInDays($closedDate);
+                                                        $badgeClass = 'bg-danger';
+                                                    } else {
+                                                        $daysRemaining = (int)$now->diffInDays($closedDate);
+                                                        $badgeClass = $daysRemaining <= 7 ? 'bg-danger' : ($daysRemaining <= 15 ? 'bg-warning' : 'bg-success');
+                                                    }
                                                 @endphp
-                                                <span class="badge {{ $daysRemaining <= 7 ? 'bg-danger' : ($daysRemaining <= 15 ? 'bg-warning' : 'bg-success') }}">
-                                                    {{ $daysRemaining }} @lang('ngày')
+                                                <span class="badge {{ $badgeClass }}">
+                                                    {{ $daysRemaining }} @if(!$isPast) @lang('ngày') @endif
                                                 </span>
                                             </td>
                                         </tr>
