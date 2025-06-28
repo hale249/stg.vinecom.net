@@ -10,7 +10,7 @@
                                 <tr>
                                     <th>@lang('Title - Goal')</th>
                                     <th>@lang('Start Date - End Date')</th>
-                                    <th>@lang('Share Count - Available Share')</th>
+                                    <th>@lang('Số lượng chia sẻ - Chia sẻ có sẵn')</th>
                                     <th>@lang('ROI % - ROI Amount')</th>
                                     <th>@lang('Type')</th>
                                     <th>@lang('Comment')</th>
@@ -40,9 +40,32 @@
                                             <br>
                                             {{ showDateTime($project->end_date) }}
                                         </td>
-                                        <td>
-                                            {{ getAmount($project->share_count) }} / <b
-                                                class="required">{{ $project->available_share }}</b>
+                                        <td class="share-count-column">
+                                            <div class="d-flex flex-column">
+                                                <span class="fw-bold text-primary">
+                                                    {{ getAmount($project->share_count ?? 0) }}
+                                                </span>
+                                                <span class="text-muted small">
+                                                    @lang('Tổng số chia sẻ')
+                                                </span>
+                                            </div>
+                                            <div class="d-flex flex-column mt-1">
+                                                <span class="fw-bold {{ $project->available_share > 0 ? 'text-success' : 'text-danger' }}">
+                                                    {{ getAmount($project->available_share ?? 0) }}
+                                                </span>
+                                                <span class="text-muted small">
+                                                    @lang('Chia sẻ có sẵn')
+                                                </span>
+                                            </div>
+                                            @if($project->share_count > 0)
+                                                <div class="progress mt-1" style="height: 4px;">
+                                                    @php
+                                                        $percentage = $project->share_count > 0 ? (($project->share_count - $project->available_share) / $project->share_count) * 100 : 0;
+                                                    @endphp
+                                                    <div class="progress-bar bg-success" style="width: {{ $percentage }}%"></div>
+                                                </div>
+                                                <small class="text-muted">{{ number_format($percentage, 1) }}% @lang('đã bán')</small>
+                                            @endif
                                         </td>
 
                                         <td>
@@ -171,6 +194,30 @@
     <style>
         .cancelOrderModal {
             cursor: pointer;
+        }
+        
+        .share-count-column {
+            min-width: 120px;
+        }
+        
+        .share-count-column .progress {
+            background-color: #e9ecef;
+        }
+        
+        .share-count-column .progress-bar {
+            transition: width 0.3s ease;
+        }
+        
+        .share-count-column .text-success {
+            color: #28a745 !important;
+        }
+        
+        .share-count-column .text-danger {
+            color: #dc3545 !important;
+        }
+        
+        .share-count-column .text-primary {
+            color: #007bff !important;
         }
     </style>
 @endpush

@@ -44,62 +44,23 @@
                 </a>
             </li>
             <li class="offcanvas-sidebar-menu__item">
-                <button class="offcanvas-sidebar-menu__btn collapsed" data-bs-toggle="collapse"
-                    data-bs-target="#offcanvas-sidebar-deposit-collapse" aria-expanded="false" type="button">
-                    <i class="fas fa-file-invoice-dollar"></i>
-                    <span>@lang('Deposit')</span>
-                </button>
-
-                @php
-                    $isPayment = isset($invest);
-                @endphp
-                <div class="collapse" id="offcanvas-sidebar-deposit-collapse">
-                    <ul
-                        class="offcanvas-sidebar-submenu {{ !$isPayment && menuActive('user.deposit*') ? 'active' : '' }}">
-                        <li
-                            class="offcanvas-sidebar-submenu__item {{ !$isPayment && menuActive('user.deposit.index') ? 'active' : '' }}">
-                            <a class="offcanvas-sidebar-submenu__link" href="{{ route('user.deposit.index') }}">
-                                @lang('Deposit Now')
-                            </a>
-                        </li>
-                        <li
-                            class="offcanvas-sidebar-submenu__item {{ !$isPayment && menuActive('user.deposit.history') ? 'active' : '' }}">
-                            <a class="offcanvas-sidebar-submenu__link" href="{{ route('user.deposit.history') }}">
-                                @lang('Deposit History')
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            <li class="offcanvas-sidebar-menu__item">
-                <button class="offcanvas-sidebar-menu__btn collapsed" data-bs-toggle="collapse"
-                    data-bs-target="#offcanvas-sidebar-withdraw-collapse" aria-expanded="false" type="button">
-                    <i class="fas fa-building-columns"></i>
-                    <span>@lang('Withdraw')</span>
-                </button>
-
-                <div class="collapse" id="offcanvas-sidebar-withdraw-collapse">
-                    <ul class="offcanvas-sidebar-submenu" {{ menuActive('user.withdraw*') }}>
-                        <li class="offcanvas-sidebar-submenu__item {{ menuActive('user.withdraw') }}">
-                            <a class="offcanvas-sidebar-submenu__link" href="{{ route('user.withdraw') }}">
-                                @lang('Withdraw Money')
-                            </a>
-                        </li>
-                        <li class="offcanvas-sidebar-submenu__item {{ menuActive('user.withdraw.history') }}">
-                            <a class="offcanvas-sidebar-submenu__link" href="{{ route('user.withdraw.history') }}">
-                                @lang('Withdraw History')
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </li>
-            <li class="offcanvas-sidebar-menu__item">
                 <a class="offcanvas-sidebar-menu__link {{ menuActive('user.transactions*') }}"
                     href="{{ route('user.transactions') }}">
                     <i class="fas fa-clock-rotate-left"></i>
                     <span>@lang('Transactions')</span>
                 </a>
             </li>
+            
+            @if($user->is_staff)
+            <li class="offcanvas-sidebar-menu__item">
+                <a class="offcanvas-sidebar-menu__link {{ menuActive('reference.documents*') }}"
+                    href="{{ route('reference.documents') }}">
+                    <i class="fas fa-file-alt"></i>
+                    <span>@lang('Tài liệu tham khảo')</span>
+                </a>
+            </li>
+            @endif
+            
             <li class="offcanvas-sidebar-menu__item {{ menuActive('ticket*') }}">
                 <button class="offcanvas-sidebar-menu__btn collapsed" data-bs-toggle="collapse"
                     data-bs-target="#offcanvas-sidebar-support-collapse" aria-expanded="false" type="button">

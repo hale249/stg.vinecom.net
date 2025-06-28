@@ -9,6 +9,7 @@ use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\HonorService;
 
 class SalesStaffController extends Controller
 {
@@ -21,11 +22,17 @@ class SalesStaffController extends Controller
         $user = Auth::user();
         $general = gs();
         
+        // Check for active honor
+        $honorService = new HonorService();
+        $honor = $honorService->getActiveHonor();
+        
         // Dashboard statistics
         $stats = [
             'total_contracts' => Invest::where('staff_id', $user->id)->count(),
             'active_contracts' => Invest::where('staff_id', $user->id)->where('status', Status::INVEST_RUNNING)->count(),
-            'pending_contracts' => Invest::where('staff_id', $user->id)->where('status', Status::INVEST_PENDING)->count(),
+            'pending_contracts' => Invest::where('staff_id', $user->id)
+                ->whereIn('status', [Status::INVEST_PENDING, Status::INVEST_PENDING_ADMIN_REVIEW])
+                ->count(),
             'customers' => User::whereIn('id', function($query) use ($user) {
                 $query->select('user_id')->from('invests')->where('staff_id', $user->id)->distinct();
             })->count()
@@ -69,7 +76,7 @@ class SalesStaffController extends Controller
         
         $emptyMessage = 'No data found';
         
-        return view('user.staff.staff.dashboard', compact('pageTitle', 'user', 'stats', 'interestAlerts', 'maturityAlerts', 'recentContracts', 'pending_notifications', 'notifications', 'general', 'emptyMessage'));
+        return view('user.staff.staff.dashboard', compact('pageTitle', 'user', 'stats', 'interestAlerts', 'maturityAlerts', 'recentContracts', 'pending_notifications', 'notifications', 'general', 'emptyMessage', 'honor'));
     }
     
     /**
@@ -156,7 +163,7 @@ class SalesStaffController extends Controller
         $customer = User::findOrFail($request->customer_id);
         
         // Generate a unique contract number
-        $investNo = getTrx();
+        $investNo = generateContractNumber();
         
         // Create a new contract
         $invest = new Invest();
@@ -164,12 +171,11 @@ class SalesStaffController extends Controller
         $invest->staff_id = Auth::id(); // Set to staff member ID
         $invest->project_id = $request->project_id;
         $invest->invest_no = $investNo;
-        $invest->amount = $request->amount;
-        $invest->profit_type = $project->profit_type;
-        $invest->interest_rate = $project->interest_rate;
-        $invest->interest_period = $project->profit_period;
+        $invest->total_price = $request->amount;
         $invest->period = $request->duration;
-        $invest->status = Status::INVEST_PENDING; // Set as pending for manager approval
+        $invest->payment_type = \App\Constants\Status::PAYMENT_WALLET; // Mặc định là thanh toán ví
+        $invest->status = Status::INVEST_PENDING_ADMIN_REVIEW; // Set as pending for admin review
+        $invest->contract_content = generateContractContent($project, $customer, $investNo, $invest->status);
         $invest->created_at = now();
         $invest->updated_at = now();
         $invest->save();

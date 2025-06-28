@@ -173,7 +173,7 @@
                                         @endif
                                     </td>
                                     <td>
-                                        <a href="{{ route('user.staff.staff.contract_details', $alert->id) }}" class="icon-btn">
+                                        <a href="{{ route('user.staff.staff.contract.details', $alert->id) }}" class="icon-btn">
                                             <i class="fa fa-eye text--shadow"></i>
                                         </a>
                                     </td>
@@ -212,36 +212,12 @@
                             @forelse($recentContracts as $contract)
                                 <tr>
                                     <td>{{ $contract->invest_no }}</td>
-                                    <td>{{ $contract->project->name }}</td>
-                                    <td>{{ $contract->user->fullname }}</td>
-                                    <td>{{ showAmount($contract->amount) }} {{ __($general->cur_text) }}</td>
+                                    <td>{{ $contract->project->title ?? 'N/A' }}</td>
+                                    <td>{{ $contract->user->fullname ?? 'N/A' }}</td>
+                                    <td>{{ showAmount($contract->total_price) }} {{ __($general->cur_text) }}</td>
+                                    <td>{!! $contract->statusBadge !!}</td>
                                     <td>
-                                        @php
-                                            $status = $contract->status;
-                                            $statusClass = '';
-                                            $statusText = '';
-                                            
-                                            if($status == \App\Constants\Status::INVEST_PENDING) {
-                                                $statusClass = 'warning';
-                                                $statusText = 'Pending';
-                                            } elseif($status == \App\Constants\Status::INVEST_RUNNING) {
-                                                $statusClass = 'success';
-                                                $statusText = 'Running';
-                                            } elseif($status == \App\Constants\Status::INVEST_COMPLETED) {
-                                                $statusClass = 'primary';
-                                                $statusText = 'Completed';
-                                            } elseif($status == \App\Constants\Status::INVEST_REJECTED) {
-                                                $statusClass = 'danger';
-                                                $statusText = 'Rejected';
-                                            } elseif($status == \App\Constants\Status::INVEST_CANCELED) {
-                                                $statusClass = 'dark';
-                                                $statusText = 'Canceled';
-                                            }
-                                        @endphp
-                                        <span class="badge badge--{{ $statusClass }}">{{ __($statusText) }}</span>
-                                    </td>
-                                    <td>
-                                        <a href="{{ route('user.staff.staff.contract_details', $contract->id) }}" class="icon-btn">
+                                        <a href="{{ route('user.staff.staff.contract.details', $contract->id) }}" class="icon-btn">
                                             <i class="fa fa-eye text--shadow"></i>
                                         </a>
                                     </td>
@@ -258,4 +234,6 @@
         </div>
     </div>
 </div>
+
+@include('user.staff.staff.partials.honor_modal')
 @endsection 

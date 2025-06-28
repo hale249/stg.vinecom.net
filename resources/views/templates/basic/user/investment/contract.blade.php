@@ -8,20 +8,20 @@
             <div class="col-lg-12">
                 <div class="card custom--card">
                     <div class="card-header">
-                        <h5 class="card-title">@lang('Investment Contract')</h5>
+                        <h5 class="card-title">@lang('Hợp Đồng Đầu Tư')</h5>
                     </div>
                     <div class="card-body">
                         <div class="table-responsive--md">
                             <table class="table custom--table">
                                 <thead>
                                     <tr>
-                                        <th>@lang('Invest No')</th>
-                                        <th>@lang('Project')</th>
-                                        <th>@lang('Amount')</th>
-                                        <th>@lang('Quantity')</th>
-                                        <th>@lang('Status')</th>
-                                        <th>@lang('Date')</th>
-                                        <th>@lang('Action')</th>
+                                        <th>@lang('Mã Đầu Tư')</th>
+                                        <th>@lang('Dự Án')</th>
+                                        <th>@lang('Số Tiền')</th>
+                                        <th>@lang('Số Lượng')</th>
+                                        <th>@lang('Trạng Thái')</th>
+                                        <th>@lang('Ngày')</th>
+                                        <th>@lang('Thao Tác')</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -29,7 +29,7 @@
                                         <tr>
                                             <td>{{ $invest->invest_no }}</td>
                                             <td>{{ __($invest->project->title) }}</td>
-                                            <td>{{ __(showAmount($invest->total_price)) }}</td>
+                                            <td>{{ showAmount($invest->total_price) }} {{ $general->cur_text }}</td>
                                             <td>{{ $invest->quantity }}</td>
                                             <td>
                                                 @php
@@ -37,35 +37,35 @@
                                                     switch ($invest->status) {
                                                         case Status::INVEST_RUNNING:
                                                             $statusClass = 'success';
-                                                            $status = 'Running';
+                                                            $status = 'Đang Chạy';
                                                             break;
                                                         case Status::INVEST_CANCELED:
                                                             $statusClass = 'danger';
-                                                            $status = 'Canceled';
+                                                            $status = 'Đã Hủy';
                                                             break;
                                                         case Status::INVEST_PENDING:
                                                             $statusClass = 'warning';
-                                                            $status = 'Pending';
+                                                            $status = 'Đang Chờ';
                                                             break;
                                                         case Status::INVEST_COMPLETED:
                                                             $statusClass = 'info';
-                                                            $status = 'Completed';
+                                                            $status = 'Hoàn Thành';
                                                             break;
                                                         case Status::INVEST_PENDING_ADMIN_REVIEW:
                                                             $statusClass = 'warning';
-                                                            $status = 'Pending Admin Review';
+                                                            $status = 'Chờ Duyệt';
                                                             break;
                                                         case Status::INVEST_ACCEPT:
                                                             $statusClass = 'success';
-                                                            $status = 'Accepted';
+                                                            $status = 'Đã Chấp Nhận';
                                                             break;
                                                         case Status::INVEST_CLOSED:
                                                             $statusClass = 'dark';
-                                                            $status = 'Closed';
+                                                            $status = 'Đã Đóng';
                                                             break;
                                                         default:
                                                             $statusClass = 'warning';
-                                                            $status = 'Pending';
+                                                            $status = 'Đang Chờ';
                                                     }
                                                 @endphp
                                                 <span class="badge badge--{{ $statusClass }}">{{ __($status) }}</span>
@@ -76,13 +76,13 @@
                                                     @if($invest->status == Status::INVEST_PENDING)
                                                     <form action="{{ route('user.invest.confirm', $invest->id) }}" method="POST" class="d-inline">
                                                         @csrf
-                                                        <button type="submit" class="btn btn--xsm btn--outline action-btn" data-toggle="tooltip" data-placement="top" title="@lang('Confirm Investment')">
+                                                        <button type="submit" class="btn btn--xsm btn--outline action-btn" data-toggle="tooltip" data-placement="top" title="@lang('Xác Nhận Đầu Tư')">
                                                             <i class="las la-check"></i>
                                                         </button>
                                                     </form>
                                                     <form action="{{ route('user.invest.cancel', $invest->id) }}" method="POST" class="d-inline">
                                                         @csrf
-                                                        <button type="submit" class="btn btn--xsm btn--outline action-btn" data-toggle="tooltip" data-placement="top" title="@lang('Cancel Investment')">
+                                                        <button type="submit" class="btn btn--xsm btn--outline action-btn" data-toggle="tooltip" data-placement="top" title="@lang('Hủy Đầu Tư')">
                                                             <i class="las la-times"></i>
                                                         </button>
                                                     </form>
@@ -108,16 +108,12 @@
                                                         data-user-username="{{ $invest->user->username }}"
                                                         data-user-tax="{{ $invest->user->tax_number }}"
                                                         data-consultant-name="{{ $invest->project->consultant_name }}"
-                                                        data-consultant-code="{{ $invest->project->consultant_code }}"
-                                                        data-toggle="tooltip"
-                                                        data-placement="top" 
-                                                        title="@lang('View Contract')">
-                                                        <i class="las la-file-contract"></i>
+                                                        data-consultant-code="{{ $invest->project->consultant_code }}">
+                                                        <i class="las la-eye"></i> @lang('Xem')
                                                     </button>
-                                                    <a href="{{ route('user.invest.contract.download', $invest->id) }}"
-                                                        class="btn btn--xsm btn--outline action-btn" data-toggle="tooltip"
-                                                        data-placement="top" title="@lang('Download Contract')">
-                                                        <i class="las la-download"></i>
+                                                    <a href="{{ route('user.invest.contract.watermark', $invest->id) }}" 
+                                                        class="btn btn--xsm btn--outline action-btn">
+                                                        <i class="las la-stamp"></i> @lang('Trạng Thái')
                                                     </a>
                                                 </div>
                                             </td>
@@ -125,7 +121,7 @@
                                     @empty
                                         <tr>
                                             <td colspan="100%" class="text-center">
-                                                <div class="text-center text--base">@lang('No data found!')</div>
+                                                <div class="text-center text--base">@lang('Không tìm thấy dữ liệu!')</div>
                                             </td>
                                         </tr>
                                     @endforelse
@@ -148,20 +144,20 @@
         <div class="modal-dialog modal-xl">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="contractModalLabel">@lang('Investment Contract')</h5>
+                    <h5 class="modal-title" id="contractModalLabel">@lang('Hợp Đồng Đầu Tư')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div class="contract-info mb-4">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <p><strong>@lang('Invest No'):</strong> <span id="modalInvestNo"></span></p>
-                            </div>
-                            <div class="col-md-8">
-                                <p><strong>@lang('Project'):</strong> <span id="modalProject"></span></p>
+                            <div class="row">
+                                <div class="col-md-4">
+                                    <p><strong>@lang('Mã Đầu Tư'):</strong> <span id="modalInvestNo"></span></p>
+                                </div>
+                                <div class="col-md-8">
+                                    <p><strong>@lang('Dự Án'):</strong> <span id="modalProject"></span></p>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     <div class="contract-content">
                         <div class="contract-header">
                             <div>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
@@ -227,7 +223,8 @@
                     </div>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@lang('Close')</button>
+                    <button type="button" class="btn btn--dark" data-bs-dismiss="modal">@lang('Đóng')</button>
+                    <button type="button" class="btn btn--primary" id="printContract">@lang('In')</button>
                 </div>
             </div>
         </div>
@@ -381,4 +378,4 @@
         });
     })(jQuery);
 </script>
-@endpush 
+@endpush

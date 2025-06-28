@@ -53,10 +53,16 @@
                         <span class="menu-title">@lang('Lương & Thu nhập')</span>
                     </a>
                 </li>
+                <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.hr.attendance') ? 'active' : '' }}">
+                    <a href="{{ route('user.staff.manager.hr.attendance') }}" class="nav-link">
+                        <i class="menu-icon las la-calendar-check"></i>
+                        <span class="menu-title">@lang('Quản lý Chấm công')</span>
+                    </a>
+                </li>
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.hr.kpi') ? 'active' : '' }}">
                     <a href="{{ route('user.staff.manager.hr.kpi') }}" class="nav-link">
                         <i class="menu-icon las la-bullseye"></i>
-                        <span class="menu-title">@lang('KPI & Chỉ số')</span>
+                        <span class="menu-title">@lang('KPI & Hiệu suất')</span>
                     </a>
                 </li>
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.hr.performance') ? 'active' : '' }}">
@@ -77,6 +83,15 @@
                     <a href="{{ route('user.staff.manager.alerts') }}" class="nav-link">
                         <i class="menu-icon las la-bell"></i>
                         <span class="menu-title">@lang('Cảnh báo hợp đồng')</span>
+                    </a>
+                </li>
+                
+                <li class="sidebar__menu-header text-white opacity-75 text-uppercase small px-3 my-2">@lang('Tài liệu')</li>
+                
+                <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.documents*') ? 'active' : '' }}">
+                    <a href="{{ route('user.staff.manager.documents') }}" class="nav-link">
+                        <i class="menu-icon las la-file-alt"></i>
+                        <span class="menu-title">@lang('Tài liệu tham khảo')</span>
                     </a>
                 </li>
                 

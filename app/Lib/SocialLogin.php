@@ -69,10 +69,14 @@ class SocialLogin
             }
             $emailExists = User::where('email', @$user->email)->exists();
             if ($emailExists) {
-                throw new Exception('Email already exists');
+                $existingUser = User::where('email', @$user->email)->first();
+                $existingUser->provider_id = $user->id;
+                $existingUser->provider = $this->provider;
+                $existingUser->save();
+                $userData = $existingUser;
+            } else {
+                $userData = $this->createUser($user, $this->provider);
             }
-
-            $userData = $this->createUser($user, $this->provider);
         }
         if ($this->fromApi) {
             $tokenResult = $userData->createToken('auth_token')->plainTextToken;

@@ -42,7 +42,7 @@
                 <div class="card shadow border-0 h-100 animate__animated animate__fadeInUp" style="min-height:110px;">
                     <div class="card-body text-center">
                         <div class="mb-2"><i class="las la-hand-holding-usd la-2x text-warning"></i></div>
-                        <div class="fw-semibold">@lang('Tổng lương')</div>
+                        <div class="fw-semibold">@lang('Tổng thu nhập')</div>
                         <div class="fs-5 fw-bold text-warning">{{ showAmount($summary['total_salary'] ?? 0) }}</div>
                     </div>
                 </div>
@@ -73,7 +73,7 @@
                                     <th class="text-center">@lang('Hoa hồng')</th>
                                     <th class="text-center">@lang('Thưởng')</th>
                                     <th class="text-center">@lang('Khấu trừ')</th>
-                                    <th class="text-center">@lang('Tổng lương')</th>
+                                    <th class="text-center">@lang('Tổng thu nhập')</th>
                                     <th class="text-center">@lang('KPI (%)')</th>
                                     <th class="text-center">@lang('Trạng thái')</th>
                                 </tr>

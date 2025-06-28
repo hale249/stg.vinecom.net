@@ -201,6 +201,26 @@ class User extends Authenticatable
     {
         return $query->where('is_staff', true)->where('role', 'sales_staff');
     }
+    
+    public function isAdmin(): bool
+    {
+        return false; // Regular users can't be admins
+    }
+    
+    public function isManager(): bool
+    {
+        return $this->is_staff && (
+            $this->role === 'sales_manager' || 
+            $this->role === 'manager' || 
+            strtolower($this->role) === 'manager' ||
+            str_contains(strtolower($this->role), 'manager')
+        );
+    }
+    
+    public function isStaff(): bool
+    {
+        return $this->is_staff && !$this->isManager();
+    }
 
     public function deviceTokens()
     {

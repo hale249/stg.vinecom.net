@@ -15,6 +15,20 @@
                             @php
                                 $imgCount = 0;
                             @endphp
+                            
+                            @if($key == 'blog')
+                            <div class="col-md-12 mb-3">
+                                <div class="form-group">
+                                    <label>@lang('Category')</label>
+                                    <select name="category" class="form-control" required>
+                                        <option value="" disabled selected>@lang('Select Category')</option>
+                                        <option value="company" {{ @$data && @$data->category == 'company' ? 'selected' : '' }}>@lang('Tin tức doanh nghiệp')</option>
+                                        <option value="market" {{ @$data && @$data->category == 'market' ? 'selected' : '' }}>@lang('Tin tức thị trường')</option>
+                                    </select>
+                                </div>
+                            </div>
+                            @endif
+                            
                             @foreach ($section->element as $k => $content)
                                 @if ($k == 'images')
                                     @php

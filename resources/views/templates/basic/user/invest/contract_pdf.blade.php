@@ -15,16 +15,16 @@
             size: A4 portrait;
             margin: 20mm;
         }
-        body {
-            font-family: 'DejaVu Sans', "Times New Roman", Times, serif;
-            font-size: 13pt;
-            line-height: 1.6;
-            color: #000000;
+        body {            font-family: 'Times New Roman', Times, serif;
+            font-size: 15px;
+            line-height: 1.7;
+            color: #222;
         }
         .contract-header {
             text-align: center;
             font-weight: bold;
             margin-bottom: 20px;
+            color: #000;
         }
         .contract-header div {
             margin-bottom: 5px;
@@ -38,27 +38,31 @@
         }
         .main-title {
             margin: 15px 0;
-            font-size: 16pt;
+            font-size: 18px;
             text-transform: uppercase;
             letter-spacing: 1px;
             font-weight: bold;
             text-align: center;
+            color: #000;
         }
         .doc-number {
             text-align: center;
             font-weight: normal;
             margin-bottom: 10px;
+            color: #000;
         }
         .section-label {
             font-weight: bold;
             text-transform: uppercase;
             margin-top: 15px;
             margin-bottom: 6px;
+            color: #000;
         }
         p, ul, li {
-            font-size: 13pt;
+            font-size: 15px;
             text-align: justify;
             text-justify: inter-word;
+            color: #222;
         }
         ul {
             list-style-type: disc;
@@ -69,17 +73,64 @@
             margin-bottom: 5px;
             text-align: justify;
         }
-        .italic { font-style: italic; }
-        .bold { font-weight: bold; }
+        .italic { font-style: italic; color: #222; }
+        .bold { font-weight: bold; color: #222; }
         .section-title {
             font-weight: bold;
             margin-top: 15px;
             text-transform: uppercase;
             text-align: left;
+            color: #000;
         }
     </style>
 </head>
 <body>
+    @php
+        use App\Constants\Status;
+    @endphp
+    @if(isset($status) && $status == Status::INVEST_RUNNING)
+        <div style="position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%) rotate(-45deg); z-index: 1000; pointer-events: none; opacity: 0.18; font-size: 3.2rem; color: #e74c3c; font-family: 'Times New Roman', Times, serif; font-weight: bold; text-shadow: 2px 2px 8px rgba(0,0,0,0.08);">
+            ĐÃ DUYỆT
+        </div>
+    @else
+        <div style="
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-20deg);
+            z-index: 9999;
+            pointer-events: none;
+            user-select: none;
+        ">
+            <div style="
+                padding: 20px 40px;
+                background: rgba(255, 255, 255, 0.6);
+                border: 2px solid rgba(255, 0, 0, 0.6);
+                border-radius: 0;
+                text-align: center;
+                box-shadow: 0 0 10px rgba(0,0,0,0.1);
+                white-space: nowrap;
+            ">
+                <div style="
+                    margin-bottom: 8px;
+                    font-size: 32px;
+                    font-weight: bold;
+                    font-family: 'Times New Roman', Times, serif;
+                    color: rgba(255, 0, 0, 0.5);
+                ">
+                    HỢP ĐỒNG CHƯA CÓ HIỆU LỰC PHÁP LÝ
+                </div>
+                <div style="
+                    font-size: 20px;
+                    font-weight: 600;
+                    font-family: Arial, sans-serif;
+                    color: rgba(255, 0, 0, 0.5);
+                ">
+                    KHÔNG CÓ GIÁ TRỊ SỬ DỤNG
+                </div>
+            </div>
+        </div>
+    @endif
     <div class="contract-header">
         <div>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
         <div>Độc lập - Tự do - Hạnh phúc</div>

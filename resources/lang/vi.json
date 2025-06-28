@@ -1,4 +1,3 @@
-
 {
     "Gateway | Transaction": "Cổng thanh toán | Giao dịch",
     "Initiated": "Đã khởi tạo",
@@ -1145,5 +1144,6 @@
     "Data Protection Policy": "Chính sách bảo vệ dữ liệu",
     "Refund Policy": "Chính sách hoàn tiền",
     "Role": "Đối tượng",
-    "Create Business Staff": "Tạo nhân viên kinh doanh"
+    "Create Business Staff": "Tạo nhân viên kinh doanh",
+    "Tổng thu nhập": "Tổng thu nhập"
   }

@@ -6,7 +6,7 @@
             <div class="widget-two box--shadow2 has-link b-radius--5 bg--info">
                 <div class="widget-two__content">
                     <h2 class="text-white">{{ $totalInvestCount }}</h2>
-                    <p class="text-white">@lang('Total Invest Count')</p>
+                    <p class="text-white">Tổng số lượt đầu tư</p>
                 </div>
             </div><!-- widget-two end -->
         </div>
@@ -14,7 +14,7 @@
             <div class="widget-two box--shadow2 b-radius--5 bg--success has-link">
                 <div class="widget-two__content">
                     <h2 class="text-white">{{ showAmount($totalInvestAmount) }}</h2>
-                    <p class="text-white">@lang('Total Invest')</p>
+                    <p class="text-white">Tổng số tiền đầu tư</p>
                 </div>
             </div><!-- widget-two end -->
         </div>
@@ -22,7 +22,7 @@
             <div class="widget-two box--shadow2 b-radius--5 bg--7 has-link">
                 <div class="widget-two__content">
                     <h2 class="text-white">{{ showAmount($totalPaid) }}</h2>
-                    <p class="text-white">@lang('Total Paid')</p>
+                    <p class="text-white">Tổng số đã trả</p>
                 </div>
             </div><!-- widget-two end -->
         </div>
@@ -30,33 +30,31 @@
 
         <div class="col-lg-12">
             <div class="show-filter mb-3 text-end">
-                <button class="btn btn-outline--primary showFilterBtn btn-sm" type="button"><i class="las la-filter"></i>
-                    @lang('Filter')</button>
+                <button class="btn btn-outline--primary showFilterBtn btn-sm" type="button"><i class="las la-filter"></i> Lọc</button>
             </div>
             <div class="card responsive-filter-card mb-4">
                 <div class="card-body">
                     <form>
                         <div class="d-flex flex-wrap gap-4">
                             <div class="flex-grow-1">
-                                <label>@lang('Project')/Mã HĐ</label>
+                                <label>Dự án/Mã HĐ</label>
                                 <input class="form-control" name="search" type="text" value="{{ request()->search }}">
                             </div>
                             <div class="flex-grow-1">
-                                <label>@lang('Status')</label>
+                                <label>Trạng thái</label>
                                 <select class="form-control select2" name="status" data-minimum-results-for-search="-1">
-                                    <option value="">@lang('All')</option>
-                                    <option value="2" @selected(request()->status == '2')>@lang('Running')</option>
-                                    <option value="3" @selected(request()->status == '3')>@lang('Completed')</option>
-                                    <option value="4" @selected(request()->status == '4')>@lang('Closed')</option>
+                                    <option value="">Tất cả</option>
+                                    <option value="2" @selected(request()->status == '2')>Đang chạy</option>
+                                    <option value="3" @selected(request()->status == '3')>Hoàn thành</option>
+                                    <option value="4" @selected(request()->status == '4')>Đã đóng</option>
                                 </select>
                             </div>
                             <div class="flex-grow-1">
-                                <label>@lang('Date')</label>
+                                <label>Ngày</label>
                                 <x-search-date-field :icon="false" />
                             </div>
                             <div class="flex-grow-1 align-self-end">
-                                <button class="btn btn--primary w-100 h-45"><i class="fas fa-filter"></i>
-                                    @lang('Filter')</button>
+                                <button class="btn btn--primary w-100 h-45"><i class="fas fa-filter"></i> Lọc</button>
                             </div>
                         </div>
                     </form>
@@ -69,16 +67,16 @@
                             <thead>
                                 <tr>
                                     <th>Mã HĐ</th>
-                                    <th>@lang('User')</th>
-                                    <th>@lang('Project Name')</th>
-                                    <th>@lang('Quantity')</th>
-                                    <th>@lang('Amount')</th>
-                                    <th>@lang('Profit')</th>
-                                    <th>@lang('Return Type')</th>
-                                    <th>@lang('To Pay')</th>
-                                    <th>@lang('Paid')</th>
-                                    <th>@lang('Status')</th>
-                                    <th>@lang('Action')</th>
+                                    <th>Người dùng</th>
+                                    <th>Dự án</th>
+                                    <th>Số lượng</th>
+                                    <th>Số tiền</th>
+                                    <th>Lợi nhuận</th>
+                                    <th>Hình thức trả</th>
+                                    <th>Cần trả</th>
+                                    <th>Đã trả</th>
+                                    <th>Trạng thái</th>
+                                    <th>Hành động</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -107,7 +105,7 @@
                                             <div class="button--group">
                                                 <a class="btn btn-outline--primary btn-sm"
                                                     href="{{ route('admin.invest.details', $invest->id) }}"><i
-                                                        class="las la-desktop"></i>@lang('Details')</a>
+                                                        class="las la-desktop"></i> Chi tiết</a>
                                             </div>
                                         </td>
                                     </tr>

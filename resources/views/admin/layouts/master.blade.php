@@ -1,8 +1,9 @@
 <!-- meta tags and other links -->
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="UTF-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ gs()->siteName($pageTitle ?? '') }}</title>
 
@@ -22,6 +23,12 @@
     <style>
         body {
             font-family: 'Roboto', sans-serif;
+        }
+        @font-face {
+            font-family: 'SolaimanLipi';
+            src: url('{{ asset('assets/font/solaimanLipi_bold.ttf') }}') format('truetype');
+            font-weight: bold;
+            font-style: normal;
         }
     </style>
 

@@ -96,7 +96,9 @@ class StaffSalary extends Model
 
     public function calculateCommission()
     {
-        $this->commission_amount = ($this->sales_amount * $this->commission_rate) / 100;
+        // Original formula: ($this->sales_amount * $this->commission_rate) / 100;
+        // New formula: (1.5% × Tiền đầu tư của hợp đồng) / 12
+        $this->commission_amount = ($this->sales_amount * 1.5 / 100) / 12;
         return $this->commission_amount;
     }
 }

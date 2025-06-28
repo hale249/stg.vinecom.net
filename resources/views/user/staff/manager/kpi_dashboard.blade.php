@@ -171,11 +171,11 @@
                     Chi tiết KPI theo tháng
                 </h5>
                 <div class="header-actions">
-                    <button class="btn btn-outline-primary btn-sm me-2">
+                    <button class="btn btn-outline-primary btn-sm me-2" onclick="exportToExcel()">
                         <i class="las la-download me-1"></i>
                         Xuất Excel
                     </button>
-                    <button class="btn btn-outline-success btn-sm">
+                    <button class="btn btn-outline-success btn-sm" onclick="printReport()">
                         <i class="las la-print me-1"></i>
                         In báo cáo
                     </button>
@@ -266,13 +266,13 @@
                                         </td>
                                         <td class="text-center">
                                             <div class="btn-group" role="group">
-                                                <button class="btn btn-sm btn-outline-primary" title="Xem chi tiết">
+                                                <button class="btn btn-sm btn-outline-primary" title="Xem chi tiết" onclick="viewKpiDetail({{ $kpi->id }})">
                                                     <i class="las la-eye"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-warning" title="Chỉnh sửa">
+                                                <button class="btn btn-sm btn-outline-warning" title="Chỉnh sửa" onclick="editKpi({{ $kpi->id }})">
                                                     <i class="las la-edit"></i>
                                                 </button>
-                                                <button class="btn btn-sm btn-outline-danger" title="Xóa">
+                                                <button class="btn btn-sm btn-outline-danger" title="Xóa" onclick="deleteKpi({{ $kpi->id }})">
                                                     <i class="las la-trash"></i>
                                                 </button>
                                             </div>
@@ -365,6 +365,119 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit KPI Modal -->
+<div class="modal fade" id="editKpiModal" tabindex="-1" aria-labelledby="editKpiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editKpiModalLabel">
+                    <i class="las la-edit me-2 text-warning"></i>
+                    Chỉnh sửa KPI
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="editKpiForm" method="POST">
+                @csrf
+                @method('PUT')
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nhân viên <span class="text-danger">*</span></label>
+                            <select name="staff_id" class="form-select" required>
+                                <option value="">Chọn nhân viên</option>
+                                @foreach($staffMembers as $staff)
+                                    <option value="{{ $staff->id }}">{{ $staff->fullname }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Tháng/Năm <span class="text-danger">*</span></label>
+                            <input type="month" name="month_year" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Chỉ tiêu hợp đồng</label>
+                            <input type="number" name="target_contracts" class="form-control" placeholder="Nhập chỉ tiêu hợp đồng">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Thực tế hợp đồng</label>
+                            <input type="number" name="actual_contracts" class="form-control" placeholder="Nhập thực tế hợp đồng">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Chỉ tiêu doanh số (VNĐ)</label>
+                            <input type="number" name="target_sales" class="form-control" placeholder="Nhập chỉ tiêu doanh số">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Thực tế doanh số (VNĐ)</label>
+                            <input type="number" name="actual_sales" class="form-control" placeholder="Nhập thực tế doanh số">
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Ghi chú</label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Nhập ghi chú (nếu có)"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="las la-save me-2"></i>
+                        Cập nhật KPI
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteKpiModal" tabindex="-1" aria-labelledby="deleteKpiModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title text-danger" id="deleteKpiModalLabel">
+                    <i class="las la-exclamation-triangle me-2"></i>
+                    Xác nhận xóa KPI
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Bạn có chắc chắn muốn xóa KPI này không? Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <form id="deleteKpiForm" method="POST" style="display: inline;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-danger">
+                        <i class="las la-trash me-2"></i>
+                        Xóa KPI
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View KPI Detail Modal -->
+<div class="modal fade" id="viewKpiModal" tabindex="-1" aria-labelledby="viewKpiModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewKpiModalLabel">
+                    <i class="las la-eye me-2 text-primary"></i>
+                    Chi tiết KPI
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="kpiDetailContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
         </div>
     </div>
 </div>
@@ -738,6 +851,135 @@ document.addEventListener('DOMContentLoaded', function() {
             },
             cutout: '60%'
         }
+    });
+});
+
+// Export to Excel function
+function exportToExcel() {
+    const month = document.querySelector('input[name="month"]').value;
+    const userId = document.querySelector('select[name="user_id"]').value;
+    const kpiStatus = document.querySelector('select[name="kpi_status"]').value;
+    
+    let url = '{{ route("user.staff.manager.hr.kpi.export") }}?';
+    if (month) url += `month=${month}&`;
+    if (userId) url += `user_id=${userId}&`;
+    if (kpiStatus) url += `kpi_status=${kpiStatus}&`;
+    
+    window.location.href = url;
+}
+
+// Print report function
+function printReport() {
+    window.print();
+}
+
+// View KPI detail function
+function viewKpiDetail(kpiId) {
+    fetch(`{{ route('user.staff.manager.hr.kpi.show', ':id') }}`.replace(':id', kpiId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                document.getElementById('kpiDetailContent').innerHTML = data.html;
+                new bootstrap.Modal(document.getElementById('viewKpiModal')).show();
+            } else {
+                alert('Không thể tải thông tin KPI');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi tải thông tin KPI');
+        });
+}
+
+// Edit KPI function
+function editKpi(kpiId) {
+    fetch(`{{ route('user.staff.manager.hr.kpi.edit', ':id') }}`.replace(':id', kpiId))
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const form = document.getElementById('editKpiForm');
+                form.action = `{{ route('user.staff.manager.hr.kpi.update', ':id') }}`.replace(':id', kpiId);
+                
+                // Fill form fields
+                form.querySelector('select[name="staff_id"]').value = data.kpi.staff_id;
+                form.querySelector('input[name="month_year"]').value = data.kpi.month_year;
+                form.querySelector('input[name="target_contracts"]').value = data.kpi.target_contracts;
+                form.querySelector('input[name="actual_contracts"]').value = data.kpi.actual_contracts;
+                form.querySelector('input[name="target_sales"]').value = data.kpi.target_sales;
+                form.querySelector('input[name="actual_sales"]').value = data.kpi.actual_sales;
+                form.querySelector('textarea[name="notes"]').value = data.kpi.notes || '';
+                
+                new bootstrap.Modal(document.getElementById('editKpiModal')).show();
+            } else {
+                alert('Không thể tải thông tin KPI để chỉnh sửa');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi tải thông tin KPI');
+        });
+}
+
+// Delete KPI function
+function deleteKpi(kpiId) {
+    const form = document.getElementById('deleteKpiForm');
+    form.action = `{{ route('user.staff.manager.hr.kpi.destroy', ':id') }}`.replace(':id', kpiId);
+    new bootstrap.Modal(document.getElementById('deleteKpiModal')).show();
+}
+
+// Handle form submissions
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle edit form submission
+    document.getElementById('editKpiForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = new FormData(this);
+        
+        fetch(this.action, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('editKpiModal')).hide();
+                location.reload();
+            } else {
+                alert(data.message || 'Có lỗi xảy ra khi cập nhật KPI');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi cập nhật KPI');
+        });
+    });
+
+    // Handle delete form submission
+    document.getElementById('deleteKpiForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        fetch(this.action, {
+            method: 'DELETE',
+            headers: {
+                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                bootstrap.Modal.getInstance(document.getElementById('deleteKpiModal')).hide();
+                location.reload();
+            } else {
+                alert(data.message || 'Có lỗi xảy ra khi xóa KPI');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi xóa KPI');
+        });
     });
 });
 </script>

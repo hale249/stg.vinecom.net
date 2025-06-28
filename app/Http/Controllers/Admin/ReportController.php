@@ -76,4 +76,42 @@ class ReportController extends Controller
 
         return view('admin.reports.invest_history', compact('pageTitle', 'invests', 'totalInvestCount', 'totalInvestAmount', 'totalPaid'));
     }
+
+    public function contractRevenue(Request $request)
+    {
+        $pageTitle = 'Doanh số theo hợp đồng';
+        
+        // Get contracts with their revenue data
+        $contracts = Invest::with('project', 'user')
+            ->select('id', 'invest_no', 'user_id', 'project_id', 'total_price', 'roi_amount', 'quantity', 'unit_price', 'total_earning', 'status', 'created_at')
+            ->searchable(['project:title', 'user:username,firstname,lastname', 'invest_no']);
+            
+        // Apply filters if provided
+        if ($request->status) {
+            $contracts = $contracts->where('status', $request->status);
+        }
+        
+        if ($request->date) {
+            $date = explode('-', $request->date);
+            $startDate = trim($date[0]);
+            $endDate = trim($date[1]);
+            
+            $contracts = $contracts->whereDate('created_at', '>=', $startDate)
+                ->whereDate('created_at', '<=', $endDate);
+        }
+        
+        // Get totals for summary
+        $allContracts = clone $contracts;
+        $totalContractCount = $allContracts->count();
+        $totalContractAmount = $allContracts->sum('total_price');
+        $totalEarnings = $allContracts->sum('total_earning');
+        
+        // Paginate results
+        $contracts = $contracts->orderBy('id', 'desc')->paginate(getPaginate());
+        
+        // Get general settings
+        $general = gs();
+        
+        return view('admin.reports.contract_revenue', compact('pageTitle', 'contracts', 'totalContractCount', 'totalContractAmount', 'totalEarnings', 'general'));
+    }
 }

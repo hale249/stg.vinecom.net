@@ -40,6 +40,7 @@ Route::controller('SiteController')->group(function () {
     Route::get('/cookie/accept', 'cookieAccept')->name('cookie.accept');
 
     Route::get('blog', 'blogs')->name('blogs');
+    Route::get('blog/category/{category}', 'blogs')->name('blogs.category');
     Route::get('blog/{slug}', 'blogDetails')->name('blog.details');
 
     Route::get('policy/{slug}', 'policyPages')->name('policy.pages');
@@ -61,17 +62,87 @@ Route::controller('User\InvestController')->prefix('invest')->middleware('auth')
     Route::get('profit-schedule-html', 'getProfitScheduleHtml')->name('invest.profit.schedule.html');
 });
 
+// Contract Document Routes
+Route::controller('User\ContractDocumentController')->prefix('invest')->middleware('auth')->group(function () {
+    Route::get('{investId}/documents', 'index')->name('user.invest.documents');
+    Route::post('{investId}/documents/upload', 'upload')->name('user.invest.documents.upload');
+    Route::get('{investId}/documents/{documentId}/download', 'download')->name('user.invest.documents.download');
+    Route::post('{investId}/documents/{documentId}/delete', 'delete')->name('user.invest.documents.delete');
+});
+
 // Project Document View Route
 Route::get('project-document/{projectId}/{documentId}', 'ProjectDocumentController@view')->withoutMiddleware('maintenance')->name('project.document.view');
+
+// Debug route for staff check
+Route::middleware(['auth'])->group(function () {
+    Route::get('staff-check', 'User\StaffCheckController@check')->name('staff.check');
+});
+
+// Reference Document Routes
+Route::middleware(['auth', 'staff'])->group(function () {
+    Route::controller('User\ReferenceDocumentController')->prefix('reference')->name('reference.')->group(function () {
+        Route::get('documents', 'index')->name('documents');
+        Route::get('document/view/{id}', 'view')->name('document.view');
+        Route::get('document/download/{id}', 'download')->name('document.download');
+        Route::get('document/stream/{id}', 'stream')->name('document.stream');
+    });
+});
 
 // Staff Routes
 Route::middleware(['auth'])->prefix('user/staff')->name('user.staff.staff.')->group(function () {
     Route::get('dashboard', 'User\SalesStaffController@dashboard')->name('dashboard');
     Route::get('contracts', 'User\SalesStaffController@contracts')->name('contracts');
-    Route::get('contract/{id}', 'User\SalesStaffController@contractDetails')->name('contract_details');
+    Route::get('contract/{id}', 'User\SalesStaffController@contractDetails')->name('contract.details');
     Route::get('create-contract', 'User\SalesStaffController@createContract')->name('create_contract');
     Route::post('store-contract', 'User\SalesStaffController@storeContract')->name('store_contract');
     Route::post('cancel-contract/{id}', 'User\SalesStaffController@cancelContract')->name('cancel_contract');
     Route::get('alerts', 'User\SalesStaffController@alerts')->name('alerts');
     Route::get('customers', 'User\SalesStaffController@customers')->name('customers');
+    
+    // Contract Documents Management for Staff
+    Route::controller('User\Staff\ContractDocumentController')->prefix('contract')->group(function () {
+        Route::get('{investId}/documents', 'index')->name('contract.documents');
+        Route::post('{investId}/documents/upload', 'upload')->name('contract.documents.upload');
+        Route::get('{investId}/documents/{documentId}/download', 'download')->name('contract.documents.download');
+        Route::post('{investId}/documents/{documentId}/delete', 'delete')->name('contract.documents.delete');
+    });
+    
+    // Reference Documents for Staff
+    Route::controller('User\Staff\DocumentController')->group(function () {
+        Route::get('documents', 'index')->name('documents');
+        Route::get('documents/view/{id}', 'view')->name('documents.view');
+        Route::get('documents/download/{id}', 'download')->name('documents.download');
+        Route::get('documents/stream/{id}', 'stream')->name('documents.stream');
+    });
+});
+
+// Manager Routes
+Route::middleware(['auth'])->prefix('user/manager')->name('user.staff.manager.')->group(function () {
+    Route::get('dashboard', 'User\\SalesManagerController@dashboard')->name('dashboard');
+    Route::get('team-members', 'User\\SalesManagerController@teamMembers')->name('team_members');
+    Route::get('contracts', 'User\\SalesManagerController@teamContracts')->name('contracts');
+    Route::get('alerts', 'User\\SalesManagerController@alerts')->name('alerts');
+    Route::get('approval-requests', 'User\\SalesManagerController@approvalRequests')->name('approval_requests');
+
+    // Reference Documents for Managers
+    Route::controller('User\\Staff\\DocumentController')->group(function () {
+        Route::get('documents', 'index')->name('documents');
+        Route::get('documents/view/{id}', 'view')->name('documents.view');
+        Route::get('documents/download/{id}', 'download')->name('documents.download');
+        Route::get('documents/stream/{id}', 'stream')->name('documents.stream');
+    });
+
+    // HR Routes
+    Route::prefix('hr')->name('hr.')->group(function () {
+        Route::get('salary', 'User\\SalesManagerController@salaryDashboard')->name('salary');
+        Route::get('attendance', 'User\\SalesManagerController@attendanceDashboard')->name('attendance');
+        Route::get('kpi', 'User\\SalesManagerController@kpiDashboard')->name('kpi');
+        Route::get('performance', 'User\\SalesManagerController@performanceDashboard')->name('performance');
+    });
+
+    // Report Routes
+    Route::get('reports', 'User\\SalesManagerController@reports')->name('reports');
+    Route::get('reports/transactions', 'User\\SalesManagerController@reportTransactions')->name('report.transactions');
+    Route::get('reports/interests', 'User\\SalesManagerController@reportInterests')->name('report.interests');
+    Route::get('reports/commissions', 'User\\SalesManagerController@reportCommissions')->name('report.commissions');
 });

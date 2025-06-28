@@ -45,8 +45,10 @@ Route::middleware('admin')->group(function () {
 
 
         Route::get('download-attachments/{file_hash}', 'downloadAttachment')->name('download.attachment');
+        Route::get('chart/invest-status', 'investStatusChart')->name('chart.invest.status');
+        Route::get('chart/user-count', 'userCountChart')->name('chart.user.count');
+        Route::get('chart/revenue', 'revenueChart')->name('chart.revenue');
     });
-
     // Manage Time
     Route::controller('ManageTimeController')->name('time.')->prefix('time')->group(function () {
         Route::get('/', 'index')->name('index');
@@ -67,6 +69,10 @@ Route::middleware('admin')->group(function () {
         Route::get('completed', 'completed')->name('completed');
         Route::post('stop-returns/{id}', 'stopReturns')->name('stop.returns');
         Route::post('start-returns/{id}', 'startReturns')->name('start.returns');
+        Route::get('process-roi', 'processROI')->name('process.roi');
+        Route::get('fix-roi-transactions', 'fixROITransactions')->name('fix.roi.transactions');
+        Route::get('recalculate-roi-transactions', 'recalculateROITransactions')->name('recalculate.roi.transactions');
+        Route::get('fix-user-balances', 'fixUserBalances')->name('fix.user.balances');
     });
 
     Route::controller('CategoryController')->name('category.')->prefix('category')->group(function () {
@@ -110,6 +116,36 @@ Route::middleware('admin')->group(function () {
         Route::post('update/{documentId}', 'update')->name('update');
         Route::post('delete/{documentId}', 'destroy')->name('delete');
         Route::get('download/{documentId}', 'download')->name('download');
+    });
+    
+    // Reference Documents Management
+    Route::controller('DocumentCategoryController')->name('document.categories.')->prefix('document/categories')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('destroy/{id}', 'destroy')->name('destroy');
+        Route::post('status/{id}', 'status')->name('status');
+    });
+    
+    Route::controller('ReferenceDocumentController')->name('documents.')->prefix('documents')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('destroy/{id}', 'destroy')->name('destroy');
+        Route::post('status/{id}', 'status')->name('status');
+        Route::get('download/{id}', 'download')->name('download');
+    });
+    
+    // Contract Documents Management
+    Route::controller('ContractDocumentController')->name('invest.documents.')->prefix('invest/{investId}/documents')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::post('upload', 'upload')->name('upload');
+        Route::get('download/{documentId}', 'download')->name('download');
+        Route::post('delete/{documentId}', 'delete')->name('delete');
     });
 
     // Invest Report
@@ -158,6 +194,17 @@ Route::middleware('admin')->group(function () {
         Route::get('list', 'list')->name('list');
         Route::get('count-by-segment/{methodName}', 'countBySegment')->name('segment.count');
         Route::get('notification-log/{id}', 'notificationLog')->name('notification.log');
+    });
+
+    // Honor Management
+    Route::controller('HonorController')->name('honors.')->prefix('honors')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('create', 'create')->name('create');
+        Route::post('store', 'store')->name('store');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('destroy/{id}', 'destroy')->name('destroy');
+        Route::post('status/{id}', 'status')->name('status');
     });
 
     // Deposit Gateway
@@ -229,6 +276,7 @@ Route::middleware('admin')->group(function () {
         Route::get('notification/history', 'notificationHistory')->name('notification.history');
         Route::get('email/detail/{id}', 'emailDetails')->name('email.details');
         Route::get('invest/history', 'investHistory')->name('invest.history');
+        Route::get('contract/revenue', 'contractRevenue')->name('contract.revenue');
     });
 
     // Admin Support
@@ -369,6 +417,7 @@ Route::middleware('admin')->group(function () {
             Route::get('templates', 'templates')->name('templates');
             Route::post('templates', 'templatesActive')->name('templates.active');
             Route::get('frontend-sections/{key?}', 'frontendSections')->name('sections');
+            Route::get('frontend-sections/blog/{category}', 'frontendSections')->name('sections.blog.category');
             Route::post('frontend-content/{key}', 'frontendContent')->name('sections.content');
             Route::get('frontend-element/{key}/{id?}', 'frontendElement')->name('sections.element');
             Route::get('frontend-slug-check/{key}/{id?}', 'frontendElementSlugCheck')->name('sections.element.slug.check');

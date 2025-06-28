@@ -781,6 +781,245 @@ label.required:after {
     width: 100% !important;
 }
 
+/* Dashboard Analytics Card Improvements */
+.dashboard-analytics-card {
+    height: 100%;
+    position: relative;
+    padding: 28px;
+    border-radius: 16px;
+    border: none;
+    background-color: hsl(var(--white));
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    overflow: hidden;
+    z-index: 1;
+}
+
+.dashboard-analytics-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-analytics-card__thumb {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: hsl(var(--base)/0.15);
+    transition: background-color 0.3s ease;
+}
+
+.dashboard-analytics-card:hover .dashboard-analytics-card__thumb {
+    background-color: hsl(var(--base)/0.25);
+}
+
+.dashboard-analytics-card__name {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 150%;
+    color: hsl(var(--gray-two));
+    margin-bottom: 4px;
+}
+
+.dashboard-analytics-card__total {
+    color: hsl(var(--base-d-800));
+    font-size: 1.75rem;
+    font-weight: 700;
+    line-height: 133%;
+    margin-bottom: 0px;
+    white-space: nowrap;
+}
+
+.dashboard-analytics-card__content {
+    margin-top: 20px;
+}
+
+.dashboard-analytics-card__overlay-icon {
+    position: absolute;
+    right: 10px;
+    bottom: 5px;
+    opacity: 0.05;
+    z-index: -1;
+    transition: opacity 0.3s ease;
+}
+
+.dashboard-analytics-card:hover .dashboard-analytics-card__overlay-icon {
+    opacity: 0.08;
+}
+
+.dashboard-analytics-card .btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-weight: 500;
+    line-height: 160%;
+    color: hsl(var(--base)) !important;
+    border-color: hsl(var(--base)/0.3);
+    transition: all 0.3s ease;
+}
+
+.dashboard-analytics-card .btn:hover,
+.dashboard-analytics-card .btn:focus,
+.dashboard-analytics-card .btn:focus-visible {
+    color: hsl(var(--white)) !important;
+    border-color: hsl(var(--base));
+    background-color: hsl(var(--base)) !important;
+    transform: translateY(-2px);
+}
+
+.select2-results__option:last-child {
+    border-bottom-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+.select2-results__option:first-child {
+    border-top-left-radius: 5px;
+    border-top-right-radius: 5px;
+}
+
+.select2-results__option.select2-results__option--selected,
+.select2-container--default .select2-results__option--highlighted.select2-results__option--selectable {
+    background-color: #f1f1f1 !important;
+    color: #000 !important;
+}
+
+.select2-container--default .select2-search--dropdown .select2-search__field:focus {
+    border-color: hsl(var(--base-two) / 0.1) !important;
+    box-shadow: 0 0 25px rgba(115, 103, 240 0.071) !important;
+    outline: 0 !important;
+}
+
+.select2-dropdown .country-flag {
+    width: 25px;
+    height: 25px;
+    border-radius: 8px;
+}
+
+.select2-dropdown .gateway-title {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 0px !important;
+}
+
+.select2-dropdown .gateway-subtitle {
+    font-size: 12px;
+    margin-bottom: 0px !important;
+}
+
+.select2-container--open .select2-selection.select2-selection--single,
+.select2-container--open .select2-selection.select2-selection--multiple {
+    border-color: hsl(var(--base)) !important;
+    border-radius: .375rem !important;
+}
+
+
+.payment-options-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.payment-options-content {
+    margin-top: 18px;
+    border-radius: 5px;
+}
+
+.payment-options {
+    background: hsl(var(--black)/0.05);
+    padding: 12px;
+    cursor: pointer;
+    border-radius: 5px;
+    border: 2px solid transparent;
+    position: relative;
+    height: 180px;
+    text-align: center;
+    width: 100%;
+    flex: 1;
+    min-width: 270px;
+
+}
+
+.payment-options .active-badge {
+    color: hsl(var(--white)) !important;
+}
+
+.payment-options-content h4 {
+    font-size: 20px;
+}
+
+.payment-options-content p {
+    font-size: 12px;
+}
+
+.payment-options.active {
+    border-color: hsl(var(--base));
+    position: relative;
+}
+
+.payment-options .active-badge {
+    display: none;
+}
+
+.payment-options.active .active-badge {
+    right: 0px;
+    top: -1px;
+    position: absolute;
+    color: #000;
+    background: hsl(var(--base));
+    text-align: right;
+    width: 50px;
+    height: 40px;
+    padding-right: 4px;
+    clip-path: polygon(100% 0, 0 1%, 100% 100%);
+    display: block;
+}
+
+.btn-close {
+    background: unset;
+}
+
+.btn-close:active {
+    box-shadow: unset !important;
+}
+
+.btn-close:focus {
+    box-shadow: unset;
+}
+
+.custom--modal .modal-icon i {
+    font-size: 16px;
+    width: 100%;
+    height: 100%;
+    border-width: 1px;
+}
+
+.custom--modal .btn-close {
+    width: 25px;
+    height: 25px;
+}
+
+.btn:has(.btn--icon) {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+}
+
+label.required:after {
+    content: '*';
+    color: #DC3545 !important;
+    margin-left: 2px;
+}
+
+
+/* select2 css start here  */
+.select2-container:has(.select2-selection--single) {
+    width: 100% !important;
+}
+
 /* Custom styles for logo size */
 .navbar-brand.logo img {
     max-width: 300px !important;

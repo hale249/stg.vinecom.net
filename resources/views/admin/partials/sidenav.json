@@ -55,7 +55,7 @@
         "menu_active": "admin.invest.report.index"
     },
     "manage_invest": {
-        "title": "Investments",
+        "title": "Đầu tư",
         "icon": "las la-hand-holding-usd",
         "counters": [
             "runningInvestments"
@@ -77,7 +77,7 @@
                     "Investment status",
                     "Investment activity"
                 ],
-                "title": "All Investments",
+                "title": "Tất cả đầu tư",
                 "route_name": "admin.invest.index",
                 "menu_active": "admin.invest.index*"
             },
@@ -90,7 +90,7 @@
                     "Review Investment",
                     "Investment activity"
                 ],
-                "title": "Review",
+                "title": "Xem xét",
                 "route_name": "admin.invest.review",
                 "menu_active": "admin.invest.review*"
             },
@@ -103,7 +103,7 @@
                     "Running Investment",
                     "Investment activity"
                 ],
-                "title": "Running",
+                "title": "Đang chạy",
                 "counter": "runningInvestments",
                 "route_name": "admin.invest.running",
                 "menu_active": "admin.invest.running*"
@@ -117,29 +117,13 @@
                     "Completed Investment",
                     "Investment activity"
                 ],
-                "title": "Completed",
+                "title": "Đã hoàn thành",
                 "route_name": "admin.invest.completed",
                 "menu_active": "admin.invest.completed*"
             }
         ]
     },
-    "time_settings": {
-        "keyword": [
-            "Time Settings",
-            "Time Configuration",
-            "Time Management",
-            "Clock Settings",
-            "Schedule Settings",
-            "Timing Preferences",
-            "System Time",
-            "Time Zone Settings",
-            "Timing Control"
-        ],
-        "title": "Time Settings",
-        "icon": "las la-clock",
-        "menu_active": "admin.time*",
-        "route_name": "admin.time.index"
-    },
+
     "manage_category": {
         "keyword": [
             "Manage Category",
@@ -158,7 +142,7 @@
         "route_name": "admin.category.index"
     },
     "manage_projects": {
-        "title": "Projects",
+        "title": "Dự án",
         "icon": "las la-project-diagram",
         "menu_active": "admin.project*",
         "submenu": [
@@ -171,7 +155,7 @@
                     "Project status",
                     "Project activity"
                 ],
-                "title": "All Projects",
+                "title": "Tất cả dự án",
                 "route_name": "admin.project.index",
                 "menu_active": "admin.project.index*"
             },
@@ -184,7 +168,7 @@
                     "Lifetime Project",
                     "Lifetime Project activity"
                 ],
-                "title": "Lifetime",
+                "title": "Trọn đời",
                 "route_name": "admin.project.lifetime",
                 "menu_active": "admin.project.lifetime"
             },
@@ -197,7 +181,7 @@
                     "Lifetime Project",
                     "Lifetime Project activity"
                 ],
-                "title": "Repeat",
+                "title": "Lặp lại",
                 "route_name": "admin.project.repeat",
                 "menu_active": "admin.project.repeat"
             },
@@ -210,43 +194,133 @@
                     "Closed Project",
                     "Project activity"
                 ],
-                "title": "Closed Projects",
+                "title": "Dự án đã đóng",
                 "route_name": "admin.project.closed",
                 "menu_active": "admin.project.closed"
             }
         ]
     },
-    "comment": {
+    "manage_honors": {
         "keyword": [
-            "Comment"
+            "honors",
+            "staff honors",
+            "employee recognition",
+            "achievement awards",
+            "staff accolades",
+            "employee awards",
+            "recognition system",
+            "performance recognition",
+            "top performers",
+            "staff achievements"
         ],
-        "title": "Comments",
-        "icon": "las la-comment-dots",
-        "menu_active": "admin.comment*",
-        "route_name": "admin.comment.index"
+        "title": "Vinh danh",
+        "icon": "las la-trophy",
+        "route_name": "admin.honors.index",
+        "menu_active": "admin.honors*"
+    },
+    "manage_documents": {
+        "keyword": [
+            "documents",
+            "reference documents",
+            "staff documents",
+            "manager documents",
+            "training materials",
+            "learning resources",
+            "document library",
+            "document categories",
+            "file repository",
+            "learning materials"
+        ],
+        "title": "Tài liệu tham khảo",
+        "icon": "las la-file-alt",
+        "menu_active": [
+            "admin.document.categories*", 
+            "admin.documents*"
+        ],
+        "submenu": [
+            {
+                "keyword": [
+                    "document categories",
+                    "document types",
+                    "category management",
+                    "document classification",
+                    "filing categories"
+                ],
+                "title": "Danh mục tài liệu",
+                "route_name": "admin.document.categories.index",
+                "menu_active": "admin.document.categories*"
+            },
+            {
+                "keyword": [
+                    "all documents",
+                    "document library",
+                    "document management",
+                    "file management",
+                    "document repository",
+                    "resource library"
+                ],
+                "title": "Tài liệu",
+                "route_name": "admin.documents.index",
+                "menu_active": "admin.documents*"
+            }
+        ]
     },
     "manage_frontend": {
         "keyword": [
-            "frontend",
-            "template",
-            "manage frontend",
-            "frontend contents",
-            "frontend settings",
-            "content management"
+            "tin tức",
+            "bài viết",
+            "quản lý bài viết",
+            "nội dung bài viết",
+            "cài đặt bài viết",
+            "quản lý nội dung"
         ],
-        "title": "Manage Content",
-        "icon": "las la-edit",
-        "route_name": "admin.frontend.sections",
-        "params": ["blog"],
+        "title": "Tin tức",
+        "icon": "las la-newspaper",
         "menu_active": [
             "admin.frontend.index",
             "admin.frontend.sections",
             "admin.frontend.sections.content",
             "admin.frontend.sections.element"
+        ],
+        "submenu": [
+            {
+                "keyword": [
+                    "tin tức doanh nghiệp",
+                    "thông tin công ty",
+                    "tin tức nội bộ",
+                    "hoạt động công ty",
+                    "tin tức công ty"
+                ],
+                "title": "Tin tức doanh nghiệp",
+                "route_name": "admin.frontend.sections",
+                "params": ["blog"],
+                "menu_active": [
+                    "admin.frontend.sections.blog.company",
+                    "admin.frontend.sections.content.blog.company",
+                    "admin.frontend.sections.element.blog.company"
+                ]
+            },
+            {
+                "keyword": [
+                    "tin tức thị trường",
+                    "tin tức ngành",
+                    "phân tích thị trường",
+                    "thông tin thị trường",
+                    "tin tức kinh tế"
+                ],
+                "title": "Tin tức thị trường",
+                "route_name": "admin.frontend.sections",
+                "params": ["blog"],
+                "menu_active": [
+                    "admin.frontend.sections.blog.market",
+                    "admin.frontend.sections.content.blog.market",
+                    "admin.frontend.sections.element.blog.market"
+                ]
+            }
         ]
     },
     "manage_users": {
-        "title": "Manage Users",
+        "title": "Quản lý người dùng",
         "icon": "las la-users",
         "counters": [
             "bannedUsersCount",
@@ -267,7 +341,7 @@
                     "User activity",
                     "User analytics"
                 ],
-                "title": "Active Users",
+                "title": "Người dùng hoạt động",
                 "route_name": "admin.users.active",
                 "menu_active": "admin.users.active"
             },
@@ -279,7 +353,7 @@
                     "Account bans",
                     "User activity"
                 ],
-                "title": "Banned Users",
+                "title": "Người dùng bị cấm",
                 "route_name": "admin.users.banned",
                 "menu_active": "admin.users.banned",
                 "counter": "bannedUsersCount"
@@ -292,7 +366,7 @@
                     "User authentication",
                     "User management"
                 ],
-                "title": "Email Unverified",
+                "title": "Email chưa xác minh",
                 "route_name": "admin.users.email.unverified",
                 "menu_active": "admin.users.email.unverified",
                 "counter": "emailUnverifiedUsersCount"
@@ -305,7 +379,7 @@
                     "User authentication",
                     "User management"
                 ],
-                "title": "Mobile Unverified",
+                "title": "SDT chưa xác minh",
                 "route_name": "admin.users.mobile.unverified",
                 "menu_active": "admin.users.mobile.unverified",
                 "counter": "mobileUnverifiedUsersCount"
@@ -318,7 +392,7 @@
                     "User authentication",
                     "User management"
                 ],
-                "title": "KYC Unverified",
+                "title": "KYC chưa xác minh",
                 "route_name": "admin.users.kyc.unverified",
                 "menu_active": "admin.users.kyc.unverified",
                 "counter": "kycUnverifiedUsersCount"
@@ -331,7 +405,7 @@
                     "User authentication",
                     "User management"
                 ],
-                "title": "KYC Pending",
+                "title": "KYC đang chờ",
                 "route_name": "admin.users.kyc.pending",
                 "menu_active": "admin.users.kyc.pending",
                 "counter": "kycPendingUsersCount"
@@ -602,30 +676,38 @@
         ]
     },
     "reports": {
-        "title": "Report",
+        "title": "Báo cáo",
         "icon": "la la-list",
         "menu_active": "admin.report*",
         "submenu": [
             {
                 "keyword": [
-                    "Transaction Log",
                     "Report",
                     "Transaction report",
                     "Transaction history",
-                    "Transaction activity",
-                    "balance sheet",
-                    "balance log",
-                    "balance history"
+                    "Transaction log",
+                    "Transaction data",
+                    "Transaction record"
                 ],
-                "title": "Transaction History",
+                "title": "Giao dịch",
                 "route_name": "admin.report.transaction",
                 "menu_active": [
                     "admin.report.transaction",
                     "admin.report.transaction.search"
+                ]
+            },
+            {
+                "keyword": [
+                    "Report",
+                    "Revenue report",
+                    "Contract revenue",
+                    "Revenue by contract",
+                    "Contract revenue data",
+                    "Revenue record"
                 ],
-                "params": {
-                    "user_id": ""
-                }
+                "title": "Doanh số hợp đồng",
+                "route_name": "admin.report.contract.revenue",
+                "menu_active": "admin.report.contract.revenue"
             },
             {
                 "keyword": [
@@ -635,7 +717,7 @@
                     "Project purchase",
                     "Purchase history"
                 ],
-                "title": "Invest History",
+                "title": "Lịch sử đầu tư",
                 "route_name": "admin.report.invest.history",
                 "menu_active": [
                     "admin.report.invest.history",
@@ -650,7 +732,7 @@
                     "Login history",
                     "Login activity"
                 ],
-                "title": "Login History",
+                "title": "Lịch sử đăng nhập",
                 "route_name": "admin.report.login.history",
                 "menu_active": [
                     "admin.report.login.history",
@@ -671,7 +753,7 @@
                     "push notification log",
                     "push notification history"
                 ],
-                "title": "Notification History",
+                "title": "Lịch sử thông báo",
                 "route_name": "admin.report.notification.history",
                 "menu_active": "admin.report.notification.history"
             }
@@ -686,7 +768,7 @@
             "Configuration management",
             "System setup"
         ],
-        "title": "System Setting",
+        "title": "Cài đặt hệ thống",
         "icon": "las la-life-ring",
         "route_name": "admin.setting.system",
         "menu_active": [

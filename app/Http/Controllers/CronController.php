@@ -91,8 +91,27 @@ class CronController extends Controller
     private function processInvestment($invest, $now)
     {
         $user    = $invest->user;
-        $hours   = (int)$invest->project?->time->hours;
-        $next    = $now->addHours($hours)->toDateTimeString();
+        $hours   = (int)($invest->project?->time?->hours ?? 24);
+        
+        // Get the last payment date for reference
+        $lastPaymentDate = $invest->last_time ? \Carbon\Carbon::parse($invest->last_time) : now();
+        
+        // Calculate the next payment date based on the interval
+        $nextPaymentDate = clone $lastPaymentDate;
+        
+        if ($hours == 24 * 30) { // Monthly (approximately)
+            // Set to same day next month from the last payment date
+            $nextPaymentDate = $lastPaymentDate->copy()->addMonth();
+        } elseif ($hours == 24 * 7) { // Weekly
+            $nextPaymentDate = $lastPaymentDate->copy()->addWeek();
+        } elseif ($hours == 24) { // Daily
+            $nextPaymentDate = $lastPaymentDate->copy()->addDay();
+        } else {
+            // Custom interval in hours
+            $nextPaymentDate = $lastPaymentDate->copy()->addHours($hours);
+        }
+        
+        $next = $nextPaymentDate->toDateTimeString();
 
         // Process investment
         $invest->period            += 1;

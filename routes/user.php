@@ -101,6 +101,7 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::controller('InvestController')->prefix('invest')->name('invest.')->group(function () {
                 Route::post('/store', 'order')->name('order');
                 Route::get('/contract/{id}', 'showContract')->name('contract');
+                Route::get('/contract/{id}/watermark', 'viewContractWithWatermark')->name('contract.watermark');
                 Route::post('/confirm/{id}', 'confirm')->name('confirm');
                 Route::post('/cancel/{id}', 'cancel')->name('cancel');
                 Route::get('/contract/{id}/download', 'downloadContract')->name('contract.download');
@@ -140,7 +141,19 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::get('hr/salary', 'salaryDashboard')->name('hr.salary');
                 Route::get('hr/kpi', 'kpiDashboard')->name('hr.kpi');
                 Route::post('hr/kpi', 'storeKPI')->name('hr.kpi.store');
+                Route::get('hr/kpi/export', 'exportKPI')->name('hr.kpi.export');
+                Route::get('hr/kpi/{id}', 'showKPI')->name('hr.kpi.show');
+                Route::get('hr/kpi/{id}/edit', 'editKPI')->name('hr.kpi.edit');
+                Route::put('hr/kpi/{id}', 'updateKPI')->name('hr.kpi.update');
+                Route::delete('hr/kpi/{id}', 'destroyKPI')->name('hr.kpi.destroy');
                 Route::get('hr/performance', 'performanceDashboard')->name('hr.performance');
+                
+                // Attendance Management Routes
+                Route::get('hr/attendance', 'attendanceDashboard')->name('hr.attendance');
+                Route::post('hr/attendance/store', 'storeAttendance')->name('hr.attendance.store');
+                Route::post('hr/attendance/delete/{id}', 'deleteAttendance')->name('hr.attendance.delete');
+                Route::get('hr/attendance/export', 'exportAttendance')->name('hr.attendance.export');
+                Route::post('hr/attendance/import', 'importAttendance')->name('hr.attendance.import');
             });
         });
         

@@ -21,12 +21,9 @@
                         } elseif($status == \App\Constants\Status::INVEST_COMPLETED) {
                             $statusClass = 'primary';
                             $statusText = 'Hoàn thành';
-                        } elseif($status == \App\Constants\Status::INVEST_REJECTED) {
+                        } elseif($status == \App\Constants\Status::INVEST_CANCELED) {
                             $statusClass = 'danger';
                             $statusText = 'Từ chối';
-                        } elseif($status == \App\Constants\Status::INVEST_CANCELED) {
-                            $statusClass = 'dark';
-                            $statusText = 'Đã hủy';
                         }
                     @endphp
                     <span class="badge badge--{{ $statusClass }} ms-2">{{ __($statusText) }}</span>
@@ -34,6 +31,10 @@
                 <div class="d-flex flex-wrap gap-2">
                     <a href="{{ route('user.staff.staff.contracts') }}" class="btn btn-sm btn--dark">
                         <i class="las la-arrow-left"></i> @lang('Quay lại')
+                    </a>
+                    
+                    <a href="{{ route('user.staff.staff.contract.documents', $invest->id) }}" class="btn btn-sm btn--info">
+                        <i class="las la-file-upload"></i> @lang('Tài liệu hợp đồng')
                     </a>
                     
                     @if($invest->status == \App\Constants\Status::INVEST_PENDING)
@@ -58,15 +59,15 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Dự án')</span>
-                                        <span class="fw-bold">{{ $invest->project->name ?? 'N/A' }}</span>
+                                        <span class="fw-bold">{{ $invest->project->title ?? 'N/A' }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Số tiền đầu tư')</span>
-                                        <span class="fw-bold">{{ showAmount($invest->amount) }} {{ __($general->cur_text) }}</span>
+                                        <span class="fw-bold">{{ showAmount($invest->total_price) }} {{ __($general->cur_text) }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Lãi suất')</span>
-                                        <span class="fw-bold">{{ $invest->interest_rate }}%</span>
+                                        <span class="fw-bold">{{ $invest->display_roi_percentage }}%</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Thời hạn')</span>
@@ -82,7 +83,7 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Trạng thái')</span>
-                                        <span class="badge badge--{{ $statusClass }}">{{ __($statusText) }}</span>
+                                        {!! $invest->statusBadge !!}
                                     </li>
                                 </ul>
                             </div>

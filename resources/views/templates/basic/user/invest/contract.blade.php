@@ -6,6 +6,17 @@
                 <div class="card custom--card">
                     <div class="card-header">
                         <h5 class="card-title">@lang('Investment Contract')</h5>
+                        <div class="d-flex gap-2">
+                            <a href="{{ route('user.invest.contract.watermark', $invest->id) }}" class="btn btn-sm btn-outline--warning">
+                                <i class="las la-eye"></i> @lang('View with Status')
+                            </a>
+                            <a href="{{ route('user.invest.contract.download', $invest->id) }}" class="btn btn-sm btn-outline--success">
+                                <i class="las la-download"></i> @lang('Download PDF')
+                            </a>
+                            <a href="{{ route('user.invest.documents', $invest->id) }}" class="btn btn-sm btn-outline--info">
+                                <i class="las la-file-upload"></i> @lang('Contract Documents')
+                            </a>
+                        </div>
                     </div>
                     <div class="card-body">
                         <div class="alert alert-info">
@@ -83,9 +94,6 @@
                                 @csrf
                                 <button type="submit" class="btn btn--base">@lang('Confirm Investment')</button>
                             </form>
-                            <a href="{{ route('user.invest.contract.download', $invest->id) }}" class="btn btn--info">
-                                <i class="las la-download"></i> @lang('Download PDF')
-                            </a>
                             <a href="{{ route('user.home') }}" class="btn btn--danger">@lang('Cancel')</a>
                         </div>
                     </div>

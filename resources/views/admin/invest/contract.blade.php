@@ -20,6 +20,9 @@
                                             <i class="las la-times"></i> @lang('Reject')
                                         </button>
                                     </form>
+                                    <a href="{{ route('user.invest.contract.watermark', $invest->id) }}" class="btn btn-sm btn-outline--warning" target="_blank">
+                                        <i class="las la-stamp"></i> @lang('View with Status')
+                                    </a>
                                 </div>
                                 <a href="{{ route('admin.invest.review') }}" class="btn btn-sm btn-outline--primary">
                                     <i class="las la-arrow-left"></i> @lang('Back')

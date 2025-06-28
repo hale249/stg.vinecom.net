@@ -103,12 +103,28 @@ class SiteController extends Controller {
         return back();
     }
 
-    public function blogs() {
-        $blogs     = Frontend::where('tempname', activeTemplateName())->where('data_keys', 'blog.element')->latest()->paginate(getPaginate(12));
-        $pageTitle = 'Blogs';
-        $page      = Page::where('tempname', activeTemplate())->where('slug', 'blog')->first();
-        $sections  = $page->secs;
-        return view('Template::blog', compact('blogs', 'pageTitle', 'sections'));
+    public function blogs($category = null) {
+        $blogsQuery = Frontend::where('tempname', activeTemplateName())->where('data_keys', 'blog.element');
+        
+        if ($category) {
+            $blogsQuery->where('category', $category);
+        }
+        
+        $blogs = $blogsQuery->latest()->paginate(getPaginate(12));
+        
+        // Set page title based on category
+        if ($category == 'company') {
+            $pageTitle = 'Tin tức doanh nghiệp';
+        } elseif ($category == 'market') {
+            $pageTitle = 'Tin tức thị trường';
+        } else {
+            $pageTitle = 'Tin tức';
+        }
+        
+        $page = Page::where('tempname', activeTemplate())->where('slug', 'blog')->first();
+        $sections = $page->secs;
+        
+        return view('Template::blog', compact('blogs', 'pageTitle', 'sections', 'category'));
     }
 
     public function blogDetails($slug) {
@@ -139,7 +155,7 @@ class SiteController extends Controller {
         $imgWidth  = explode('x', $size)[0];
         $imgHeight = explode('x', $size)[1];
         $text      = $imgWidth . '×' . $imgHeight;
-        $fontFile  = realpath('assets/font/solaimanLipi_bold.ttf');
+        $fontFile  = public_path('assets/font/solaimanLipi_bold.ttf');
         $fontSize  = round(($imgWidth - 50) / 8);
         if ($fontSize <= 9) {
             $fontSize = 9;
