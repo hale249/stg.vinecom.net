@@ -50,10 +50,18 @@ class ManageInvestController extends Controller
         
         // If project is running and at least one month has passed
         if ($invest->status == Status::INVEST_RUNNING && $monthsSinceInvestment > 0) {
-            // Get ROI amount per period
-            $roiAmount = $invest->roi_amount;
-            $quantity = $invest->quantity > 0 ? $invest->quantity : 1;
-            $periodROI = $roiAmount * $quantity;
+            // Get investment details
+            $totalInvestment = $invest->total_price;
+            $roiPercentage = $invest->roi_percentage;
+            
+            // Calculate annual ROI
+            $annualROI = ($totalInvestment * $roiPercentage / 100);
+            
+            // Calculate monthly ROI (annual ROI divided by 12)
+            $monthlyROI = round($annualROI / 12, 0);
+            
+            // For each payment, we pay one month's worth of ROI
+            $periodROI = $monthlyROI;
             
             // Check if we need to create a new transaction for this month
             $currentMonthStart = Carbon::now()->startOfMonth();
@@ -313,7 +321,7 @@ class ManageInvestController extends Controller
                     $annualROI = ($totalInvestment * $roiPercentage / 100);
                     
                     // Calculate monthly ROI (annual ROI divided by 12)
-                    $monthlyROI = $annualROI / 12;
+                    $monthlyROI = round($annualROI / 12, 0);
                     
                     // For each payment, we pay one month's worth of ROI
                     $periodROI = $monthlyROI;

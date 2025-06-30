@@ -69,7 +69,7 @@
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.staff.documents*') ? 'active' : '' }}">
                     <a href="{{ route('user.staff.staff.documents') }}" class="nav-link">
                         <i class="menu-icon las la-file-alt"></i>
-                        <span class="menu-title">@lang('Tài liệu tham khảo')</span>
+                        <span class="menu-title">@lang('Tài liệu học tập')</span>
                     </a>
                 </li>
                 

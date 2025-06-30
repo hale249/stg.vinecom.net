@@ -35,6 +35,12 @@ class Invest extends Model
         'payment_status'
     ];
 
+    protected $casts = [
+        'project_duration' => 'integer',
+        'repeat_times' => 'integer',
+        'quantity' => 'integer',
+    ];
+
     public function deposit()
     {
         return $this->hasOne(Deposit::class, 'invest_id');

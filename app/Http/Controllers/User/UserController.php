@@ -78,9 +78,14 @@ class UserController extends Controller
             ->where('remark', 'profit')
             ->sum('amount');
         
+        // Calculate total investment only for accepted and running investments
+        $totalInvestment = $user->invests()
+            ->where('status', Status::INVEST_RUNNING)
+            ->sum('total_price');
+        
         $investData = [
             'completed' => $user->invests()->completed()->count(),
-            'total_invest' => $user->invests()->totalInvest(),
+            'total_invest' => $totalInvestment, // Only count running investments
             'total_earning' => $projectedEarnings, // Keep this as projected earnings for "Tổng lợi tức theo giá trị HĐ"
             'actual_profits' => $actualProfits, // Add this for reference
             'invest_count' => $user->invests()->where('status', Status::INVEST_RUNNING)->select('project_id')->distinct()->count(),

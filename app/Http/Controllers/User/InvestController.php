@@ -67,7 +67,12 @@ class InvestController extends Controller {
 
             $totalPrice = getAmount($request->amount);
             $projectRoiPercentage = getAmount($project->roi_percentage);
-            $recurringAmount = ($totalPrice * $projectRoiPercentage) / 100;
+            
+            // Calculate annual ROI
+            $annualROI = ($totalPrice * $projectRoiPercentage / 100);
+            
+            // Calculate monthly ROI (annual ROI divided by 12)
+            $recurringAmount = round($annualROI / 12, 0);
 
         } else {
             // This is for quantity-based investments (if that feature is still supported in your UI)
@@ -75,7 +80,12 @@ class InvestController extends Controller {
             $quantity        = (int) $request->quantity;
             $totalPrice      = $minInvestAmount * $quantity;
             $projectRoiPercentage = getAmount($project->roi_percentage);
-            $recurringAmount = ($totalPrice * $projectRoiPercentage) / 100;
+            
+            // Calculate annual ROI
+            $annualROI = ($totalPrice * $projectRoiPercentage / 100);
+            
+            // Calculate monthly ROI (annual ROI divided by 12)
+            $recurringAmount = round($annualROI / 12, 0);
             
             if ((int) $request->quantity > $project->available_share) {
                 $notify[] = ['error', 'Số lượng đơn vị không được vượt quá ' . $project->available_share . ' đơn vị còn lại.'];
@@ -87,10 +97,16 @@ class InvestController extends Controller {
         $investClosed = null;
         $totalShare = $project->share_count;
 
+        // Make sure months is properly parsed as an integer
+        $selectedDuration = $request->filled('months') ? (int)$request->months : (int)$project->project_duration;
+        
+        // Ensure the duration is valid (not zero or negative)
+        if ($selectedDuration <= 0) {
+            $selectedDuration = (int)$project->project_duration;
+        }
+
         if ($project->return_type == Status::LIFETIME) {
             $totalEarning = 0;
-            // Make sure months is properly parsed as an integer
-            $selectedDuration = $request->filled('months') ? (int)$request->months : (int)$project->project_duration;
             $investClosed = Carbon::parse($project->maturity_date)->addMonths($selectedDuration);
         } else if ($project->return_type == Status::REPEAT) {
             $totalEarning = $recurringAmount * $project->repeat_times;
@@ -111,7 +127,7 @@ class InvestController extends Controller {
         $invest->capital_back = $project->capital_back;
         $invest->capital_status = Status::NO;
         $invest->return_type = $project->return_type;
-        $invest->project_duration = $request->filled('months') ? (int)$request->months : (int)$project->project_duration;
+        $invest->project_duration = (int)$selectedDuration;
         $invest->project_closed = $investClosed ?? null;
         $invest->repeat_times = $project->repeat_times ?? 0;
         $invest->time_name = $project->time->name ?? 'Tháng';
@@ -266,6 +282,10 @@ class InvestController extends Controller {
         $principal = $amount;
         $cumulativeInterest = 0;
 
+        // Calculate monthly ROI using the correct formula
+        $annualROI = ($principal * $annualRate / 100);
+        $monthlyROI = round($annualROI / 12, 0);
+
         // Ngày ký hợp đồng là ngày hiện tại
         $contractDate = \Carbon\Carbon::now();
         
@@ -298,8 +318,8 @@ class InvestController extends Controller {
                 return true; // Đếm tất cả các ngày
             }, $periodEnd) + 1;
             
-            // Tính lãi kỳ này (làm tròn đến 0 chữ số thập phân)
-            $periodInterest = round(($principal * ($annualRate / 100 / 365)) * $daysInPeriod, 0);
+            // Sử dụng ROI hàng tháng cố định thay vì tính theo ngày
+            $periodInterest = $monthlyROI;
             $cumulativeInterest += $periodInterest;
 
             $schedule[] = [
@@ -371,6 +391,10 @@ class InvestController extends Controller {
         $principal = $amount;
         $cumulativeInterest = 0;
 
+        // Calculate monthly ROI using the correct formula
+        $annualROI = ($principal * $annualRate / 100);
+        $monthlyROI = round($annualROI / 12, 0);
+
         // Ngày ký hợp đồng là ngày hiện tại
         $contractDate = \Carbon\Carbon::now();
         
@@ -403,8 +427,8 @@ class InvestController extends Controller {
                 return true; // Đếm tất cả các ngày
             }, $periodEnd) + 1;
             
-            // Tính lãi kỳ này (làm tròn đến 0 chữ số thập phân)
-            $periodInterest = round(($principal * ($annualRate / 100 / 365)) * $daysInPeriod, 0);
+            // Sử dụng ROI hàng tháng cố định thay vì tính theo ngày
+            $periodInterest = $monthlyROI;
             $cumulativeInterest += $periodInterest;
 
             $schedule[] = [

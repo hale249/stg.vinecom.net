@@ -59,7 +59,7 @@
                     <input type="hidden" name="total_price" id="modal_total_price" value="">
                     <input type="hidden" name="unit_price" id="modal_unit_price" value="{{ $project->min_invest_amount }}">
                     <input type="hidden" name="total_earning" id="modal_total_earning" value="">
-                    <input type="hidden" name="months" id="modal_months" value="">
+                    <input type="hidden" name="months" id="modal_months" value="{{ $project->maturity_time }}">
 
                     <div class="payment-options-wrapper">
                         <!-- Investment Profit Estimation Section -->
@@ -747,17 +747,20 @@ document.addEventListener('DOMContentLoaded', function() {
         const validRoi = parseFloat(roiPercentage) || 0;
         const validMonths = months;
         
-        // Tính toán lãi theo công thức: Số tiền * (Lãi suất / 100) * (Số tháng / 12)
-        const annualInterest = validAmount * (validRoi / 100);
-        const monthlyFactor = validMonths / 12;
-        const totalProfit = Math.round(annualInterest * monthlyFactor);
+        // Tính toán lãi theo công thức:
+        // 1. Annual ROI = Investment Amount * ROI Percentage / 100
+        // 2. Monthly ROI = Annual ROI / 12
+        // 3. Total ROI for selected months = Monthly ROI * months
+        const annualROI = validAmount * (validRoi / 100);
+        const monthlyROI = Math.round(annualROI / 12);
+        const totalProfit = monthlyROI * validMonths;
         
         console.log('Profit calculation:', {
             validAmount,
             validRoi,
             validMonths,
-            annualInterest,
-            monthlyFactor,
+            annualROI,
+            monthlyROI,
             totalProfit
         });
         
@@ -766,9 +769,10 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('modal_total_price').value = amount;
         document.getElementById('modal_unit_price').value = amount; // Unit price is the invested amount
         document.getElementById('modal_total_earning').value = totalProfit;
+        document.getElementById('modal_months').value = validMonths; // Ensure months is set correctly
         
         // Cập nhật ngày đáo hạn và ngày trả lãi
-        setDates(months);
+        setDates(validMonths);
     }
 
     // Gọi hàm updateModalValues ngay khi trang tải xong với số tiền mặc định
@@ -795,6 +799,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             }
 
+            console.log('Modal opening with months:', selectedMonths);
             window.updateModalValues(projectDetailsAmount, selectedMonths);
             
             const investmentInput = document.getElementById('investment_amount');

@@ -59,7 +59,11 @@
                             </td>
 
                             <td>
-                                {{ __($invest->project_duration) }} @lang('Months')
+                                @php
+                                    // Ensure the project_duration is a valid number
+                                    $duration = is_numeric($invest->project_duration) ? (int)$invest->project_duration : 0;
+                                @endphp
+                                {{ $duration }} @lang('Months')
                             </td>
                             <td>{{ __(showAmount($invest->total_price)) }}</td>
 

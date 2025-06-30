@@ -73,7 +73,7 @@
                         </div>
 
                         <div class="dashboard-analytics-card__content">
-                            <span class="dashboard-analytics-card__name">@lang('Total Invest')</span>
+                            <span class="dashboard-analytics-card__name">@lang('Tổng đầu tư đang hoạt động')</span>
                             <h5 class="dashboard-analytics-card__total">{{ __(showAmount($investData['total_invest'])) }}</h5>
                         </div>
 

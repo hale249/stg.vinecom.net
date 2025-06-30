@@ -231,7 +231,7 @@
             "file repository",
             "learning materials"
         ],
-        "title": "Tài liệu tham khảo",
+        "title": "Tài liệu học tập",
         "icon": "las la-file-alt",
         "menu_active": [
             "admin.document.categories*", 

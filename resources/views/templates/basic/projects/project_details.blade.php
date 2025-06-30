@@ -1461,9 +1461,16 @@
         function calculateRoi() {
             const amount = parseCurrencyInput(amountInput.value);
             const months = parseInt(termSelect.value) || 1;
-            // Calculate ROI based on annual percentage, term in months, and investment amount
-            const roi = (amount * roiPercentage / 100) * (months / 12);
-            roiDisplay.textContent = roi.toLocaleString('vi-VN') + ' VNĐ';
+            
+            // Calculate ROI using the correct formula:
+            // 1. Annual ROI = Investment Amount * ROI Percentage / 100
+            // 2. Monthly ROI = Annual ROI / 12
+            // 3. Total ROI for selected months = Monthly ROI * months
+            const annualROI = amount * roiPercentage / 100;
+            const monthlyROI = Math.round(annualROI / 12);
+            const totalROI = monthlyROI * months;
+            
+            roiDisplay.textContent = totalROI.toLocaleString('vi-VN') + ' VNĐ';
         }
 
         if (amountInput && termSelect) {
@@ -1484,7 +1491,7 @@
                 // Sync modal if open
                 if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
                     // Make sure we pass the term value as a proper integer
-                    window.updateModalValues(parseCurrencyInput(this.value), parseInt(termSelect.value) || {{ $months }});
+                    window.updateModalValues(parseCurrencyInput(this.value), parseInt(termSelect.value) || 1);
                 }
             });
             termSelect.addEventListener('change', function() {
@@ -1492,7 +1499,7 @@
                 // Sync modal if open
                 if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
                     // Make sure we pass the term value as a proper integer
-                    window.updateModalValues(parseCurrencyInput(amountInput.value), parseInt(this.value) || {{ $months }});
+                    window.updateModalValues(parseCurrencyInput(amountInput.value), parseInt(this.value) || 1);
                 }
             });
             // Khởi tạo tính toán ban đầu

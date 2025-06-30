@@ -52,7 +52,7 @@
                 link="{{ route('admin.report.invest.history') }}?status={{ Status::INVEST_RUNNING }}"
                 title="Hợp đồng đang hoạt động"
                 icon="las la-chart-area"
-                value="{{ showAmount($invest['running_invests']) }}"
+                value="{{ showAmount($invest['running_invests'], 0, true, false, false) }}"
                 bg="12"
             />
         </div><!-- dashboard-w1 end -->
@@ -196,6 +196,12 @@
                     <div class="chart-info text-center mb-3">
                         <p class="text-muted mb-0">Thống kê số lượng hợp đồng được ký kết theo từng tháng</p>
                     </div>
+                    <div class="date-filter-container mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="las la-calendar"></i></span>
+                            <input type="text" class="form-control date-range-picker" id="investCountDateRange" placeholder="Chọn khoảng thời gian">
+                        </div>
+                    </div>
                     <div id="investCountChart" class="chart-container"></div>
                 </div>
             </div>
@@ -215,6 +221,12 @@
                 <div class="card-body pt-0">
                     <div class="chart-info text-center mb-3">
                         <p class="text-muted mb-0">Thống kê tổng giá trị đầu tư theo từng tháng</p>
+                    </div>
+                    <div class="date-filter-container mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="las la-calendar"></i></span>
+                            <input type="text" class="form-control date-range-picker" id="investAmountDateRange" placeholder="Chọn khoảng thời gian">
+                        </div>
                     </div>
                     <div id="investAmountChart" class="chart-container"></div>
                 </div>

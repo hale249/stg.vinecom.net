@@ -56,7 +56,7 @@
                 <a class="offcanvas-sidebar-menu__link {{ menuActive('reference.documents*') }}"
                     href="{{ route('reference.documents') }}">
                     <i class="fas fa-file-alt"></i>
-                    <span>@lang('Tài liệu tham khảo')</span>
+                    <span>@lang('Tài liệu học tập')</span>
                 </a>
             </li>
             @endif
