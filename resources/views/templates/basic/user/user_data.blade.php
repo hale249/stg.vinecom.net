@@ -46,26 +46,6 @@
                                             <small class="text--danger mobileExist"></small>
                                         </div>
                                     </div>
-                                    <div class="form-group col-sm-6">
-                                        <label class="form-label">@lang('Address')</label>
-                                        <input type="text" class="form-control form--control" name="address"
-                                               value="{{ old('address') }}">
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label class="form-label">@lang('State')</label>
-                                        <input type="text" class="form-control form--control" name="state"
-                                               value="{{ old('state') }}">
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label class="form-label">@lang('Zip Code')</label>
-                                        <input type="text" class="form-control form--control" name="zip"
-                                               value="{{ old('zip') }}">
-                                    </div>
-                                    <div class="form-group col-sm-6">
-                                        <label class="form-label">@lang('City')</label>
-                                        <input type="text" class="form-control form--control" name="city"
-                                               value="{{ old('city') }}">
-                                    </div>
                                 </div>
                                 <div class="form-group">
                                     <button type="submit" class="btn btn--base w-100">

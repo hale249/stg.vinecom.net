@@ -238,9 +238,10 @@ class InvestController extends Controller {
         $amount = getAmount($request->amount);
         $user = auth()->user();
 
-        $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
-        if ($amount < $unitPrice) {
-            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . number_format($unitPrice, 0, ',', '.') . ' VNĐ (1 đơn vị).');
+        $minInvestAmount = $project->min_invest_amount ?? $project->share_amount;
+        $minInvestAmount = (float) $minInvestAmount;
+        if ($amount < $minInvestAmount) {
+            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . showAmount($minInvestAmount) . '.');
         }
 
         // Kiểm tra dự án có hợp lệ không
@@ -341,9 +342,10 @@ class InvestController extends Controller {
         $amount = getAmount($request->amount);
         $user = auth()->check() ? auth()->user() : null;
 
-        $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
-        if ($amount < $unitPrice) {
-            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . number_format($unitPrice, 0, ',', '.') . ' VNĐ (1 đơn vị).');
+        $minInvestAmount = $project->min_invest_amount ?? $project->share_amount;
+        $minInvestAmount = (float) $minInvestAmount;
+        if ($amount < $minInvestAmount) {
+            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . showAmount($minInvestAmount) . '.');
         }
 
         // Kiểm tra dự án có hợp lệ không

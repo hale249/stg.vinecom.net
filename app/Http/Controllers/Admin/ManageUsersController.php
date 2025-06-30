@@ -112,8 +112,8 @@ class ManageUsersController extends Controller
 
         $invest['total_invests'] = Invest::where('user_id', $user->id)->sum('total_price');
         $invest['total_interests'] = Transaction::where('user_id', $user->id)->where('remark', 'profit')->sum('amount');
-        $invest['running_invests'] = Invest::where('user_id', $user->id)->running()->sum('paid');
-        $invest['completed_invests'] = Invest::where('user_id', $user->id)->completed()->sum('paid');
+        $invest['running_invests'] = Invest::where('user_id', $user->id)->running()->sum('total_price');
+        $invest['completed_invests'] = Invest::where('user_id', $user->id)->completed()->sum('total_price');
 
         return view('admin.users.detail', compact('pageTitle', 'user', 'totalDeposit', 'totalWithdrawals', 'totalTransaction', 'countries', 'invest'));
     }

@@ -58,7 +58,7 @@
                     <input type="hidden" name="quantity" id="modal_quantity" value="1">
                     <input type="hidden" name="payment_type" value="2">
                     <input type="hidden" name="total_price" id="modal_total_price" value="">
-                    <input type="hidden" name="unit_price" id="modal_unit_price" value="{{ $project->share_amount }}">
+                    <input type="hidden" name="unit_price" id="modal_unit_price" value="{{ $project->min_invest_amount }}">
                     <input type="hidden" name="total_earning" id="modal_total_earning" value="">
 
                     <div class="payment-options-wrapper">
@@ -107,12 +107,11 @@
                             </div>
                             <div class="form-group mb-3">
                                 <div class="input-group input-group-lg">
-                                    <input type="number" class="form-control form-control-lg" id="investment_amount" name="amount" value="{{ (int)$project->share_amount }}" min="{{ (int)$project->share_amount }}" step="0.01">
+                                    <input type="number" class="form-control form-control-lg" id="investment_amount" name="amount" value="{{ (int)$project->min_invest_amount }}" min="{{ (int)$project->min_invest_amount }}" step="0.01">
                                     <span class="input-group-text" style="border: 2px solid #FFD700 !important; background: #FFD700 !important; color: #000 !important;">{{ gs('cur_text') }}</span>
                                 </div>
                                 <small class="text-muted d-block mt-1">
-                                    Giá suất đầu tư: {{ number_format($project->share_amount, 0, ',', '.') }} {{ gs('cur_text') }} 
-                                    
+                                    Tối thiểu: {{ number_format($project->min_invest_amount, 0, ',', '.') }} {{ gs('cur_text') }}
                                 </small>
                             </div>
                         </div>
@@ -685,13 +684,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const today = new Date();
     const maturityDate = new Date('{{ $project->maturity_date }}');
     
-    // Tính toán giá 1 đơn vị dựa trên dữ liệu từ database
-    const totalPackage = {{ $project->share_amount * $project->share_count }}; // Tổng gói
-    const totalUnits = {{ $project->share_count }}; // Số lượng đơn vị tối đa từ database
-    const unitPrice = {{ $project->share_amount }}; // Giá 1 đơn vị từ database
-    
-    const roiPercentage = {{ $project->roi_percentage }}; // 9%/năm
-    const maturityMonths = {{ $project->maturity_time }}; // 2 tháng
+    // Use min_invest_amount as the base for calculations
+    const minInvestAmount = {{ $project->min_invest_amount }};
+    const roiPercentage = {{ $project->roi_percentage }};
+    const maturityMonths = {{ $project->maturity_time }};
     const projectId = {{ $project->id }};
     const scheduleUrl = new URL("{{ route('invest.profit.schedule.pdf') }}");
     const scheduleHtmlUrl = new URL("{{ route('invest.profit.schedule.html') }}");
@@ -726,15 +722,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Hàm cập nhật modal với số tiền cụ thể
     window.updateModalValues = function(amount, months = {{ $project->maturity_time }}) {
         amount = parseFloat(amount);
-        if (isNaN(amount) || amount < unitPrice) {
-            amount = unitPrice;
+        if (isNaN(amount) || amount < minInvestAmount) {
+            amount = minInvestAmount;
         }
         
         // Ensure months is a valid number
         months = parseInt(months) || {{ $project->maturity_time }};
         
-        // Tính số lượng đơn vị dựa trên số tiền
-        const quantity = Math.ceil(amount / unitPrice);
+        // Since investment is flexible, quantity is always 1 and unit price is the amount
+        const quantity = 1;
         
         document.getElementById('modal_quantity').value = quantity;
         document.getElementById('investment_amount').value = amount;
@@ -743,7 +739,7 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Calculating profit with:', {amount, roiPercentage, months, maturityMonths});
         
         // Đảm bảo tất cả các giá trị là số hợp lệ
-        const validAmount = parseFloat(amount) || unitPrice;
+        const validAmount = parseFloat(amount) || minInvestAmount;
         const validRoi = parseFloat(roiPercentage) || 0;
         const validMonths = parseInt(months) || parseInt(maturityMonths) || 1;
         
@@ -764,7 +760,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Cập nhật giá trị hiển thị và giá trị ẩn
         document.getElementById('total_profit').textContent = formatCurrency(totalProfit);
         document.getElementById('modal_total_price').value = amount;
-        document.getElementById('modal_unit_price').value = unitPrice;
+        document.getElementById('modal_unit_price').value = amount; // Unit price is the invested amount
         document.getElementById('modal_total_earning').value = totalProfit;
         
         // Cập nhật ngày đáo hạn và ngày trả lãi
@@ -772,19 +768,19 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // Gọi hàm updateModalValues ngay khi trang tải xong với số tiền mặc định
-    window.updateModalValues(unitPrice, maturityMonths);
+    window.updateModalValues(minInvestAmount, maturityMonths);
 
     const bitModal = document.getElementById('bitModal');
     if (bitModal) {
         bitModal.addEventListener('show.bs.modal', function() {
             // Lấy số tiền từ input ở trang chi tiết dự án với hàm parse đúng format
             const projectDetailsInput = document.getElementById('investment_amount_input');
-            let projectDetailsAmount = unitPrice;
+            let projectDetailsAmount = minInvestAmount;
             
             if (projectDetailsInput) {
                 // Parse giá trị có dấu chấm từ input
                 const inputValue = projectDetailsInput.value;
-                projectDetailsAmount = parseFloat(inputValue.replace(/\./g, '')) || unitPrice;
+                projectDetailsAmount = parseFloat(inputValue.replace(/\./g, '').replace(/,/g, '.')) || minInvestAmount;
             }
             
             // Cập nhật modal với số tiền đã nhập
@@ -867,7 +863,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const profitScheduleModal = document.getElementById('profitScheduleModal');
     if (profitScheduleModal) {
         profitScheduleModal.addEventListener('show.bs.modal', function() {
-            const amt = parseFloat(document.getElementById('investment_amount').value) || unitPrice;
+            const amt = parseFloat(document.getElementById('investment_amount').value) || minInvestAmount;
             loadProfitScheduleModal(amt);
         });
         

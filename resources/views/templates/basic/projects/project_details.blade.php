@@ -104,12 +104,17 @@
                                     </div>
                                 </div>
                                 
+                                @php
+                                    $start = \Carbon\Carbon::parse($project->start_date);
+                                    $end = \Carbon\Carbon::parse($project->end_date);
+                                    $months = $start->diffInMonths($end);
+                                @endphp
                                 <div class="stat-card">
                                     <div class="stat-icon">
                                         <i class="las la-calendar-alt"></i>
                                     </div>
                                     <div class="stat-content">
-                                        <span class="stat-value">{{ $project->maturity_time }}</span>
+                                        <span class="stat-value">{{ $months }}</span>
                                         <span class="stat-label">Tháng</span>
                                     </div>
                                 </div>
@@ -119,7 +124,7 @@
                                         <i class="las la-wallet"></i>
                                     </div>
                                     <div class="stat-content">
-                                        <span class="stat-value">{{ showAmount($project->share_amount) }}</span>
+                                        <span class="stat-value">{{ showAmount($project->min_invest_amount) }}</span>
                                         <span class="stat-label">Số tiền tối thiểu đầu tư</span>
                                     </div>
                                 </div>
@@ -344,18 +349,23 @@
                                                        class="form-control" 
                                                        id="investment_amount_input"
                                                        placeholder="Nhập số tiền"
-                                                       min="{{ $project->share_amount }}"
+                                                       min="{{ $project->min_invest_amount }}"
                                                        step="1000000">
                                                 <span class="input-group-text">VNĐ</span>
                                             </div>
-                                            <small class="form-text">Tối thiểu: {{ showAmount($project->share_amount) }}</small>
+                                            <small class="form-text">Tối thiểu: {{ showAmount($project->min_invest_amount) }}</small>
                                         </div>
                                         
                                         <div class="investment-summary mb-3">
                                             <div class="summary-item">
                                                 <span>Kỳ hạn:</span>
                                                 <select id="term_months" class="form-select">
-                                                    @for ($i = 1; $i <= 36; $i++)
+                                                    @php
+                                                        $start = \Carbon\Carbon::parse($project->start_date);
+                                                        $end = \Carbon\Carbon::parse($project->end_date);
+                                                        $months = $start->diffInMonths($end);
+                                                    @endphp
+                                                    @for ($i = 1; $i <= $months; $i++)
                                                         <option value="{{ $i }}">{{ $i }} tháng</option>
                                                     @endfor
                                                 </select>

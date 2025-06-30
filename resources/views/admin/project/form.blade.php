@@ -134,6 +134,35 @@
     </div>
     <div class="col-md-4">
         <div class="form-group">
+            <label>@lang('Chế độ số tiền tối thiểu')</label>
+            <div>
+                <input class="form-check-input" type="radio" name="min_invest_mode" id="min_invest_auto" value="auto" checked>
+                <label class="form-check-label" for="min_invest_auto">@lang('Tự động (theo giá suất)')</label>
+            </div>
+            <div>
+                <input class="form-check-input" type="radio" name="min_invest_mode" id="min_invest_manual" value="manual">
+                <label class="form-check-label" for="min_invest_manual">@lang('Thủ công')</label>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
+            <label>
+                @lang('Số tiền đầu tư tối thiểu')
+                <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
+                    title="Số tiền đầu tư tối thiểu cho mỗi lần tham gia dự án."></i>
+            </label>
+            <div class="input-group">
+                <input type="text" class="form-control money-input" name="min_invest_amount"
+                    value="{{ old('min_invest_amount', number_format(getAmount(@$project->min_invest_amount), 0, ',', '.')) }}" 
+                    placeholder="@lang('Nhập số tiền tối thiểu')" required>
+                <span class="input-group-text">{{ gs('cur_text') }}</span>
+            </div>
+            <small class="form-text text-muted">Số tiền tối thiểu cho mỗi lần đầu tư</small>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="form-group">
             <label>
                 @lang('Tính toán tự động')
                 <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
@@ -232,16 +261,7 @@
         </div>
     </div>
     <div class="col-md-4">
-        <div class="form-group">
-            <label>
-                @lang('Kỳ hạn (tháng)')
-                <i class="las la-info-circle" data-bs-toggle="tooltip" data-bs-placement="top"
-                    title="Thời gian đáo hạn của dự án tính bằng tháng."></i>
-            </label>
-            <input type="number" class="form-control" name="maturity_time"
-                value="{{ old('maturity_time', isset($project) ? $project->maturity_time : 5) }}" 
-                min="1" max="60" required>
-        </div>
+        <!-- Kỳ hạn (tháng) field removed as per new requirements -->
     </div>
 </div>
 <div class="row">
@@ -314,6 +334,10 @@
         const targetAmountInput = document.getElementById('target_amount');
         const shareCountInput = document.getElementById('share_count');
         const shareAmountInput = document.getElementById('share_amount');
+        const minInvestAmountInput = document.querySelector('[name="min_invest_amount"]');
+        const minInvestModeRadios = document.querySelectorAll('[name="min_invest_mode"]');
+        const roiPercentageInput = document.querySelector('[name="roi_percentage"]');
+        const roiAmountInput = document.querySelector('[name="roi_amount"]');
         const calculateBtn = document.getElementById('calculate-btn');
         const summaryText = document.getElementById('summary-text');
         const validationAlert = document.getElementById('validation-alert');
@@ -327,7 +351,8 @@
 
         // Parse number from formatted string
         function parseNumber(str) {
-            return parseFloat(str.replace(/[^\d.-]/g, '')) || 0;
+            // Remove thousand separators (dots) and then replace decimal separator (comma) with a dot.
+            return parseFloat(String(str).replace(/\./g, '').replace(/,/g, '.')) || 0;
         }
 
         // Calculate values based on selected mode
@@ -352,6 +377,7 @@
                     if (targetAmount > 0 && shareCount > 0) {
                         calculatedShareAmount = targetAmount / shareCount;
                         shareAmountInput.value = calculatedShareAmount.toFixed(2);
+                        minInvestAmountInput.value = calculatedShareAmount.toFixed(2);
                         calculationMessage = `Mục tiêu: ${formatNumber(targetAmount)} ${gs('cur_text')} ÷ ${formatNumber(shareCount)} suất = ${formatNumber(calculatedShareAmount)} ${gs('cur_text')}/suất`;
                     } else {
                         validationMessage = 'Vui lòng nhập cả Mục tiêu dự án và Số lượng chia sẻ để tính toán';
@@ -380,6 +406,7 @@
                     if (shareCount > 0 && shareAmount > 0) {
                         calculatedTargetAmount = shareCount * shareAmount;
                         targetAmountInput.value = calculatedTargetAmount.toFixed(2);
+                        // minInvestAmountInput.value = shareAmountInput.value; // Let mode handler do this
                         calculationMessage = `${formatNumber(shareCount)} suất × ${formatNumber(shareAmount)} ${gs('cur_text')}/suất = ${formatNumber(calculatedTargetAmount)} ${gs('cur_text')}`;
                     } else {
                         validationMessage = 'Vui lòng nhập cả Số lượng chia sẻ và Giá mỗi suất để tính toán';
@@ -402,6 +429,18 @@
 
             // Update final calculation summary
             updateFinalSummary();
+            // Handle min invest mode
+            handleMinInvestMode();
+        }
+
+        // Calculate ROI Amount
+        function calculateRoiAmount() {
+            const roiPercentage = parseFloat(roiPercentageInput.value) || 0;
+            const minInvestAmount = parseNumber(minInvestAmountInput.value);
+            if (roiPercentage > 0 && minInvestAmount > 0) {
+                const calculatedRoiAmount = (roiPercentage / 100) * minInvestAmount;
+                roiAmountInput.value = formatNumber(calculatedRoiAmount);
+            }
         }
 
         // Update final calculation summary
@@ -409,6 +448,9 @@
             const targetAmount = parseNumber(targetAmountInput.value);
             const shareCount = parseNumber(shareCountInput.value);
             const shareAmount = parseNumber(shareAmountInput.value);
+
+            // Calculate ROI Amount based on min_invest_amount
+            calculateRoiAmount();
 
             if (targetAmount > 0 && shareCount > 0 && shareAmount > 0) {
                 const calculatedTarget = shareCount * shareAmount;
@@ -432,10 +474,26 @@
                     input.calculationTimeout = setTimeout(calculateValues, 500);
                 });
             });
+
+            const roiInputs = [minInvestAmountInput, roiPercentageInput];
+            roiInputs.forEach(input => {
+                input.addEventListener('input', function() {
+                    clearTimeout(input.calculationTimeout);
+                    input.calculationTimeout = setTimeout(calculateRoiAmount, 500);
+                });
+            });
+
+            shareAmountInput.addEventListener('input', function() {
+                handleMinInvestMode();
+            });
         }
 
         // Calculate button click
         calculateBtn.addEventListener('click', calculateValues);
+
+        minInvestModeRadios.forEach(radio => {
+            radio.addEventListener('change', handleMinInvestMode);
+        });
 
         // Calculation mode change
         calculationModes.forEach(mode => {
@@ -444,9 +502,22 @@
             });
         });
 
+        // Handle Minimum Investment Mode
+        function handleMinInvestMode() {
+            const selectedMode = document.querySelector('input[name="min_invest_mode"]:checked').value;
+            if (selectedMode === 'auto') {
+                minInvestAmountInput.value = shareAmountInput.value;
+                minInvestAmountInput.setAttribute('readonly', true);
+            } else {
+                minInvestAmountInput.removeAttribute('readonly');
+            }
+            calculateRoiAmount();
+        }
+
         // Initialize
         setupAutoCalculation();
         calculateValues();
+        handleMinInvestMode();
 
         // Slug generation
         $('.buildSlug').on('click', function() {
