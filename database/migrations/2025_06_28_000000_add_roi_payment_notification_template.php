@@ -22,7 +22,7 @@ return new class extends Migration
             DB::table('notification_templates')->insert([
                 'act' => 'ROI_PAYMENT',
                 'name' => 'ROI Payment',
-                'subj' => 'ROI Payment for Your Investment',
+                'subject' => 'ROI Payment for Your Investment',
                 'email_body' => '<div>
                     <div style="padding: 15px 30px">
                         <div style="margin-bottom: 25px">
