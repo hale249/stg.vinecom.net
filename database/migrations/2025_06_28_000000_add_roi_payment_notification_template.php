@@ -19,6 +19,8 @@ return new class extends Migration
             
         if (!$exists) {
             // Insert the ROI payment notification template
+            // Temporarily commented out to allow seeder.sql import
+            /*
             DB::table('notification_templates')->insert([
                 'act' => 'ROI_PAYMENT',
                 'name' => 'ROI Payment',
@@ -45,6 +47,7 @@ return new class extends Migration
                 'created_at' => now(),
                 'updated_at' => now(),
             ]);
+            */
         }
     }
 

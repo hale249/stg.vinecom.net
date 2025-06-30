@@ -48,6 +48,8 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
+        // Register Template namespace
+        view()->addNamespace('Template', resource_path('views/templates/basic'));
 
         $viewShare['emptyMessage'] = 'Data not found';
         view()->share($viewShare);
