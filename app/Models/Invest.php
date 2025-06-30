@@ -20,7 +20,6 @@ class Invest extends Model
         'total_price',
         'roi_percentage',
         'roi_amount',
-        'payment_type',
         'total_earning',
         'total_share',
         'capital_back',
@@ -118,14 +117,8 @@ class Invest extends Model
     public function paymentTypeBadge(): Attribute
     {
         return new Attribute(function () {
-            $html = '';
-            if ($this->payment_type == Status::PAYMENT_WALLET) {
-                $html = '<span class="badge badge--info">' . trans('Wallet') . '</span>';
-            } else {
-                $html = '<span class="badge badge--primary">' . trans('Online') . '</span>';
-            }
-
-            return $html;
+            // Since payment_type is no longer available, default to online payment
+            return '<span class="badge badge--primary">' . trans('Online') . '</span>';
         });
     }
 

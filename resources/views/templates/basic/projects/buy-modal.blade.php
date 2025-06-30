@@ -52,11 +52,10 @@
                 @endif
                 <!-- End User Verification Warning -->
                 
-                <form action="{{ route('invest.order') }}" method="post" class="investment-form">
+                <form method="post" action="{{ route('user.invest.order') }}">
                     @csrf
                     <input type="hidden" name="project_id" value="{{ $project->id }}">
                     <input type="hidden" name="quantity" id="modal_quantity" value="1">
-                    <input type="hidden" name="payment_type" value="2">
                     <input type="hidden" name="total_price" id="modal_total_price" value="">
                     <input type="hidden" name="unit_price" id="modal_unit_price" value="{{ $project->min_invest_amount }}">
                     <input type="hidden" name="total_earning" id="modal_total_earning" value="">
@@ -773,20 +772,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const bitModal = document.getElementById('bitModal');
     if (bitModal) {
         bitModal.addEventListener('show.bs.modal', function() {
-            // Lấy số tiền từ input ở trang chi tiết dự án với hàm parse đúng format
             const projectDetailsInput = document.getElementById('investment_amount_input');
             let projectDetailsAmount = minInvestAmount;
             
             if (projectDetailsInput) {
-                // Parse giá trị có dấu chấm từ input
                 const inputValue = projectDetailsInput.value;
                 projectDetailsAmount = parseFloat(inputValue.replace(/\./g, '').replace(/,/g, '.')) || minInvestAmount;
             }
             
-            // Cập nhật modal với số tiền đã nhập
-            window.updateModalValues(projectDetailsAmount, maturityMonths);
+            const termSelect = document.getElementById('term_months');
+            const selectedMonths = termSelect ? parseInt(termSelect.value) : maturityMonths;
+
+            window.updateModalValues(projectDetailsAmount, selectedMonths);
             
-            // Thêm một event listener để tự động cập nhật khi số tiền thay đổi
             const investmentInput = document.getElementById('investment_amount');
             if (investmentInput) {
                 // Kích hoạt sự kiện input một lần để đảm bảo tính toán được thực hiện

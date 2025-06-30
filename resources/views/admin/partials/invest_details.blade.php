@@ -24,8 +24,8 @@
                     <!-- Payment Method -->
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         @lang('Payment')
-                        @if ($invest->payment_type == Status::PAYMENT_ONLINE)
-                            <span class="fw-bold">{{ __(@$invest->deposit->gateway->name) }} @lang('payment gateway')</span>
+                        @if ($invest->deposit)
+                            <span class="fw-bold">{{ __($invest->deposit->gateway->name) }} @lang('payment gateway')</span>
                         @else
                             <span class="fw-bold">@lang('Wallet')</span>
                         @endif
@@ -297,3 +297,20 @@
         </div>
     </div>
 </div>
+
+@if ($invest->deposit)
+    <!-- Display payment information without referencing payment_type -->
+    <div class="col-xxl-4 col-xl-6 col-lg-6 col-md-6 col-sm-12 mb-30">
+        <div class="card b-radius--10 overflow-hidden box--shadow1">
+            <div class="card-body">
+                <h5 class="card-title mb-20 border-bottom pb-2">@lang('Payment Information')</h5>
+                <div class="p-3 bg--light">
+                    <div class="d-flex justify-content-between">
+                        <span>@lang('Payment Method')</span>
+                        <span class="fw-bold">{{ __($invest->deposit->gateway->name) }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+@endif

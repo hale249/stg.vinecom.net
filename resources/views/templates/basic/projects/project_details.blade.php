@@ -100,7 +100,7 @@
                                     </div>
                                     <div class="stat-content">
                                         <span class="stat-value">{{ getAmount($project->roi_percentage) }}%</span>
-                                        <span class="stat-label">Tỷ suất lợi nhuận</span>
+                                        <span class="stat-label">Tỷ lệ suất lợi tức</span>
                                     </div>
                                 </div>
                                 
@@ -1186,7 +1186,7 @@
     }
 
     .btn--primary-modern {
-        background: linear-gradient(135deg, #3498db, #2980b9);
+        background: rgb(55, 63, 106);
         color: white;
         border: none;
         padding: 14px 24px;
@@ -1198,13 +1198,13 @@
         justify-content: center;
         gap: 8px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        box-shadow: 0 4px 12px rgba(55, 63, 106, 0.3);
     }
 
     .btn--primary-modern:hover {
-        background: linear-gradient(135deg, #2980b9, #1f5f8b);
+        background: rgb(55, 63, 106);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        box-shadow: 0 6px 20px rgba(55, 63, 106, 0.4);
         color: white;
         text-decoration: none;
     }
