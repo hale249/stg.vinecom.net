@@ -103,7 +103,7 @@
                     "Running Investment",
                     "Investment activity"
                 ],
-                "title": "Đang chạy",
+                "title": "Đang hoạt động",
                 "counter": "runningInvestments",
                 "route_name": "admin.invest.running",
                 "menu_active": "admin.invest.running*"

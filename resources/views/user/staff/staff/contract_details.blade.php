@@ -17,7 +17,7 @@
                             $statusText = 'Chờ duyệt';
                         } elseif($status == \App\Constants\Status::INVEST_RUNNING) {
                             $statusClass = 'success';
-                            $statusText = 'Đang chạy';
+                            $statusText = 'Đang hoạt động';
                         } elseif($status == \App\Constants\Status::INVEST_COMPLETED) {
                             $statusClass = 'primary';
                             $statusText = 'Hoàn thành';

@@ -20,6 +20,7 @@ class InvestController extends Controller {
         $rules = [
             'project_id'    => 'required|exists:projects,id',
             'referral_code' => 'nullable|exists:users,referral_code',
+            'months'        => 'nullable|integer|min:1',
         ];
 
         if ($request->filled('amount')) {
@@ -88,7 +89,9 @@ class InvestController extends Controller {
 
         if ($project->return_type == Status::LIFETIME) {
             $totalEarning = 0;
-            $investClosed = Carbon::parse($project->maturity_date)->addMonths((int)$project->project_duration);
+            // Make sure months is properly parsed as an integer
+            $selectedDuration = $request->filled('months') ? (int)$request->months : (int)$project->project_duration;
+            $investClosed = Carbon::parse($project->maturity_date)->addMonths($selectedDuration);
         } else if ($project->return_type == Status::REPEAT) {
             $totalEarning = $recurringAmount * $project->repeat_times;
         }
@@ -108,7 +111,7 @@ class InvestController extends Controller {
         $invest->capital_back = $project->capital_back;
         $invest->capital_status = Status::NO;
         $invest->return_type = $project->return_type;
-        $invest->project_duration = $project->project_duration;
+        $invest->project_duration = $request->filled('months') ? (int)$request->months : (int)$project->project_duration;
         $invest->project_closed = $investClosed ?? null;
         $invest->repeat_times = $project->repeat_times ?? 0;
         $invest->time_name = $project->time->name ?? 'Tháng';

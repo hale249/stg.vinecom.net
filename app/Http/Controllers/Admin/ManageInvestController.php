@@ -206,6 +206,41 @@ class ManageInvestController extends Controller
         // Update investment status
         $invest->status = Status::INVEST_RUNNING;
         $invest->payment_status = Status::PAYMENT_SUCCESS;
+        
+        // Tự động thiết lập ngày thanh toán lãi tiếp theo (next_time)
+        $startDate = now(); // Ngày bắt đầu hợp đồng là hiện tại
+        
+        // Nếu dự án có ngày bắt đầu cụ thể, sử dụng ngày đó
+        if ($invest->project->start_date) {
+            $startDate = \Carbon\Carbon::parse($invest->project->start_date);
+            
+            // Nếu ngày bắt đầu trong quá khứ, sử dụng ngày hiện tại
+            if ($startDate->isPast()) {
+                $startDate = now();
+            }
+        }
+        
+        // Tính toán ngày thanh toán tiếp theo dựa trên chu kỳ
+        $paymentDate = $startDate->copy()->addMonth(); // Mặc định là hàng tháng
+        
+        // Nếu dự án có thiết lập thời gian cụ thể
+        if ($invest->project->time && $invest->project->time->hours) {
+            $interval = $invest->project->time->hours;
+            if ($interval == 24 * 30) { // Hàng tháng (xấp xỉ)
+                // Đặt vào cùng ngày tháng sau
+                $paymentDate = $startDate->copy()->addMonth();
+            } elseif ($interval == 24 * 7) { // Hàng tuần
+                $paymentDate = $startDate->copy()->addWeek();
+            } elseif ($interval == 24) { // Hàng ngày
+                $paymentDate = $startDate->copy()->addDay();
+            } else {
+                // Khoảng thời gian tùy chỉnh theo giờ
+                $paymentDate = $startDate->copy()->addHours($interval);
+            }
+        }
+        
+        $invest->next_time = $paymentDate;
+        $invest->last_time = $startDate;
         $invest->save();
 
         // Refresh contract content to remove watermark

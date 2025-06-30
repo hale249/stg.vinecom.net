@@ -78,8 +78,8 @@ function barChart(element, currency, series, categories) {
         },
         yaxis: {
             min: 0,
-            max: 10,
-            tickAmount: 2, // Show 5 ticks (0, 5, 10, 15, 20)
+            max: 20,
+            tickAmount: 5, // Show 5 ticks (0, 5, 10, 15, 20)
             forceNiceScale: false,
             labels: {
                 formatter: function(val) {

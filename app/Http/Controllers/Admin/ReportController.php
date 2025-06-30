@@ -70,7 +70,7 @@ class ReportController extends Controller
         $allInvest = clone $invests;
         $totalInvestCount = $allInvest->count();
         $totalInvestAmount = $allInvest->sum('total_price');
-        $totalPaid = $allInvest->sum('paid');
+        $totalPaid = $allInvest->sum('total_earning');
 
         $invests = $invests->orderBy('id', 'desc')->paginate(getPaginate());
 

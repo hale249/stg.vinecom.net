@@ -59,6 +59,7 @@
                     <input type="hidden" name="total_price" id="modal_total_price" value="">
                     <input type="hidden" name="unit_price" id="modal_unit_price" value="{{ $project->min_invest_amount }}">
                     <input type="hidden" name="total_earning" id="modal_total_earning" value="">
+                    <input type="hidden" name="months" id="modal_months" value="">
 
                     <div class="payment-options-wrapper">
                         <!-- Investment Profit Estimation Section -->
@@ -725,14 +726,18 @@ document.addEventListener('DOMContentLoaded', function() {
             amount = minInvestAmount;
         }
         
-        // Ensure months is a valid number
-        months = parseInt(months) || {{ $project->maturity_time }};
+        // Ensure months is a valid number - convert to integer explicitly
+        months = parseInt(months);
+        if (isNaN(months) || months <= 0) {
+            months = parseInt({{ $project->maturity_time }});
+        }
         
         // Since investment is flexible, quantity is always 1 and unit price is the amount
         const quantity = 1;
         
         document.getElementById('modal_quantity').value = quantity;
         document.getElementById('investment_amount').value = amount;
+        document.getElementById('modal_months').value = months;
         
         // Tính lãi dự kiến cho thời hạn đầu tư (với logging để debug)
         console.log('Calculating profit with:', {amount, roiPercentage, months, maturityMonths});
@@ -740,7 +745,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Đảm bảo tất cả các giá trị là số hợp lệ
         const validAmount = parseFloat(amount) || minInvestAmount;
         const validRoi = parseFloat(roiPercentage) || 0;
-        const validMonths = parseInt(months) || parseInt(maturityMonths) || 1;
+        const validMonths = months;
         
         // Tính toán lãi theo công thức: Số tiền * (Lãi suất / 100) * (Số tháng / 12)
         const annualInterest = validAmount * (validRoi / 100);
@@ -781,7 +786,14 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             const termSelect = document.getElementById('term_months');
-            const selectedMonths = termSelect ? parseInt(termSelect.value) : maturityMonths;
+            // Ensure we get a valid integer for the selected months
+            let selectedMonths = maturityMonths;
+            if (termSelect) {
+                const termValue = parseInt(termSelect.value);
+                if (!isNaN(termValue) && termValue > 0) {
+                    selectedMonths = termValue;
+                }
+            }
 
             window.updateModalValues(projectDetailsAmount, selectedMonths);
             

@@ -186,7 +186,7 @@
                         <div class="col">
                             <h6 class="text-muted text-uppercase mb-2 fs--2">@lang('Hợp đồng hoạt động')</h6>
                             <h4 class="fs-4 mb-1 number-font">{{ $stats['active_contracts'] ?? 0 }}</h4>
-                            <p class="mb-0"><span class="badge bg-success-subtle text-success"><i class="las la-check-circle me-1"></i> @lang('Đang chạy')</span></p>
+                            <p><span class="status badge bg-success text-white py-2 px-3"><i class="las la-check-circle me-1"></i> @lang('Đang hoạt động')</span></p>
                         </div>
                         <div class="col-auto">
                             <div class="icon-box bg-warning-subtle">

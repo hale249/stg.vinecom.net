@@ -195,41 +195,45 @@ class PaymentController extends Controller
             'quantity'     => $invest->quantity
         ]);
 
-        // Calculate the next payment date based on contract start date
-        $startDate = now(); // Default to current date for contract start
-        
-        // If the project has a specific start date, use that
-        if ($project->start_date) {
-            $startDate = \Carbon\Carbon::parse($project->start_date);
+        // Chỉ thiết lập next_time và last_time nếu chưa được thiết lập
+        if (!$invest->next_time) {
+            // Calculate the next payment date based on contract start date
+            $startDate = now(); // Default to current date for contract start
             
-            // If start date is in the past, use current date
-            if ($startDate->isPast()) {
-                $startDate = now();
+            // If the project has a specific start date, use that
+            if ($project->start_date) {
+                $startDate = \Carbon\Carbon::parse($project->start_date);
+                
+                // If start date is in the past, use current date
+                if ($startDate->isPast()) {
+                    $startDate = now();
+                }
             }
-        }
-        
-        // Calculate the next payment date based on the interval
-        $paymentDate = $startDate->copy()->addMonth(); // Default to monthly
-        
-        // If the project has specific time settings
-        if ($project->time && $project->time->hours) {
-            $interval = $project->time->hours;
-            if ($interval == 24 * 30) { // Monthly (approximately)
-                // Set to same day next month
-                $paymentDate = $startDate->copy()->addMonth();
-            } elseif ($interval == 24 * 7) { // Weekly
-                $paymentDate = $startDate->copy()->addWeek();
-            } elseif ($interval == 24) { // Daily
-                $paymentDate = $startDate->copy()->addDay();
-            } else {
-                // Custom interval in hours
-                $paymentDate = $startDate->copy()->addHours($interval);
+            
+            // Calculate the next payment date based on the interval
+            $paymentDate = $startDate->copy()->addMonth(); // Default to monthly
+            
+            // If the project has specific time settings
+            if ($project->time && $project->time->hours) {
+                $interval = $project->time->hours;
+                if ($interval == 24 * 30) { // Monthly (approximately)
+                    // Set to same day next month
+                    $paymentDate = $startDate->copy()->addMonth();
+                } elseif ($interval == 24 * 7) { // Weekly
+                    $paymentDate = $startDate->copy()->addWeek();
+                } elseif ($interval == 24) { // Daily
+                    $paymentDate = $startDate->copy()->addDay();
+                } else {
+                    // Custom interval in hours
+                    $paymentDate = $startDate->copy()->addHours($interval);
+                }
             }
-        }
 
+            $invest->next_time = $paymentDate;
+            $invest->last_time = $startDate;
+        }
+        
         $invest->payment_status = Status::PAYMENT_SUCCESS;
-        $invest->next_time = $paymentDate;
-        $invest->last_time = $startDate;
         $invest->status = Status::INVEST_RUNNING;
         $invest->save();
 

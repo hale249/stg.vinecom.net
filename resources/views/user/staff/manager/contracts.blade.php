@@ -19,7 +19,7 @@
                         </button>
                         <div class="dropdown-menu">
                             <a class="dropdown-item" href="#">@lang('Tất cả')</a>
-                            <a class="dropdown-item" href="#">@lang('Đang chạy')</a>
+                            <a class="dropdown-item" href="#">@lang('Đang hoạt động')</a>
                             <a class="dropdown-item" href="#">@lang('Hoàn thành')</a>
                             <a class="dropdown-item" href="#">@lang('Chờ duyệt')</a>
                         </div>

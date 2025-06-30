@@ -94,9 +94,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="alert {{ $alertSummary['maturity_alerts'] > 0 ? 'alert-warning' : 'alert-info' }} d-flex align-items-center">
+                            <div class="alert alert-danger d-flex align-items-center">
                                 <div class="alert-icon me-3">
-                                    <i class="las {{ $alertSummary['maturity_alerts'] > 0 ? 'la-exclamation-triangle' : 'la-info-circle' }} fs-1"></i>
+                                    <i class="las la-exclamation-triangle fs-1"></i>
                                 </div>
                                 <div>
                                     <h5 class="mt-1">Đáo hạn hợp đồng ({{ $alertSummary['alert_period'] }} ngày)</h5>

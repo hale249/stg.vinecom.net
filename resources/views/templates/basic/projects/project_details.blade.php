@@ -1483,14 +1483,16 @@
                 calculateRoi();
                 // Sync modal if open
                 if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
-                    window.updateModalValues(parseCurrencyInput(this.value), termSelect.value);
+                    // Make sure we pass the term value as a proper integer
+                    window.updateModalValues(parseCurrencyInput(this.value), parseInt(termSelect.value) || {{ $months }});
                 }
             });
             termSelect.addEventListener('change', function() {
                 calculateRoi();
                 // Sync modal if open
                 if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
-                    window.updateModalValues(parseCurrencyInput(amountInput.value), this.value);
+                    // Make sure we pass the term value as a proper integer
+                    window.updateModalValues(parseCurrencyInput(amountInput.value), parseInt(this.value) || {{ $months }});
                 }
             });
             // Khởi tạo tính toán ban đầu

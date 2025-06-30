@@ -16,10 +16,10 @@ class InvestReportController extends Controller
 
         $widget['total_invest'] = Transaction::where('remark', 'payment', 'wallet_payment')->sum('amount');
         $widget['profit_to_give'] = Invest::where('status', Status::INVEST_RUNNING)->where('period', '>', 0)->sum('recurring_pay');
-        $widget['profit_paid'] = Invest::where('status', Status::INVEST_RUNNING)->where('period', '>', 0)->sum('paid');
+        $widget['profit_paid'] = Invest::where('status', Status::INVEST_RUNNING)->where('period', '>', 0)->sum('total_earning');
 
         $interestByProjects = Invest::where('period', '>', 0)
-            ->selectRaw("SUM(paid) as total_price, project_id, MAX(paid) as max_paid")
+            ->selectRaw("SUM(total_earning) as total_price, project_id, MAX(total_earning) as max_paid")
             ->with('project')
             ->groupBy('project_id')
             ->orderBy('max_paid', 'desc')
@@ -51,12 +51,14 @@ class InvestReportController extends Controller
             // Format month for display
             $months[] = now()->subMonths($i)->format('M Y');
             
-            // Count investments in this month
+            // Count investments in this month - vẫn đếm tất cả hợp đồng (kể cả cancelled)
             $count = Invest::whereBetween('created_at', [$startDate, $endDate])->count();
             $investCounts[] = $count;
             
-            // Sum investment amounts in this month
-            $amount = Invest::whereBetween('created_at', [$startDate, $endDate])->sum('total_price');
+            // Sum investment amounts in this month - chỉ tính hợp đồng ĐANG CHẠY
+            $amount = Invest::where('status', Status::INVEST_RUNNING)
+                        ->whereBetween('created_at', [$startDate, $endDate])
+                        ->sum('total_price');
             $investAmounts[] = (float) $amount;
         }
 
