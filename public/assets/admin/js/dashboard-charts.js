@@ -77,10 +77,8 @@ function barChart(element, currency, series, categories) {
             }
         },
         yaxis: {
-            min: 0,
-            max: 20,
-            tickAmount: 5, // Show 5 ticks (0, 5, 10, 15, 20)
-            forceNiceScale: false,
+            tickAmount: 5,
+            forceNiceScale: true,
             labels: {
                 formatter: function(val) {
                     return Math.round(val); // Format as integer

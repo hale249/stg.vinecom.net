@@ -103,7 +103,7 @@
                     "Running Investment",
                     "Investment activity"
                 ],
-                "title": "Đang hoạt động",
+                "title": "Đang chạy",
                 "counter": "runningInvestments",
                 "route_name": "admin.invest.running",
                 "menu_active": "admin.invest.running*"
@@ -231,7 +231,7 @@
             "file repository",
             "learning materials"
         ],
-        "title": "Tài liệu học tập",
+        "title": "Tài liệu tham khảo",
         "icon": "las la-file-alt",
         "menu_active": [
             "admin.document.categories*", 

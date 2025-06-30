@@ -2,12 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Exports\ContractRevenueExport;
 use App\Http\Controllers\Controller;
 use App\Models\Invest;
 use App\Models\NotificationLog;
 use App\Models\Transaction;
 use App\Models\UserLogin;
 use Illuminate\Http\Request;
+use Maatwebsite\Excel\Facades\Excel;
 
 class ReportController extends Controller
 {
@@ -87,7 +89,7 @@ class ReportController extends Controller
             ->searchable(['project:title', 'user:username,firstname,lastname', 'invest_no']);
             
         // Apply filters if provided
-        if ($request->status) {
+        if ($request->has('status') && $request->status !== '') {
             $contracts = $contracts->where('status', $request->status);
         }
         
@@ -100,13 +102,38 @@ class ReportController extends Controller
                 ->whereDate('created_at', '<=', $endDate);
         }
         
-        // Get totals for summary
-        $allContracts = clone $contracts;
-        $totalContractCount = $allContracts->count();
-        $totalContractAmount = $allContracts->sum('total_price');
-        $totalEarnings = $allContracts->sum('total_earning');
+        // Get totals for summary - only count active contracts (status=2)
+        $activeContracts = clone $contracts;
+        $activeContracts = $activeContracts->where('status', 2); // Status 2 = INVEST_RUNNING
         
-        // Paginate results
+        $totalContractCount = $activeContracts->count();
+        $totalContractAmount = $activeContracts->sum('total_price');
+        $totalEarnings = $activeContracts->sum('total_earning');
+        
+        // Check if export to Excel is requested
+        if ($request->export == 'excel') {
+            try {
+                $allContracts = $contracts->get();
+                $dateRangeText = $request->date ?? 'Tất cả';
+                
+                return Excel::download(
+                    new ContractRevenueExport(
+                        $allContracts, 
+                        $totalContractCount, 
+                        $totalContractAmount, 
+                        $totalEarnings,
+                        $dateRangeText,
+                        $request->status
+                    ), 
+                    'doanh-so-hop-dong-' . now()->format('d-m-Y') . '.xlsx'
+                );
+            } catch (\Exception $e) {
+                $notify[] = ['error', 'Có lỗi khi xuất Excel: ' . $e->getMessage()];
+                return back()->withNotify($notify);
+            }
+        }
+        
+        // Paginate results - show all contracts in the table based on filters
         $contracts = $contracts->orderBy('id', 'desc')->paginate(getPaginate());
         
         // Get general settings

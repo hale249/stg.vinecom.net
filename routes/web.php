@@ -49,7 +49,9 @@ Route::controller('SiteController')->group(function () {
     Route::get('maintenance-mode', 'maintenance')->withoutMiddleware('maintenance')->name('maintenance');
 
     Route::get('/{slug}', 'pages')->name('pages');
-    Route::get('/', 'index')->name('home');
+    Route::get('/', function() {
+        return redirect()->route('projects');
+    })->name('home');
 });
 
 Route::controller('User\InvestController')->prefix('invest')->middleware('auth')->group(function () {
