@@ -71,6 +71,13 @@ class Invest extends Model
         return $this->hasMany(ContractDocument::class);
     }
 
+    public function interests()
+    {
+        // This is a placeholder relationship that returns an empty collection
+        // to prevent null reference errors in views
+        return $this->hasMany(Transaction::class)->whereNull('id');
+    }
+
     public function scopeCompleted($query)
     {
         return $query->where('status', Status::INVEST_COMPLETED);

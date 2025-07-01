@@ -71,8 +71,11 @@ class SalesStaffController extends Controller
         $alertPeriod = 30; // 30 days for alerts
         $alertDate = $today->copy()->addDays($alertPeriod);
         
-        // Get interest payment alerts
-        $interestAlerts = Invest::where('staff_id', $user->id)
+        // Get interest payment alerts (both created and referred)
+        $interestAlerts = Invest::where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
             ->where('status', Status::INVEST_RUNNING)
             ->whereNotNull('next_time')
             ->where('next_time', '<=', $alertDate)
@@ -81,8 +84,21 @@ class SalesStaffController extends Controller
             ->limit(5)
             ->get();
             
-        // Get maturity alerts    
-        $maturityAlerts = Invest::where('staff_id', $user->id)
+        // Calculate monthly interest amount for each alert
+        foreach ($interestAlerts as $alert) {
+            // Calculate monthly ROI (annual ROI divided by 12)
+            $totalInvestment = $alert->total_price;
+            $roiPercentage = $alert->roi_percentage;
+            $annualROI = ($totalInvestment * $roiPercentage / 100);
+            $monthlyROI = $annualROI / 12;
+            $alert->monthly_roi_amount = $monthlyROI;
+        }
+        
+        // Get maturity alerts (both created and referred)
+        $maturityAlerts = Invest::where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
             ->where('status', Status::INVEST_RUNNING)
             ->whereNotNull('project_closed')
             ->where('project_closed', '<=', $alertDate)
@@ -109,7 +125,7 @@ class SalesStaffController extends Controller
         $pending_notifications = $user->notifications()->where('user_read', 0)->count();
         $notifications = $user->notifications()->latest()->limit(5)->get();
         
-        $emptyMessage = 'No data found';
+        $emptyMessage = 'Không có dữ liệu';
         
         return view('user.staff.staff.dashboard', compact('pageTitle', 'user', 'stats', 'interestAlerts', 'maturityAlerts', 'recentContracts', 'pending_notifications', 'notifications', 'general', 'emptyMessage', 'honor'));
     }
@@ -142,7 +158,7 @@ class SalesStaffController extends Controller
         $pending_notifications = $user->notifications()->where('user_read', 0)->count();
         $notifications = $user->notifications()->latest()->limit(5)->get();
         
-        $emptyMessage = 'No contracts found';
+        $emptyMessage = 'Không tìm thấy hợp đồng nào';
             
         return view('user.staff.staff.contracts', compact('pageTitle', 'contracts', 'pending_notifications', 'notifications', 'emptyMessage', 'general'));
     }
@@ -161,7 +177,7 @@ class SalesStaffController extends Controller
                 $query->where('staff_id', $user->id)
                       ->orWhere('referral_code', $user->referral_code);
             })
-            ->with(['project', 'user'])
+            ->with(['project', 'user', 'interests'])
             ->firstOrFail();
             
         $pageTitle = 'Contract Details: ' . $invest->invest_no;
@@ -265,25 +281,63 @@ class SalesStaffController extends Controller
         $sixMonthsLater = $today->copy()->addMonths(6);
         
         // Get interest payment alerts for next 6 months
-        $interestAlerts = Invest::where('staff_id', $user->id)
-            ->where('status', Status::INVEST_RUNNING)
+        $interestAlerts = Invest::where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
+            ->whereIn('status', [Status::INVEST_RUNNING, Status::INVEST_ACCEPT, Status::INVEST_PENDING, Status::INVEST_PENDING_ADMIN_REVIEW])
             ->whereNotNull('next_time')
             ->where('next_time', '>=', $today)
             ->where('next_time', '<=', $sixMonthsLater)
-            ->with(['project', 'user'])
             ->orderBy('next_time')
             ->get();
             
+        // Calculate monthly interest amount for each alert
+        foreach ($interestAlerts as $alert) {
+            // Calculate monthly ROI (annual ROI divided by 12)
+            $totalInvestment = $alert->total_price;
+            $roiPercentage = $alert->roi_percentage;
+            $annualROI = ($totalInvestment * $roiPercentage / 100);
+            $monthlyROI = $annualROI / 12;
+            $alert->monthly_roi_amount = $monthlyROI;
+        }
+        
         // Get maturity alerts for next 6 months
-        $maturityAlerts = Invest::where('staff_id', $user->id)
-            ->where('status', Status::INVEST_RUNNING)
+        $maturityAlerts = Invest::where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
+            ->whereIn('status', [Status::INVEST_RUNNING, Status::INVEST_ACCEPT, Status::INVEST_PENDING, Status::INVEST_PENDING_ADMIN_REVIEW])
             ->whereNotNull('project_closed')
             ->where('project_closed', '>=', $today)
             ->where('project_closed', '<=', $sixMonthsLater)
-            ->with(['project', 'user'])
             ->orderBy('project_closed')
             ->get();
             
+        // Load all related projects directly
+        $projectIds = array_merge(
+            $interestAlerts->pluck('project_id')->toArray(),
+            $maturityAlerts->pluck('project_id')->toArray()
+        );
+        $projectIds = array_unique(array_filter($projectIds));
+        
+        if (!empty($projectIds)) {
+            $projects = \App\Models\Project::whereIn('id', $projectIds)->get()->keyBy('id');
+            
+            // Set project information for each alert
+            foreach ($interestAlerts as $alert) {
+                if ($alert->project_id && isset($projects[$alert->project_id])) {
+                    $alert->setRelation('project', $projects[$alert->project_id]);
+                }
+            }
+            
+            foreach ($maturityAlerts as $alert) {
+                if ($alert->project_id && isset($projects[$alert->project_id])) {
+                    $alert->setRelation('project', $projects[$alert->project_id]);
+                }
+            }
+        }
+        
         // Organize alerts by month
         $monthlyAlerts = [];
         for ($date = $today->copy()->startOfMonth(); $date->lte($sixMonthsLater); $date->addMonth()) {
@@ -295,6 +349,7 @@ class SalesStaffController extends Controller
             ];
         }
         
+        // After setting project relations, now organize alerts by month
         foreach ($interestAlerts as $alert) {
             $monthKey = Carbon::parse($alert->next_time)->format('Y-m');
             if (isset($monthlyAlerts[$monthKey])) {
@@ -325,12 +380,13 @@ class SalesStaffController extends Controller
         $user = Auth::user();
         $general = gs();
         
-        // Get all customers that have contracts with this staff
+        // Get all customers that have contracts with this staff (both created and referred)
         $customers = User::whereHas('invests', function($query) use ($user) {
-                $query->where('staff_id', $user->id);
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
             })
             ->withCount('invests')
-            ->withSum('invests', 'amount')
+            ->withSum('invests', 'total_price')
             ->latest()
             ->paginate(getPaginate());
         
@@ -383,7 +439,19 @@ class SalesStaffController extends Controller
             'total_actual_sales' => $kpis->sum('actual_sales'),
             'avg_overall_kpi' => $kpis->avg('overall_kpi_percentage'),
         ];
-        return view('user.staff.staff.kpi', compact('pageTitle', 'kpis', 'summary', 'month'));
+        
+        // Get KPI policy documents
+        $kpiCategory = \App\Models\DocumentCategory::where('name', 'Tài liệu chính sách KPI')->first();
+        $kpiDocuments = [];
+        if ($kpiCategory) {
+            $kpiDocuments = \App\Models\ReferenceDocument::where('category_id', $kpiCategory->id)
+                ->where('status', 1)
+                ->where('for_staff', 1)
+                ->ordered()
+                ->get();
+        }
+        
+        return view('user.staff.staff.kpi', compact('pageTitle', 'kpis', 'summary', 'month', 'kpiDocuments'));
     }
 
 

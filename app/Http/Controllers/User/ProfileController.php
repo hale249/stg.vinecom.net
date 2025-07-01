@@ -62,7 +62,6 @@ class ProfileController extends Controller
         $user->tax_number = $request->tax_number;
         $user->address = $request->address;
         $user->city = $request->city;
-        $user->state = $request->state;
         $user->zip = $request->zip;
 
         $user->save();

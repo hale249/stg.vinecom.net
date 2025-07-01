@@ -45,7 +45,7 @@
                                 <td>
                                     <span class="badge badge--primary">{{ $customer->invests_count }}</span>
                                 </td>
-                                <td>{{ showAmount($customer->invests_sum_amount) }} {{ __($general->cur_text) }}</td>
+                                <td>{{ showAmount($customer->invests_sum_total_price) }}</td>
                                 <td>{{ showDateTime($customer->created_at) }}</td>
                                 <td>
                                     <a href="{{ route('user.staff.staff.create_contract') }}?customer_id={{ $customer->id }}" class="btn btn-sm btn-outline--primary">

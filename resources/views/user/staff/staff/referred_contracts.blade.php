@@ -36,7 +36,7 @@
                                 <td>{{ $contract->invest_no }}</td>
                                 <td>{{ Str::limit($contract->project->title ?? 'N/A', 20) }}</td>
                                 <td>{{ $contract->user->fullname ?? 'N/A' }}</td>
-                                <td>{{ showAmount($contract->total_price) }} {{ __($general->cur_text) }}</td>
+                                <td>{{ showAmount($contract->total_price) }}</td>
                                 <td>{{ $contract->display_roi_percentage }}%</td>
                                 <td>{{ showDateTime($contract->created_at) }}</td>
                                 <td>{!! $contract->statusBadge !!}</td>

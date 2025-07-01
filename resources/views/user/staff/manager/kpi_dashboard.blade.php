@@ -72,7 +72,7 @@
                     <div class="card-body">
                         <div class="d-flex align-items-center">
                             <div class="icon-wrapper">
-                                <i class="las la-chart-line"></i>
+                                <i class="las la-chart-bar"></i>
                             </div>
                             <div class="content">
                                 <h3 class="mb-1 text-white">{{ number_format($summary['avg_overall_kpi'], 1) }}%</h3>
@@ -142,7 +142,7 @@
                         </h5>
                     </div>
                     <div class="card-body">
-                        <canvas id="kpiLineChart" height="300"></canvas>
+                        <canvas id="kpiBarChart" height="300"></canvas>
                     </div>
                 </div>
             </div>
@@ -285,7 +285,7 @@
                 @else
                     <div class="empty-state text-center py-5">
                         <div class="empty-icon mb-3">
-                            <i class="las la-chart-line la-3x text-muted"></i>
+                            <i class="las la-chart-bar la-3x text-muted"></i>
                         </div>
                         <h5 class="text-muted">Không có dữ liệu KPI</h5>
                         <p class="text-muted">Chưa có dữ liệu KPI cho bộ lọc này. Hãy thử thay đổi bộ lọc hoặc thêm KPI mới.</p>
@@ -739,10 +739,10 @@
 @push('script')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Line chart (KPI theo tháng)
-    const ctxLine = document.getElementById('kpiLineChart').getContext('2d');
-    new Chart(ctxLine, {
-        type: 'line',
+    // Bar chart (KPI theo tháng)
+    const ctxBar = document.getElementById('kpiBarChart').getContext('2d');
+    new Chart(ctxBar, {
+        type: 'bar',
         data: {
             labels: {!! json_encode($chartData->keys()) !!},
             datasets: [
@@ -751,24 +751,22 @@ document.addEventListener('DOMContentLoaded', function() {
                     data: {!! json_encode($chartData->pluck('target_sales')) !!},
                     borderColor: '#667eea',
                     backgroundColor: 'rgba(102, 126, 234, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 6,
-                    pointBackgroundColor: '#667eea',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
+                    backgroundColor: 'rgba(102, 126, 234, 0.7)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8,
                 },
                 {
                     label: 'Thực tế doanh số',
                     data: {!! json_encode($chartData->pluck('actual_sales')) !!},
                     borderColor: '#11998e',
                     backgroundColor: 'rgba(17, 153, 142, 0.1)',
-                    tension: 0.4,
-                    fill: true,
-                    pointRadius: 6,
-                    pointBackgroundColor: '#11998e',
-                    pointBorderColor: '#fff',
-                    pointBorderWidth: 2,
+                    backgroundColor: 'rgba(17, 153, 142, 0.7)',
+                    borderWidth: 1,
+                    borderRadius: 4,
+                    barPercentage: 0.6,
+                    categoryPercentage: 0.8,
                 }
             ]
         },
@@ -802,11 +800,8 @@ document.addEventListener('DOMContentLoaded', function() {
                     }
                 }
             },
-            elements: {
-                line: {
-                    borderWidth: 3
-                }
-            }
+            barThickness: 'flex',
+            maxBarThickness: 35
         }
     });
 

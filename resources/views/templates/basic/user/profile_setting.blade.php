@@ -55,22 +55,18 @@
                             <input class="form-control form--control" type="text" name="address"
                                 value="{{ @$user->address }}">
                         </div>
+
                         <div class="col-sm-6">
-                            <label class="form-label form--label">@lang('State')</label>
-                            <input class="form-control form--control" type="text" name="state"
-                                value="{{ @$user->state }}">
-                        </div>
-                        <div class="col-sm-4">
                             <label class="form-label form--label">@lang('Zip Code')</label>
                             <input class="form-control form--control" type="text" name="zip"
                                 value="{{ @$user->zip }}">
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-6">
                             <label class="form-label form--label">@lang('City')</label>
                             <input class="form-control form--control" type="text" name="city"
                                 value="{{ @$user->city }}">
                         </div>
-                        <div class="col-sm-4">
+                        <div class="col-sm-12">
                             <label class="form--label">@lang('Country')</label>
                             <input class="form-control form--control" value="{{ @$user->country_name }}" disabled>
                         </div>

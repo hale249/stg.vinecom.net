@@ -19,6 +19,7 @@
                                             <th>@lang('Mã hợp đồng')</th>
                                             <th>@lang('Dự án')</th>
                                             <th>@lang('Ngày thanh toán')</th>
+                                            <th>@lang('Số tiền')</th>
                                             <th>@lang('Còn lại')</th>
                                         </tr>
                                     </thead>
@@ -26,11 +27,15 @@
                                         @forelse($interestAlerts as $alert)
                                         <tr>
                                             <td><span class="badge bg-primary">{{ $alert->invest_no }}</span></td>
-                                            <td>{{ Str::limit($alert->project->name ?? '-', 20) }}</td>
+                                            <td>{{ $alert->project ? Str::limit($alert->project->title, 20) : ($alert->project_id ? 'Dự án #'.$alert->project_id : 'Chưa xác định') }}</td>
                                             <td>{{ showDateTime($alert->next_time) }}</td>
+                                            <td>{{ showAmount($alert->monthly_roi_amount) }}</td>
                                             <td>
                                                 @php
-                                                    $daysRemaining = \Carbon\Carbon::parse($alert->next_time)->diffInDays(\Carbon\Carbon::now());
+                                                    $nextTime = \Carbon\Carbon::parse($alert->next_time);
+                                                    $now = \Carbon\Carbon::now();
+                                                    $isPast = $nextTime->lt($now);
+                                                    $daysRemaining = $isPast ? 0 : (int)$now->diffInDays($nextTime);
                                                 @endphp
                                                 <span class="badge {{ $daysRemaining <= 7 ? 'bg-danger' : ($daysRemaining <= 15 ? 'bg-warning' : 'bg-success') }}">
                                                     {{ $daysRemaining }} @lang('ngày')
@@ -39,7 +44,7 @@
                                         </tr>
                                         @empty
                                         <tr>
-                                            <td colspan="4" class="text-center">@lang('Không có cảnh báo lãi suất.')</td>
+                                            <td colspan="5" class="text-center">@lang('Không có cảnh báo lãi suất.')</td>
                                         </tr>
                                         @endforelse
                                     </tbody>
@@ -57,6 +62,7 @@
                                             <th>@lang('Mã hợp đồng')</th>
                                             <th>@lang('Dự án')</th>
                                             <th>@lang('Ngày đáo hạn')</th>
+                                            <th>@lang('Số tiền')</th>
                                             <th>@lang('Còn lại')</th>
                                         </tr>
                                     </thead>
@@ -64,11 +70,15 @@
                                         @forelse($maturityAlerts as $alert)
                                         <tr>
                                             <td><span class="badge bg-primary">{{ $alert->invest_no }}</span></td>
-                                            <td>{{ Str::limit($alert->project->name ?? '-', 20) }}</td>
+                                            <td>{{ $alert->project ? Str::limit($alert->project->title, 20) : ($alert->project_id ? 'Dự án #'.$alert->project_id : 'Chưa xác định') }}</td>
                                             <td>{{ showDateTime($alert->project_closed) }}</td>
+                                            <td>{{ showAmount($alert->total_price) }}</td>
                                             <td>
                                                 @php
-                                                    $daysRemaining = \Carbon\Carbon::parse($alert->project_closed)->diffInDays(\Carbon\Carbon::now());
+                                                    $closedDate = \Carbon\Carbon::parse($alert->project_closed);
+                                                    $now = \Carbon\Carbon::now();
+                                                    $isPast = $closedDate->lt($now);
+                                                    $daysRemaining = $isPast ? 0 : (int)$now->diffInDays($closedDate);
                                                 @endphp
                                                 <span class="badge {{ $daysRemaining <= 7 ? 'bg-danger' : ($daysRemaining <= 15 ? 'bg-warning' : 'bg-success') }}">
                                                     {{ $daysRemaining }} @lang('ngày')
@@ -77,7 +87,7 @@
                                         </tr>
                                         @empty
                                         <tr>
-                                            <td colspan="4" class="text-center">@lang('Không có cảnh báo đáo hạn.')</td>
+                                            <td colspan="5" class="text-center">@lang('Không có cảnh báo đáo hạn.')</td>
                                         </tr>
                                         @endforelse
                                     </tbody>
@@ -115,6 +125,7 @@
                                                     <th>@lang('Mã hợp đồng')</th>
                                                     <th>@lang('Dự án')</th>
                                                     <th>@lang('Ngày')</th>
+                                                    <th>@lang('Số tiền')</th>
                                                     <th>@lang('Còn lại')</th>
                                                 </tr>
                                             </thead>
@@ -123,11 +134,15 @@
                                                     <tr>
                                                         <td><span class="badge bg-primary">@lang('Lãi suất')</span></td>
                                                         <td>{{ $alert->invest_no }}</td>
-                                                        <td>{{ Str::limit($alert->project->name ?? '-', 20) }}</td>
+                                                        <td>{{ $alert->project ? Str::limit($alert->project->title, 20) : ($alert->project_id ? 'Dự án #'.$alert->project_id : 'Chưa xác định') }}</td>
                                                         <td>{{ showDateTime($alert->next_time) }}</td>
+                                                        <td>{{ showAmount($alert->monthly_roi_amount) }}</td>
                                                         <td>
                                                             @php
-                                                                $daysRemaining = \Carbon\Carbon::parse($alert->next_time)->diffInDays(\Carbon\Carbon::now());
+                                                                $nextTime = \Carbon\Carbon::parse($alert->next_time);
+                                                                $now = \Carbon\Carbon::now();
+                                                                $isPast = $nextTime->lt($now);
+                                                                $daysRemaining = $isPast ? 0 : (int)$now->diffInDays($nextTime);
                                                             @endphp
                                                             <span class="badge {{ $daysRemaining <= 7 ? 'bg-danger' : ($daysRemaining <= 15 ? 'bg-warning' : 'bg-success') }}">
                                                                 {{ $daysRemaining }} @lang('ngày')
@@ -140,11 +155,15 @@
                                                     <tr>
                                                         <td><span class="badge bg-warning">@lang('Đáo hạn')</span></td>
                                                         <td>{{ $alert->invest_no }}</td>
-                                                        <td>{{ Str::limit($alert->project->name ?? '-', 20) }}</td>
+                                                        <td>{{ $alert->project ? Str::limit($alert->project->title, 20) : ($alert->project_id ? 'Dự án #'.$alert->project_id : 'Chưa xác định') }}</td>
                                                         <td>{{ showDateTime($alert->project_closed) }}</td>
+                                                        <td>{{ showAmount($alert->total_price) }}</td>
                                                         <td>
                                                             @php
-                                                                $daysRemaining = \Carbon\Carbon::parse($alert->project_closed)->diffInDays(\Carbon\Carbon::now());
+                                                                $closedDate = \Carbon\Carbon::parse($alert->project_closed);
+                                                                $now = \Carbon\Carbon::now();
+                                                                $isPast = $closedDate->lt($now);
+                                                                $daysRemaining = $isPast ? 0 : (int)$now->diffInDays($closedDate);
                                                             @endphp
                                                             <span class="badge {{ $daysRemaining <= 7 ? 'bg-danger' : ($daysRemaining <= 15 ? 'bg-warning' : 'bg-success') }}">
                                                                 {{ $daysRemaining }} @lang('ngày')
@@ -155,7 +174,7 @@
                                                 
                                                 @if(count($data['interest_alerts']) == 0 && count($data['maturity_alerts']) == 0)
                                                     <tr>
-                                                        <td colspan="5" class="text-center">@lang('Không có cảnh báo trong tháng này.')</td>
+                                                        <td colspan="6" class="text-center">@lang('Không có cảnh báo trong tháng này.')</td>
                                                     </tr>
                                                 @endif
                                             </tbody>
