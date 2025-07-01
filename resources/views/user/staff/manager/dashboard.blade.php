@@ -1,6 +1,7 @@
 @extends('user.staff.layouts.app')
 
 @section('panel')
+    @include('user.staff.partials.honor_banner')
     <div class="row mb-none-30">
         <div class="col-lg-12 mb-4">
             <div class="card">
@@ -12,9 +13,6 @@
                     <div class="d-flex flex-wrap gap-2">
                         <a href="{{ route('user.staff.manager.team_members') }}" class="btn btn-sm btn-outline-primary">
                             <i class="las la-users me-1"></i> @lang('Quản lý nhóm')
-                        </a>
-                        <a href="{{ route('user.staff.manager.approval_requests') }}" class="btn btn-sm btn-outline-success">
-                            <i class="las la-check-circle me-1"></i> @lang('Phê duyệt hợp đồng')
                         </a>
                     </div>
                 </div>

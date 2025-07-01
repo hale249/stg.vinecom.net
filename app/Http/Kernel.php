@@ -57,5 +57,6 @@ class Kernel extends HttpKernel
         'kyc' => \App\Http\Middleware\KycMiddleware::class,
         'staff.role' => \App\Http\Middleware\StaffRoleMiddleware::class,
         'staff' => \App\Http\Middleware\StaffMiddleware::class,
+        'admin.action' => \App\Http\Middleware\AdminActionMiddleware::class,
     ];
 } 

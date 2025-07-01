@@ -27,4 +27,14 @@ class Honor extends Model
                     ->where('start_date', '<=', now())
                     ->where('end_date', '>=', now());
     }
+    
+    public function images()
+    {
+        return $this->hasMany(HonorImage::class)->orderBy('sort_order');
+    }
+    
+    public function featuredImage()
+    {
+        return $this->hasOne(HonorImage::class)->where('is_featured', true);
+    }
 }

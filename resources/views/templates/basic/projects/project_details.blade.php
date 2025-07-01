@@ -1555,7 +1555,7 @@
         }
     });
     </script>
-
+    
     @include('templates.basic.projects.buy-modal')
 @endsection
 

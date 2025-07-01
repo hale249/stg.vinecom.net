@@ -41,12 +41,35 @@ class SalesManagerController extends Controller
         $staffIds[] = $user->id;
         
         // Dashboard statistics
+        // Get count of contracts created by team members
+        $createdContractsCount = Invest::whereIn('staff_id', $staffIds)->count();
+        
+        // Get count of contracts referred by team members
+        $staffReferralCodes = $user->staffMembers()->pluck('referral_code')->toArray();
+        $staffReferralCodes[] = $user->referral_code;
+        $referredContractsCount = Invest::whereIn('referral_code', $staffReferralCodes)->count();
+        
+        // Get active contracts (both created and referred)
+        $activeCreatedContracts = Invest::whereIn('staff_id', $staffIds)
+            ->where('status', Status::INVEST_RUNNING)
+            ->count();
+            
+        $activeReferredContracts = Invest::whereIn('referral_code', $staffReferralCodes)
+            ->where('status', Status::INVEST_RUNNING)
+            ->count();
+        
         $stats = [
-            'total_contracts' => Invest::whereIn('user_id', $staffIds)->count(),
-            'active_contracts' => Invest::whereIn('user_id', $staffIds)->where('status', Status::INVEST_RUNNING)->count(),
+            'total_contracts' => $createdContractsCount + $referredContractsCount,
+            'active_contracts' => $activeCreatedContracts + $activeReferredContracts,
             'team_members' => $staffMembers->count(),
             'total_customers' => User::whereIn('id', function($query) use ($staffIds) {
-                $query->select('user_id')->from('invests')->whereIn('user_id', $staffIds)->distinct();
+                $query->select('user_id')
+                    ->from('invests')
+                    ->where(function($q) use ($staffIds, $staffReferralCodes) {
+                        $q->whereIn('staff_id', $staffIds)
+                          ->orWhereIn('referral_code', $staffReferralCodes);
+                    })
+                    ->distinct();
             })->count()
         ];
         
@@ -55,8 +78,11 @@ class SalesManagerController extends Controller
         $alertPeriod = 30; // 30 days for alerts
         $alertDate = $today->copy()->addDays($alertPeriod);
         
-        // Get interest payment alerts
-        $interestAlerts = Invest::whereIn('user_id', $staffIds)
+        // Get interest payment alerts for contracts created or referred by team members
+        $interestAlerts = Invest::where(function($query) use ($staffIds, $staffReferralCodes) {
+                $query->whereIn('staff_id', $staffIds)
+                      ->orWhereIn('referral_code', $staffReferralCodes);
+            })
             ->where('status', Status::INVEST_RUNNING)
             ->whereNotNull('next_time')
             ->where('next_time', '<=', $alertDate)
@@ -65,8 +91,11 @@ class SalesManagerController extends Controller
             ->limit(10)
             ->get();
             
-        // Get maturity alerts    
-        $maturityAlerts = Invest::whereIn('user_id', $staffIds)
+        // Get maturity alerts for contracts created or referred by team members
+        $maturityAlerts = Invest::where(function($query) use ($staffIds, $staffReferralCodes) {
+                $query->whereIn('staff_id', $staffIds)
+                      ->orWhereIn('referral_code', $staffReferralCodes);
+            })
             ->where('status', Status::INVEST_RUNNING)
             ->whereNotNull('project_closed')
             ->where('project_closed', '<=', $alertDate)
@@ -138,8 +167,21 @@ class SalesManagerController extends Controller
         $staffIds = $user->staffMembers()->pluck('id')->toArray();
         $staffIds[] = $user->id;
         
-        $contracts = Invest::whereIn('user_id', $staffIds)
+        // Get contracts created by team members
+        $createdContracts = Invest::whereIn('staff_id', $staffIds)
             ->with(['project', 'user'])
+            ->latest();
+            
+        // Get contracts referred by team members
+        $staffReferralCodes = $user->staffMembers()->pluck('referral_code')->toArray();
+        $staffReferralCodes[] = $user->referral_code;
+        
+        $referredContracts = Invest::whereIn('referral_code', $staffReferralCodes)
+            ->with(['project', 'user'])
+            ->latest();
+            
+        // Combine both queries
+        $contracts = $createdContracts->union($referredContracts)
             ->latest()
             ->paginate(getPaginate());
             

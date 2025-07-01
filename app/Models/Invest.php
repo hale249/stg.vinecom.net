@@ -56,6 +56,11 @@ class Invest extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function referrer()
+    {
+        return $this->hasOne(User::class, 'referral_code', 'referral_code');
+    }
+
     public function transactions()
     {
         return $this->hasMany(Transaction::class);

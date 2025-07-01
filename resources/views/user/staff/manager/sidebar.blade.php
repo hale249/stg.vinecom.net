@@ -72,13 +72,6 @@
                     </a>
                 </li>
                 
-                <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.approval_requests') ? 'active' : '' }}">
-                    <a href="{{ route('user.staff.manager.approval_requests') }}" class="nav-link">
-                        <i class="menu-icon las la-check-circle"></i>
-                        <span class="menu-title">@lang('Duyệt hợp đồng')</span>
-                    </a>
-                </li>
-                
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.alerts') ? 'active' : '' }}">
                     <a href="{{ route('user.staff.manager.alerts') }}" class="nav-link">
                         <i class="menu-icon las la-bell"></i>

@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Middleware\StaffMiddleware;
+use App\Http\Middleware\AdminActionMiddleware;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Foundation\Support\Providers\RouteServiceProvider as ServiceProvider;
 use Illuminate\Http\Request;
@@ -27,6 +28,7 @@ class RouteServiceProvider extends ServiceProvider
         // Register middleware alias
         $router = $this->app['router'];
         $router->aliasMiddleware('staff', StaffMiddleware::class);
+        $router->aliasMiddleware('admin.action', AdminActionMiddleware::class);
         
         $this->configureRateLimiting();
 
