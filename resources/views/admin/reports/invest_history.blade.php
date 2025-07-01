@@ -97,7 +97,7 @@
                                         <td> @php echo $invest->project->typeBadge @endphp </td>
                                         <td>{{ $invest->project->return_type != Status::LIFETIME ? showAmount($invest->recurring_pay) : '**' }}
                                         </td>
-                                        <td>{{ showAmount($invest->paid) }}</td>
+                                        <td>{{ showAmount($invest->total_earning) }}</td>
                                         <td>
                                             @php echo $invest->statusBadge @endphp
                                         </td>

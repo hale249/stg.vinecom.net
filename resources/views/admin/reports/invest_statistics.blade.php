@@ -313,7 +313,7 @@
                                 @foreach ($recentInvests as $invest)
                                     <div class="plan-item-two animate-fade-in" style="animation-delay: {{ 0.1 * $loop->index }}s">
                                         <div class="plan-info plan-inner-div">
-                                            <div class="plan-name fw-bold">{{ $invest->project->title }} - Mỗi {{ __($invest->time_name) }} {{ $invest->project->return_type != Status::LIFETIME ? gs('cur_sym') : '' }}{{ showAmount($invest->project->share_amount, currencyFormat: false) }} cho @if ($invest->project->return_type == Status::REPEAT) {{ __($invest->project->repeat_time) }} {{ __(@$invest->project->time->name) }} @else Trọn đời @endif</div>
+                                            <div class="plan-name fw-bold">{{ $invest->project->title }} - Mỗi {{ __($invest->time_name) }} {{ $invest->project->return_type != Status::LIFETIME ? gs('cur_sym') : '' }}{{ showAmount($invest->project->share_amount, currencyFormat: false) }} cho @if ($invest->project->return_type == Status::REPEAT) {{ __($invest->project->repeat_time) }} {{ __(@$invest->project->time->name) }} @else Theo kỳ @endif</div>
                                             <div class="plan-desc text-end text-xl-start">Đã đầu tư: <span
                                                     class="fw-bold">{{ showAmount($invest->total_price) }}</span></div>
                                         </div>

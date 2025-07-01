@@ -20,7 +20,6 @@ class Invest extends Model
         'total_price',
         'roi_percentage',
         'roi_amount',
-        'payment_type',
         'total_earning',
         'total_share',
         'capital_back',
@@ -36,6 +35,12 @@ class Invest extends Model
         'payment_status'
     ];
 
+    protected $casts = [
+        'project_duration' => 'integer',
+        'repeat_times' => 'integer',
+        'quantity' => 'integer',
+    ];
+
     public function deposit()
     {
         return $this->hasOne(Deposit::class, 'invest_id');
@@ -49,6 +54,11 @@ class Invest extends Model
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function referrer()
+    {
+        return $this->hasOne(User::class, 'referral_code', 'referral_code');
     }
 
     public function transactions()
@@ -118,14 +128,8 @@ class Invest extends Model
     public function paymentTypeBadge(): Attribute
     {
         return new Attribute(function () {
-            $html = '';
-            if ($this->payment_type == Status::PAYMENT_WALLET) {
-                $html = '<span class="badge badge--info">' . trans('Wallet') . '</span>';
-            } else {
-                $html = '<span class="badge badge--primary">' . trans('Online') . '</span>';
-            }
-
-            return $html;
+            // Since payment_type is no longer available, default to online payment
+            return '<span class="badge badge--primary">' . trans('Online') . '</span>';
         });
     }
 

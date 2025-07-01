@@ -1,4 +1,4 @@
-<div class="profit-schedule-modal">
+<div class="profit-schedule-modal profit-schedule-modal-layout">
     <div class="info-section mb-4">
         <div class="row">
             <div class="col-md-6">
@@ -12,37 +12,39 @@
         </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-bordered table-striped profit-schedule-table">
-            <thead class="table-dark">
-                <tr>
-                    <th class="text-center" style="width: 5%;">STT</th>
-                    <th class="text-center" style="width: 8%;">Kỳ</th>
-                    <th class="text-center" style="width: 12%;">Ngày bắt đầu</th>
-                    <th class="text-center" style="width: 12%;">Ngày kết thúc</th>
-                    <th class="text-center" style="width: 8%;">Số ngày</th>
-                    <th class="text-center" style="width: 12%;">Lãi suất (%/năm)</th>
-                    <th class="text-end" style="width: 15%;">Gốc đầu kỳ (VNĐ)</th>
-                    <th class="text-end" style="width: 15%;">Lãi kỳ (VNĐ)</th>
-                    <th class="text-end" style="width: 13%;">Tổng tích lũy (VNĐ)</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($schedule as $index => $period)
-                <tr>
-                    <td class="text-center">{{ $index + 1 }}</td>
-                    <td class="text-center">{{ $period['period_no'] }}</td>
-                    <td class="text-center">{{ $period['start_date']->format('d/m/Y') }}</td>
-                    <td class="text-center">{{ $period['end_date']->format('d/m/Y') }}</td>
-                    <td class="text-center">{{ $period['days'] }}</td>
-                    <td class="text-center">{{ number_format($period['interest_rate'], 2, ',', '.') }}%</td>
-                    <td class="text-end fw-bold">{{ number_format($period['principal'], 0, ',', '.') }}</td>
-                    <td class="text-end text-success fw-bold fs-6">{{ number_format($period['period_interest'], 0, ',', '.') }}</td>
-                    <td class="text-end text-primary fw-bold fs-6">{{ number_format($period['cumulative_total'], 0, ',', '.') }}</td>
-                </tr>
-                @endforeach
-            </tbody>
-        </table>
+    <div class="table-container">
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped profit-schedule-table">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-center" style="width: 5%;">STT</th>
+                        <th class="text-center" style="width: 8%;">Kỳ</th>
+                        <th class="text-center" style="width: 12%;">Ngày bắt đầu</th>
+                        <th class="text-center" style="width: 12%;">Ngày kết thúc</th>
+                        <th class="text-center" style="width: 8%;">Số ngày</th>
+                        <th class="text-center" style="width: 12%;">Lãi suất (%/năm)</th>
+                        <th class="text-end" style="width: 15%;">Gốc đầu kỳ (VNĐ)</th>
+                        <th class="text-end" style="width: 15%;">Lãi kỳ (VNĐ)</th>
+                        <th class="text-end" style="width: 13%;">Tổng tích lũy (VNĐ)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($schedule as $index => $period)
+                    <tr>
+                        <td class="text-center">{{ $index + 1 }}</td>
+                        <td class="text-center">{{ $period['period_no'] }}</td>
+                        <td class="text-center">{{ $period['start_date']->format('d/m/Y') }}</td>
+                        <td class="text-center">{{ $period['end_date']->format('d/m/Y') }}</td>
+                        <td class="text-center">{{ $period['days'] }}</td>
+                        <td class="text-center">{{ number_format($period['interest_rate'], 2, ',', '.') }}%</td>
+                        <td class="text-end fw-bold">{{ number_format($period['principal'], 0, ',', '.') }}</td>
+                        <td class="text-end text-success fw-bold fs-6">{{ number_format($period['period_interest'], 0, ',', '.') }}</td>
+                        <td class="text-end text-cumulative-total fw-bold fs-6">{{ number_format($period['cumulative_total'], 0, ',', '.') }}</td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <div class="summary-section mt-4 p-4 bg-light border rounded">
@@ -83,6 +85,24 @@
 </div>
 
 <style>
+.profit-schedule-modal-layout {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+.table-container {
+    flex-grow: 1;
+    overflow-y: auto;
+    min-height: 0;
+}
+
+.info-section, .summary-section {
+    flex-shrink: 0;
+}
+
 .profit-schedule-modal {
     font-family: "Times New Roman", Times, serif;
     font-size: 13pt;
@@ -100,7 +120,7 @@
 .profit-schedule-table th {
     font-weight: bold;
     font-size: 11pt;
-    background-color: #343a40 !important;
+    background-color: rgb(55, 63, 106) !important;
     color: white !important;
     border: 1px solid #495057;
     padding: 8px 4px;
@@ -113,6 +133,10 @@
     vertical-align: middle;
     padding: 6px 4px;
     word-wrap: break-word;
+}
+
+.text-cumulative-total {
+    color: #cca300 !important;
 }
 
 .summary-section {

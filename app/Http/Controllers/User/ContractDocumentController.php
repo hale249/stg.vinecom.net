@@ -23,6 +23,7 @@ class ContractDocumentController extends Controller
 
         $pageTitle = 'Contract Documents: ' . $invest->invest_no;
         $activeTemplate = activeTemplate();
+        $general = gs();
         
         // Group documents by type
         $signedContracts = $invest->documents()->byType('signed_contract')->get();
@@ -35,7 +36,8 @@ class ContractDocumentController extends Controller
             'activeTemplate',
             'signedContracts',
             'transferBills',
-            'otherDocuments'
+            'otherDocuments',
+            'general'
         ));
     }
     

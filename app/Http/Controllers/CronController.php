@@ -113,32 +113,42 @@ class CronController extends Controller
         
         $next = $nextPaymentDate->toDateTimeString();
 
-        // Process investment
-        $invest->period            += 1;
-        $invest->paid              += $invest->recurring_pay;
-        if ($invest->return_type == Status::LIFETIME) {
-            $invest->total_earning     += $invest->recurring_pay;
-        }
-        $invest->next_time          = $next;
-        $invest->last_time          = $now;
+        // Tính toán lãi hàng tháng dựa trên tổng lãi và thời hạn
+        $totalInvestment = $invest->total_price;
+        $roiPercentage = $invest->roi_percentage;
+        $projectDuration = $invest->project_duration > 0 ? $invest->project_duration : 12; // Mặc định 12 tháng nếu không có
+        
+        // Tính tổng lãi (annual ROI)
+        $totalROI = ($totalInvestment * $roiPercentage / 100);
+        
+        // Tính lãi hàng tháng (chia đều cho số tháng)
+        $monthlyROI = $totalROI / $projectDuration;
 
+        // Process investment
+        $invest->period += 1;
+        $invest->paid += $monthlyROI;
+        if ($invest->return_type == Status::LIFETIME) {
+            $invest->total_earning += $monthlyROI;
+        }
+        $invest->next_time = $next;
+        $invest->last_time = $now;
 
         // Update user's balance
-        $user->balance += $invest->recurring_pay;
+        $user->balance += $monthlyROI;
         $user->save();
 
         // Log the transaction
-        $trx                       = getTrx();
-        $transaction               = new Transaction();
-        $transaction->user_id      = $user->id;
-        $transaction->invest_id    = $invest->id;
-        $transaction->amount       = $invest->recurring_pay;
-        $transaction->charge       = 0;
+        $trx = getTrx();
+        $transaction = new Transaction();
+        $transaction->user_id = $user->id;
+        $transaction->invest_id = $invest->id;
+        $transaction->amount = $monthlyROI;
+        $transaction->charge = 0;
         $transaction->post_balance = $user->balance;
-        $transaction->trx_type     = '+';
-        $transaction->trx          = $trx;
-        $transaction->remark       = 'profit';
-        $transaction->details      = showAmount($invest->recurring_pay) . ' profit from ' . @$invest->project->title;
+        $transaction->trx_type = '+';
+        $transaction->trx = $trx;
+        $transaction->remark = 'profit';
+        $transaction->details = 'ROI payment for investment #' . $invest->invest_no;
         $transaction->save();
 
         // Check if the investment should be closed
@@ -149,8 +159,8 @@ class CronController extends Controller
 
         // Notify the user about the profit
         notify($user, 'INTEREST', [
-            'trx'          => $trx,
-            'amount'       => showAmount($invest->recurring_pay),
+            'trx' => $trx,
+            'amount' => showAmount($monthlyROI),
             'project_name' => @$invest->project->title,
             'post_balance' => showAmount($user->balance),
         ]);

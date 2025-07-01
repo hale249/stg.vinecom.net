@@ -63,7 +63,7 @@
                                 <tr>
                                     <th>@lang('Nhân viên')</th>
                                     <th>@lang('Tổng hợp đồng')</th>
-                                    <th>@lang('Hợp đồng đang chạy')</th>
+                                    <th>@lang('Hợp đồng đang hoạt động')</th>
                                     <th>@lang('Tỉ lệ hoạt động')</th>
                                 </tr>
                             </thead>

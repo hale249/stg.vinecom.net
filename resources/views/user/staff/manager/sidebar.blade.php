@@ -72,13 +72,6 @@
                     </a>
                 </li>
                 
-                <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.approval_requests') ? 'active' : '' }}">
-                    <a href="{{ route('user.staff.manager.approval_requests') }}" class="nav-link">
-                        <i class="menu-icon las la-check-circle"></i>
-                        <span class="menu-title">@lang('Duyệt hợp đồng')</span>
-                    </a>
-                </li>
-                
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.alerts') ? 'active' : '' }}">
                     <a href="{{ route('user.staff.manager.alerts') }}" class="nav-link">
                         <i class="menu-icon las la-bell"></i>
@@ -91,7 +84,7 @@
                 <li class="sidebar-menu-item {{ request()->routeIs('user.staff.manager.documents*') ? 'active' : '' }}">
                     <a href="{{ route('user.staff.manager.documents') }}" class="nav-link">
                         <i class="menu-icon las la-file-alt"></i>
-                        <span class="menu-title">@lang('Tài liệu tham khảo')</span>
+                        <span class="menu-title">@lang('Tài liệu học tập')</span>
                     </a>
                 </li>
                 

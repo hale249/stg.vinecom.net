@@ -100,16 +100,21 @@
                                     </div>
                                     <div class="stat-content">
                                         <span class="stat-value">{{ getAmount($project->roi_percentage) }}%</span>
-                                        <span class="stat-label">Tỷ suất lợi nhuận</span>
+                                        <span class="stat-label">Tỷ lệ suất lợi tức</span>
                                     </div>
                                 </div>
                                 
+                                @php
+                                    $start = \Carbon\Carbon::parse($project->start_date);
+                                    $end = \Carbon\Carbon::parse($project->end_date);
+                                    $months = $start->diffInMonths($end);
+                                @endphp
                                 <div class="stat-card">
                                     <div class="stat-icon">
                                         <i class="las la-calendar-alt"></i>
                                     </div>
                                     <div class="stat-content">
-                                        <span class="stat-value">{{ $project->maturity_time }}</span>
+                                        <span class="stat-value">{{ $months }}</span>
                                         <span class="stat-label">Tháng</span>
                                     </div>
                                 </div>
@@ -119,7 +124,7 @@
                                         <i class="las la-wallet"></i>
                                     </div>
                                     <div class="stat-content">
-                                        <span class="stat-value">{{ showAmount($project->share_amount) }}</span>
+                                        <span class="stat-value">{{ showAmount($project->min_invest_amount) }}</span>
                                         <span class="stat-label">Số tiền tối thiểu đầu tư</span>
                                     </div>
                                 </div>
@@ -132,6 +137,22 @@
                                 <h4>Tiến độ đầu tư</h4>
                                 <span class="progress-percentage">{{ $project->investment_progress }}%</span>
                             </div>
+                            
+                            <!-- Flash Messages -->
+                            @if(session('success'))
+                                <div class="alert alert-success alert-dismissible fade show mt-2 mb-3" role="alert">
+                                    <i class="las la-check-circle"></i> {{ session('success') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            @endif
+                            
+                            @if(session('error'))
+                                <div class="alert alert-danger alert-dismissible fade show mt-2 mb-3" role="alert">
+                                    <i class="las la-exclamation-circle"></i> {{ session('error') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            @endif
+                            
                             <div class="progress-bar-container">
                                 <div class="progress-bar" style="width: {{ $project->investment_progress }}%"></div>
                             </div>
@@ -344,18 +365,23 @@
                                                        class="form-control" 
                                                        id="investment_amount_input"
                                                        placeholder="Nhập số tiền"
-                                                       min="{{ $project->share_amount }}"
+                                                       min="{{ $project->min_invest_amount }}"
                                                        step="1000000">
                                                 <span class="input-group-text">VNĐ</span>
                                             </div>
-                                            <small class="form-text">Tối thiểu: {{ showAmount($project->share_amount) }}</small>
+                                            <small class="form-text">Tối thiểu: {{ showAmount($project->min_invest_amount) }}</small>
                                         </div>
                                         
                                         <div class="investment-summary mb-3">
                                             <div class="summary-item">
                                                 <span>Kỳ hạn:</span>
                                                 <select id="term_months" class="form-select">
-                                                    @for ($i = 1; $i <= 36; $i++)
+                                                    @php
+                                                        $start = \Carbon\Carbon::parse($project->start_date);
+                                                        $end = \Carbon\Carbon::parse($project->end_date);
+                                                        $months = $start->diffInMonths($end);
+                                                    @endphp
+                                                    @for ($i = 1; $i <= $months; $i++)
                                                         <option value="{{ $i }}">{{ $i }} tháng</option>
                                                     @endfor
                                                 </select>
@@ -707,7 +733,7 @@
         height: 100%;
         background: linear-gradient(90deg, #3498db, #2980b9);
         border-radius: 6px;
-        transition: width 0.3s ease;
+        transition: width 1s ease-in-out;
     }
 
     .progress-stats {
@@ -1176,7 +1202,7 @@
     }
 
     .btn--primary-modern {
-        background: linear-gradient(135deg, #3498db, #2980b9);
+        background: rgb(55, 63, 106);
         color: white;
         border: none;
         padding: 14px 24px;
@@ -1188,13 +1214,13 @@
         justify-content: center;
         gap: 8px;
         transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(52, 152, 219, 0.3);
+        box-shadow: 0 4px 12px rgba(55, 63, 106, 0.3);
     }
 
     .btn--primary-modern:hover {
-        background: linear-gradient(135deg, #2980b9, #1f5f8b);
+        background: rgb(55, 63, 106);
         transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.4);
+        box-shadow: 0 6px 20px rgba(55, 63, 106, 0.4);
         color: white;
         text-decoration: none;
     }
@@ -1451,9 +1477,16 @@
         function calculateRoi() {
             const amount = parseCurrencyInput(amountInput.value);
             const months = parseInt(termSelect.value) || 1;
-            // Calculate ROI based on annual percentage, term in months, and investment amount
-            const roi = (amount * roiPercentage / 100) * (months / 12);
-            roiDisplay.textContent = roi.toLocaleString('vi-VN') + ' VNĐ';
+            
+            // Calculate ROI using the correct formula:
+            // 1. Annual ROI = Investment Amount * ROI Percentage / 100
+            // 2. Monthly ROI = Annual ROI / 12
+            // 3. Total ROI for selected months = Monthly ROI * months
+            const annualROI = amount * roiPercentage / 100;
+            const monthlyROI = Math.round(annualROI / 12);
+            const totalROI = monthlyROI * months;
+            
+            roiDisplay.textContent = totalROI.toLocaleString('vi-VN') + ' VNĐ';
         }
 
         if (amountInput && termSelect) {
@@ -1473,14 +1506,16 @@
                 calculateRoi();
                 // Sync modal if open
                 if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
-                    window.updateModalValues(parseCurrencyInput(this.value), termSelect.value);
+                    // Make sure we pass the term value as a proper integer
+                    window.updateModalValues(parseCurrencyInput(this.value), parseInt(termSelect.value) || 1);
                 }
             });
             termSelect.addEventListener('change', function() {
                 calculateRoi();
                 // Sync modal if open
                 if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
-                    window.updateModalValues(parseCurrencyInput(amountInput.value), this.value);
+                    // Make sure we pass the term value as a proper integer
+                    window.updateModalValues(parseCurrencyInput(amountInput.value), parseInt(this.value) || 1);
                 }
             });
             // Khởi tạo tính toán ban đầu

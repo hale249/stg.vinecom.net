@@ -161,7 +161,7 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::controller('User\SalesStaffController')->prefix('staff')->name('staff.')->group(function () {
                 Route::get('/', 'dashboard')->name('dashboard');
                 Route::get('contracts', 'contracts')->name('contracts');
-                Route::get('contract/{id}', 'contractDetails')->name('contract_details');
+                Route::get('contract/{id}', 'contractDetails')->name('contract.details');
                 Route::get('create-contract', 'createContract')->name('create_contract');
                 Route::post('store-contract', 'storeContract')->name('store_contract');
                 Route::post('cancel-contract/{id}', 'cancelContract')->name('cancel_contract');

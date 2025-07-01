@@ -2,13 +2,13 @@
     <div class="container">
         <nav class="navbar navbar-expand-lg">
             <div class="navbar-left">
-                <a class="navbar-brand logo" href="{{ route('home') }}">
+                <a class="navbar-brand logo" href="{{ route('projects') }}">
                     <img src="{{ siteLogo() }}" alt="@lang('logo')">
                 </a>
             </div>
 
             <div class="navbar-right">
-                <a class="navbar-brand logo d-block d-lg-none order-1" href="{{ route('home') }}">
+                <a class="navbar-brand logo d-block d-lg-none order-1" href="{{ route('projects') }}">
                     <img src="{{ siteLogo() }}" alt="@lang('logo')">
                 </a>
                 <button class="navbar-toggler header-button order-3 order-lg-2" type="button" data-bs-toggle="collapse"
@@ -64,10 +64,6 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ menuActive('home') }}"
-                               href="{{ route('home') }}">@lang('Home')</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ menuActive(['projects', 'project.details']) }}"
                                href="{{ route('projects') }}">@lang('Projects')</a>
                         </li>
                         @foreach ($pages as $page)
@@ -77,18 +73,6 @@
                                    href="{{ route('pages', [$page->slug]) }}">{{ __($page->name) }}</a>
                             </li>
                         @endforeach
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle {{ menuActive(['blogs', 'blogs.category', 'blog.details']) }}"
-                               href="{{ route('blogs') }}" id="navbarDropdown" role="button"
-                               data-bs-toggle="dropdown" aria-expanded="false">
-                               Tin tức
-                            </a>
-                            <ul class="dropdown-menu" aria-labelledby="navbarDropdown">
-                                <li><a class="dropdown-item" href="{{ route('blogs') }}">Tất cả</a></li>
-                                <li><a class="dropdown-item" href="{{ route('blogs.category', 'company') }}">Tin tức doanh nghiệp</a></li>
-                                <li><a class="dropdown-item" href="{{ route('blogs.category', 'market') }}">Tin tức thị trường</a></li>
-                            </ul>
-                        </li>
                         <li class="nav-item">
                             <a class="nav-link {{ menuActive('contact') }}"
                                href="{{ route('contact') }}">@lang('Contact')</a>

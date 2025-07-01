@@ -246,4 +246,12 @@ class FileManager
 		$selfClass->$method(...$args);
 	}
 
+    public function honor_images() {
+        return (object) [
+            'path'        => 'assets/images/honor_images',
+            'size'        => '1000x800',
+            'extensions'  => ['jpg', 'jpeg', 'png'],
+        ];
+    }
+
 }

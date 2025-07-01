@@ -1,6 +1,7 @@
 @extends('user.staff.layouts.staff_app')
 
 @section('panel')
+@include('user.staff.partials.honor_banner')
 <div class="row mb-none-30">
     <div class="col-xl-3 col-lg-4 col-sm-6 mb-30">
         <div class="dashboard-w1 bg--primary b-radius--10 box-shadow">
@@ -130,6 +131,7 @@
                             <i class="fa fa-bell mr-2"></i>@lang('My Alerts')
                         </a>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -195,7 +197,7 @@
     <div class="col-lg-12">
         <div class="card b-radius--10 overflow-hidden box--shadow1">
             <div class="card-body">
-                <h5 class="card-title border-bottom pb-2">@lang('Recent Contracts')</h5>
+                <h5 class="card-title border-bottom pb-2">@lang('My Contracts')</h5>
                 <div class="table-responsive--md table-responsive">
                     <table class="table table--light style--two">
                         <thead>
@@ -224,7 +226,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td class="text-center" colspan="100%">{{ __($emptyMessage ?? 'No recent contracts') }}</td>
+                                    <td class="text-center" colspan="100%">{{ __($emptyMessage ?? 'No contracts found') }}</td>
                                 </tr>
                             @endforelse
                         </tbody>

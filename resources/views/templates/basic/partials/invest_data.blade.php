@@ -22,7 +22,6 @@
                         <th>@lang('Project')</th>
                         <th>@lang('Duration')</th>
                         <th>@lang('Invested Amount')</th>
-                        <th>@lang('Paid | Remaining')</th>
                         <th>@lang('Status')</th>
                         <th>@lang('Action')</th>
                     </tr>
@@ -60,28 +59,13 @@
                             </td>
 
                             <td>
-                                {{ __($invest->project->maturity_time) }} @lang('Months')
+                                @php
+                                    // Ensure the project_duration is a valid number
+                                    $duration = is_numeric($invest->project_duration) ? (int)$invest->project_duration : 0;
+                                @endphp
+                                {{ $duration }} @lang('Months')
                             </td>
                             <td>{{ __(showAmount($invest->total_price)) }}</td>
-
-                            <td>
-                                @php
-                                    $remaining = getInvestmentRemaining($invest);
-                                @endphp
-
-                                <span data-toggle="tooltip" data-placement="top"
-                                    title="@lang('Paid: ') {{ __($invest->period) }} @lang('returns')">
-                                    {{ __($invest->period) }}
-                                </span>
-
-                                @if ($invest->project->return_type != Status::LIFETIME)
-                                    |
-                                    <span data-toggle="tooltip" data-placement="top"
-                                        title="@lang('Remaining: ') {{ __($remaining) }} @lang('returns')">
-                                        {{ __($remaining) }}
-                                    </span>
-                                @endif
-                            </td>
 
                             <td>
                                 @php echo $invest->statusBadge @endphp

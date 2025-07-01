@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="{{asset('assets/global/css/line-awesome.min.css')}}">
     <link rel="stylesheet" href="{{asset('assets/global/css/select2.min.css')}}">
     <link rel="stylesheet" href="{{asset('assets/admin/css/app.css')}}">
+    <!-- Slick Slider CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick-theme.min.css">
 
     @stack('style-lib')
     @stack('style')
@@ -106,6 +109,8 @@
 <script src="{{ asset('assets/global/js/nicEdit.js') }}"></script>
 <script src="{{asset('assets/global/js/select2.min.js')}}"></script>
 <script src="{{asset('assets/admin/js/app.js')}}"></script>
+<!-- Slick Slider JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/slick-carousel/1.8.1/slick.min.js"></script>
 
 @include('partials.notify')
 

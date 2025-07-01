@@ -26,15 +26,43 @@ class SalesStaffController extends Controller
         $honorService = new HonorService();
         $honor = $honorService->getActiveHonor();
         
+        // Get count of contracts created by staff
+        $createdContractsCount = Invest::where('staff_id', $user->id)->count();
+        
+        // Get count of contracts referred by staff
+        $referredContractsCount = Invest::where('referral_code', $user->referral_code)->count();
+        
+        // Get active contracts (both created and referred)
+        $activeCreatedContracts = Invest::where('staff_id', $user->id)
+            ->where('status', Status::INVEST_RUNNING)
+            ->count();
+            
+        $activeReferredContracts = Invest::where('referral_code', $user->referral_code)
+            ->where('status', Status::INVEST_RUNNING)
+            ->count();
+        
+        // Get pending contracts (both created and referred)
+        $pendingCreatedContracts = Invest::where('staff_id', $user->id)
+            ->whereIn('status', [Status::INVEST_PENDING, Status::INVEST_PENDING_ADMIN_REVIEW])
+            ->count();
+            
+        $pendingReferredContracts = Invest::where('referral_code', $user->referral_code)
+            ->whereIn('status', [Status::INVEST_PENDING, Status::INVEST_PENDING_ADMIN_REVIEW])
+            ->count();
+        
         // Dashboard statistics
         $stats = [
-            'total_contracts' => Invest::where('staff_id', $user->id)->count(),
-            'active_contracts' => Invest::where('staff_id', $user->id)->where('status', Status::INVEST_RUNNING)->count(),
-            'pending_contracts' => Invest::where('staff_id', $user->id)
-                ->whereIn('status', [Status::INVEST_PENDING, Status::INVEST_PENDING_ADMIN_REVIEW])
-                ->count(),
+            'total_contracts' => $createdContractsCount + $referredContractsCount,
+            'active_contracts' => $activeCreatedContracts + $activeReferredContracts,
+            'pending_contracts' => $pendingCreatedContracts + $pendingReferredContracts,
             'customers' => User::whereIn('id', function($query) use ($user) {
-                $query->select('user_id')->from('invests')->where('staff_id', $user->id)->distinct();
+                $query->select('user_id')
+                    ->from('invests')
+                    ->where(function($q) use ($user) {
+                        $q->where('staff_id', $user->id)
+                          ->orWhere('referral_code', $user->referral_code);
+                    })
+                    ->distinct();
             })->count()
         ];
         
@@ -63,11 +91,18 @@ class SalesStaffController extends Controller
             ->limit(5)
             ->get();
             
-        // Get recent contracts
-        $recentContracts = Invest::where('staff_id', $user->id)
+        // Get all contracts (both created and referred)
+        $createdContracts = Invest::where('staff_id', $user->id)
             ->with(['project', 'user'])
+            ->latest();
+            
+        $referredContracts = Invest::where('referral_code', $user->referral_code)
+            ->with(['project', 'user'])
+            ->latest();
+            
+        $recentContracts = $createdContracts->union($referredContracts)
             ->latest()
-            ->limit(5)
+            ->limit(10)
             ->get();
         
         // Get notifications for topnav
@@ -88,8 +123,18 @@ class SalesStaffController extends Controller
         $user = Auth::user();
         $general = gs();
         
-        $contracts = Invest::where('staff_id', $user->id)
+        // Get contracts created by staff
+        $createdContracts = Invest::where('staff_id', $user->id)
             ->with(['project', 'user'])
+            ->latest();
+            
+        // Get contracts referred by staff
+        $referredContracts = Invest::where('referral_code', $user->referral_code)
+            ->with(['project', 'user'])
+            ->latest();
+            
+        // Combine both queries
+        $contracts = $createdContracts->union($referredContracts)
             ->latest()
             ->paginate(getPaginate());
             
@@ -110,8 +155,12 @@ class SalesStaffController extends Controller
         $user = Auth::user();
         $general = gs();
         
+        // Look for contracts that the staff created or referred
         $invest = Invest::where('id', $id)
-            ->where('staff_id', $user->id)
+            ->where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
             ->with(['project', 'user'])
             ->firstOrFail();
             
@@ -336,4 +385,6 @@ class SalesStaffController extends Controller
         ];
         return view('user.staff.staff.kpi', compact('pageTitle', 'kpis', 'summary', 'month'));
     }
+
+
 } 

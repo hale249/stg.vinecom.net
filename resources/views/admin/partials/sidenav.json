@@ -801,5 +801,43 @@
             "admin.gateway*",
             "admin.withdraw.method*"
         ]
+    },
+    "deputy_director": {
+        "keyword": [
+            "deputy",
+            "deputy director",
+            "view only",
+            "read-only",
+            "observer",
+            "management",
+            "admin management"
+        ],
+        "title": "Phó tổng giám đốc",
+        "icon": "las la-user-tie",
+        "menu_active": "admin.deputy*",
+        "submenu": [
+            {
+                "keyword": [
+                    "all deputies",
+                    "deputy list",
+                    "view only users",
+                    "observer accounts"
+                ],
+                "title": "Danh sách",
+                "route_name": "admin.deputy.index",
+                "menu_active": "admin.deputy.index"
+            },
+            {
+                "keyword": [
+                    "add deputy",
+                    "create deputy",
+                    "new deputy",
+                    "add observer"
+                ],
+                "title": "Thêm mới",
+                "route_name": "admin.deputy.create",
+                "menu_active": "admin.deputy.create"
+            }
+        ]
     }
 }

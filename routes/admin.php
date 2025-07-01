@@ -106,6 +106,12 @@ Route::middleware('admin')->group(function () {
         Route::get('lifetime-return', 'lifetime')->name('lifetime');
         Route::get('repeat-return', 'repeat')->name('repeat');
     });
+    
+    // Project Fake Investment
+    Route::controller('ProjectFakeController')->name('project.fake.')->prefix('project/fake')->group(function () {
+        Route::post('investment/{id}', 'fakeInvestment')->name('investment');
+        Route::post('reset/{id}', 'resetInvestment')->name('reset');
+    });
 
     // Project Documents Management
     Route::controller('ProjectDocumentController')->name('project.documents.')->prefix('project/{projectId}/documents')->group(function () {
@@ -205,6 +211,7 @@ Route::middleware('admin')->group(function () {
         Route::post('update/{id}', 'update')->name('update');
         Route::post('destroy/{id}', 'destroy')->name('destroy');
         Route::post('status/{id}', 'status')->name('status');
+        Route::post('reorder-images', 'reorderImages')->name('reorder.images');
     });
 
     // Deposit Gateway
@@ -444,4 +451,182 @@ Route::middleware('admin')->group(function () {
     // Alert Dashboard
     Route::get('alert-dashboard', 'AlertDashboardController@index')->name('alert.dashboard');
     Route::post('alert-settings', 'AlertDashboardController@saveSettings')->name('alert.settings');
+    
+    // Quản lý phó tổng giám đốc (chỉ admin mới có quyền)
+    Route::controller('DeputyController')->name('deputy.')->prefix('deputy')->group(function () {
+        Route::get('/', 'index')->name('index')->middleware('admin.action');
+        Route::get('create', 'create')->name('create')->middleware('admin.action');
+        Route::post('store', 'store')->name('store')->middleware('admin.action');
+        Route::post('delete/{id}', 'delete')->name('delete')->middleware('admin.action');
+    });
+});
+
+// Các route POST, PUT, DELETE cần quyền thực hiện hành động
+Route::middleware(['admin.action'])->group(function() {
+    // Các route cho AdminController
+    Route::post('profile', 'AdminController@profileUpdate')->name('profile.update');
+    Route::post('password', 'AdminController@passwordUpdate')->name('password.update');
+    Route::post('notifications/delete-all', 'AdminController@deleteAllNotification')->name('notifications.delete.all');
+    Route::post('notifications/delete-single/{id}', 'AdminController@deleteSingleNotification')->name('notifications.delete.single');
+    
+    // Manage Time
+    Route::post('time/store/{id?}', 'ManageTimeController@store')->name('time.store');
+    Route::post('time/status/{id?}', 'ManageTimeController@status')->name('time.status');
+    
+    // Manage Invest
+    Route::post('invest/status/{id}', 'ManageInvestController@investStatus')->name('invest.status');
+    Route::post('invest/approve/{id}', 'ManageInvestController@approve')->name('invest.approve');
+    Route::post('invest/reject/{id}', 'ManageInvestController@reject')->name('invest.reject');
+    Route::post('invest/stop-returns/{id}', 'ManageInvestController@stopReturns')->name('invest.stop.returns');
+    Route::post('invest/start-returns/{id}', 'ManageInvestController@startReturns')->name('invest.start.returns');
+    
+    // Category
+    Route::post('category/store/{id?}', 'CategoryController@store')->name('category.store');
+    Route::post('category/status/{id?}', 'CategoryController@status')->name('category.status');
+    
+    // Comment
+    Route::post('comment/store/{id}/{comment_id}', 'CommentController@store')->name('comment.store');
+    Route::post('comment/status/{id?}', 'CommentController@status')->name('comment.status');
+    
+    // Project
+    Route::post('project/store/{id?}', 'ManageProjectController@store')->name('project.store');
+    Route::post('project/status/{id}', 'ManageProjectController@status')->name('project.status');
+    Route::post('project/end/{id}', 'ManageProjectController@end')->name('project.end');
+    Route::post('project/update/seo/{id}', 'ManageProjectController@updateSEO')->name('project.update.seo');
+    
+    // Project Fake
+    Route::post('project/fake/investment/{id}', 'ProjectFakeController@fakeInvestment')->name('project.fake.investment');
+    Route::post('project/fake/reset/{id}', 'ProjectFakeController@resetInvestment')->name('project.fake.reset');
+    
+    // Project Documents
+    Route::post('project/{projectId}/documents/store', 'ProjectDocumentController@store')->name('project.documents.store');
+    Route::post('project/{projectId}/documents/update/{documentId}', 'ProjectDocumentController@update')->name('project.documents.update');
+    Route::post('project/{projectId}/documents/delete/{documentId}', 'ProjectDocumentController@destroy')->name('project.documents.delete');
+    
+    // Document Categories
+    Route::post('document/categories/store', 'DocumentCategoryController@store')->name('document.categories.store');
+    Route::post('document/categories/update/{id}', 'DocumentCategoryController@update')->name('document.categories.update');
+    Route::post('document/categories/destroy/{id}', 'DocumentCategoryController@destroy')->name('document.categories.destroy');
+    Route::post('document/categories/status/{id}', 'DocumentCategoryController@status')->name('document.categories.status');
+    
+    // Reference Documents
+    Route::post('documents/store', 'ReferenceDocumentController@store')->name('documents.store');
+    Route::post('documents/update/{id}', 'ReferenceDocumentController@update')->name('documents.update');
+    Route::post('documents/destroy/{id}', 'ReferenceDocumentController@destroy')->name('documents.destroy');
+    Route::post('documents/status/{id}', 'ReferenceDocumentController@status')->name('documents.status');
+    
+    // Contract Documents
+    Route::post('invest/{investId}/documents/upload', 'ContractDocumentController@upload')->name('invest.documents.upload');
+    Route::post('invest/{investId}/documents/delete/{documentId}', 'ContractDocumentController@delete')->name('invest.documents.delete');
+    
+    // Project FAQ
+    Route::post('project/faq/store/{id?}', 'ManageFaqController@storeFaq')->name('project.faq.store');
+    Route::post('project/faq/status/{id}', 'ManageFaqController@faqStatus')->name('project.faq.status');
+    
+    // Users Manager
+    Route::post('users/update/{id}', 'ManageUsersController@update')->name('users.update');
+    Route::post('users/add-sub-balance/{id}', 'ManageUsersController@addSubBalance')->name('users.add.sub.balance');
+    Route::post('users/send-notification/{id}', 'ManageUsersController@sendNotificationSingle')->name('users.notification.single');
+    Route::post('users/status/{id}', 'ManageUsersController@status')->name('users.status');
+    Route::post('users/send-notification', 'ManageUsersController@sendNotificationAll')->name('users.notification.all.send');
+    Route::post('users/create-staff', 'ManageUsersController@createStaff')->name('users.staff.create');
+    
+    // KYC Manager
+    Route::post('users/kyc-approve/{id}', 'ManageUsersController@kycApprove')->name('users.kyc.approve');
+    Route::post('users/kyc-reject/{id}', 'ManageUsersController@kycReject')->name('users.kyc.reject');
+    
+    // Reports & Logs
+    Route::post('report/notification/read-all', 'ReportController@notificationReadAll')->name('report.notification.readAll');
+    Route::post('report/login/delete', 'ReportController@loginDelete')->name('report.login.delete');
+    
+    // Deposit System
+    Route::post('deposit/approve/{id}', 'DepositController@approve')->name('deposit.approve');
+    Route::post('deposit/reject/{id}', 'DepositController@reject')->name('deposit.reject');
+    
+    // Withdraw System
+    Route::post('withdraw/approve/{id}', 'WithdrawController@approve')->name('withdraw.approve');
+    Route::post('withdraw/reject/{id}', 'WithdrawController@reject')->name('withdraw.reject');
+    
+    // Setting & Configuration
+    Route::post('setting/update', 'GeneralSettingController@update')->name('setting.update');
+    Route::post('setting/logo-icon', 'GeneralSettingController@logoIcon')->name('setting.logo.icon');
+    Route::post('extensions/update/{id}', 'ExtensionController@update')->name('extensions.update');
+    Route::post('extensions/status/{id}', 'ExtensionController@status')->name('extensions.status');
+    
+    // Frontend & Pages
+    Route::post('frontend/templates/activate', 'FrontendController@activeTemplate')->name('frontend.templates.activate');
+    Route::post('frontend/content/{id}/{key}', 'FrontendController@frontendContent')->name('frontend.content');
+    Route::post('frontend/element/{id}/{key}', 'FrontendController@frontendElement')->name('frontend.element');
+    Route::post('frontend/remove/{id}', 'FrontendController@remove')->name('frontend.remove');
+    Route::post('manage-language/update/{id}', 'LanguageController@langUpdate')->name('language.manage.update');
+    Route::post('manage-language/delete/{id}', 'LanguageController@langDelete')->name('language.manage.delete');
+    Route::post('manage-language/add', 'LanguageController@langAdd')->name('language.manage.add');
+    Route::post('manage-language/store', 'LanguageController@langStore')->name('language.manage.store');
+    
+    // Mail & SMS Configuration
+    Route::post('email-template/update/{id}', 'EmailTemplateController@update')->name('email.template.update');
+    Route::post('email-template/setting', 'EmailTemplateController@emailSetting')->name('email.template.setting');
+    Route::post('email-template/status/{id}', 'EmailTemplateController@emailStatus')->name('email.template.status');
+    Route::post('sms-template/update/{id}', 'SmsTemplateController@update')->name('sms.template.update');
+    Route::post('sms-template/status/{id}', 'SmsTemplateController@smsStatus')->name('sms.template.status');
+    
+    // Honors Manager
+    Route::post('honors/store', 'HonorController@store')->name('honors.store');
+    Route::post('honors/update/{id}', 'HonorController@update')->name('honors.update');
+    Route::post('honors/status/{id}', 'HonorController@status')->name('honors.status');
+    Route::post('honors/delete/{id}', 'HonorController@destroy')->name('honors.delete');
+    Route::post('honors/{honorId}/images/upload', 'HonorController@uploadImages')->name('honors.images.upload');
+    Route::post('honors/{honorId}/images/{imageId}/delete', 'HonorController@deleteImage')->name('honors.images.delete');
+    Route::post('honors/{honorId}/images/{imageId}/set-featured', 'HonorController@setFeaturedImage')->name('honors.images.featured');
+    Route::post('honors/{honorId}/images/update-captions', 'HonorController@updateCaptions')->name('honors.images.captions');
+});
+
+// Nhóm các route liên quan đến cài đặt hệ thống, chỉ cho phép admin thực hiện
+Route::middleware(['admin', 'admin.action'])->group(function () {
+    // General Setting
+    Route::controller('GeneralSettingController')->group(function () {
+        Route::get('system-setting', 'systemSetting')->name('setting.system');
+        Route::get('general-setting', 'general')->name('setting.general');
+        Route::post('general-setting', 'generalUpdate');
+        Route::get('setting/social/credentials', 'socialiteCredentials')->name('setting.socialite.credentials');
+        Route::post('setting/social/credentials/update/{key}', 'updateSocialiteCredential')->name('setting.socialite.credentials.update');
+        Route::post('setting/social/credentials/status/{key}', 'updateSocialiteCredentialStatus')->name('setting.socialite.credentials.status.update');
+        Route::get('setting/system-configuration', 'systemConfiguration')->name('setting.system.configuration');
+        Route::post('setting/system-configuration', 'systemConfigurationSubmit');
+        Route::get('setting/logo-icon', 'logoIcon')->name('setting.logo.icon');
+        Route::post('setting/logo-icon', 'logoIconUpdate')->name('setting.logo.icon');
+        Route::get('custom-css', 'customCss')->name('setting.custom.css');
+        Route::get('sitemap', 'sitemap')->name('setting.sitemap');
+        Route::get('robot', 'robot')->name('setting.robot');
+        Route::get('cookie', 'cookie')->name('setting.cookie');
+        Route::post('setting/update', 'update')->name('setting.update');
+    });
+    // KYC Setting
+    Route::get('kyc-setting', 'GeneralSettingController@setting')->name('kyc.setting');
+    Route::post('kyc-setting', 'GeneralSettingController@settingUpdate');
+    // Email Setting
+    Route::get('email/setting', 'GeneralSettingController@emailSetting')->name('email');
+    Route::post('email/setting', 'GeneralSettingController@emailSettingUpdate');
+    // SMS Setting
+    Route::get('sms/setting', 'GeneralSettingController@smsSetting')->name('sms');
+    Route::post('sms/setting', 'GeneralSettingController@smsSettingUpdate');
+    // Push Notification Setting
+    Route::get('notification/push/setting', 'GeneralSettingController@pushSetting')->name('push');
+    Route::post('notification/push/setting', 'GeneralSettingController@pushSettingUpdate');
+    Route::post('notification/push/setting/upload', 'GeneralSettingController@pushSettingUpload')->name('push.upload');
+    Route::get('notification/push/setting/download', 'GeneralSettingController@pushSettingDownload')->name('push.download');
+    // Extension
+    Route::controller('ExtensionController')->prefix('extensions')->name('extensions.')->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('edit/{id}', 'edit')->name('edit');
+        Route::post('update/{id}', 'update')->name('update');
+        Route::post('status/{id}', 'status')->name('status');
+    });
+    // Email Template
+    Route::post('email-template/update/{id}', 'EmailTemplateController@update')->name('email.template.update');
+    Route::post('email-template/setting', 'EmailTemplateController@emailSetting')->name('email.template.setting');
+    Route::post('email-template/status/{id}', 'EmailTemplateController@emailStatus')->name('email.template.status');
+    // SMS Template
+    Route::post('sms-template/update/{id}', 'SmsTemplateController@update')->name('sms.template.update');
+    Route::post('sms-template/status/{id}', 'SmsTemplateController@smsStatus')->name('sms.template.status');
 });

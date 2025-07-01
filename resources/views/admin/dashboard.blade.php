@@ -52,7 +52,7 @@
                 link="{{ route('admin.report.invest.history') }}?status={{ Status::INVEST_RUNNING }}"
                 title="Hợp đồng đang hoạt động"
                 icon="las la-chart-area"
-                value="{{ showAmount($invest['running_invests']) }}"
+                value="{{ showAmount($invest['running_invests'], 0, true, false, false) }}"
                 bg="12"
             />
         </div><!-- dashboard-w1 end -->
@@ -94,9 +94,9 @@
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="alert {{ $alertSummary['maturity_alerts'] > 0 ? 'alert-warning' : 'alert-info' }} d-flex align-items-center">
+                            <div class="alert alert-danger d-flex align-items-center">
                                 <div class="alert-icon me-3">
-                                    <i class="las {{ $alertSummary['maturity_alerts'] > 0 ? 'la-exclamation-triangle' : 'la-info-circle' }} fs-1"></i>
+                                    <i class="las la-exclamation-triangle fs-1"></i>
                                 </div>
                                 <div>
                                     <h5 class="mt-1">Đáo hạn hợp đồng ({{ $alertSummary['alert_period'] }} ngày)</h5>
@@ -196,6 +196,12 @@
                     <div class="chart-info text-center mb-3">
                         <p class="text-muted mb-0">Thống kê số lượng hợp đồng được ký kết theo từng tháng</p>
                     </div>
+                    <div class="date-filter-container mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="las la-calendar"></i></span>
+                            <input type="text" class="form-control date-range-picker" id="investCountDateRange" placeholder="Chọn khoảng thời gian">
+                        </div>
+                    </div>
                     <div id="investCountChart" class="chart-container"></div>
                 </div>
             </div>
@@ -215,6 +221,12 @@
                 <div class="card-body pt-0">
                     <div class="chart-info text-center mb-3">
                         <p class="text-muted mb-0">Thống kê tổng giá trị đầu tư theo từng tháng</p>
+                    </div>
+                    <div class="date-filter-container mb-3">
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="las la-calendar"></i></span>
+                            <input type="text" class="form-control date-range-picker" id="investAmountDateRange" placeholder="Chọn khoảng thời gian">
+                        </div>
                     </div>
                     <div id="investAmountChart" class="chart-container"></div>
                 </div>
@@ -340,11 +352,18 @@
         let investAmountChartInstance = null;
         
         // Function to load the contract count chart
-        function loadInvestCountChart() {
+        function loadInvestCountChart(startDate = null, endDate = null) {
             // Show loading state
             $('#investCountChart').html('<div class="text-center py-5"><i class="las la-spinner fa-spin fa-3x"></i><p class="mt-2">Đang tải dữ liệu...</p></div>');
             
-            $.get("{{ route('admin.invest.report.statistics') }}", function(response) {
+            let url = "{{ route('admin.invest.report.statistics') }}";
+            
+            // Add date range parameters if provided
+            if (startDate && endDate) {
+                url += `?start_date=${startDate.format('YYYY-MM-DD')}&end_date=${endDate.format('YYYY-MM-DD')}`;
+            }
+            
+            $.get(url, function(response) {
                 const investCountChartEl = document.getElementById('investCountChart');
                 // Clear the loading indicator
                 $('#investCountChart').html('');
@@ -352,6 +371,11 @@
                 if (investCountChartEl && response && response.months && response.invest_counts) {
                     // Format data to ensure integers for contract counts
                     const formattedCounts = response.invest_counts.map(count => Math.round(count));
+                    
+                    // Destroy previous chart instance if it exists
+                    if (investCountChartInstance) {
+                        investCountChartInstance.destroy();
+                    }
                     
                     investCountChartInstance = barChart(
                         investCountChartEl,
@@ -364,16 +388,28 @@
         }
         
         // Function to load the investment amount chart
-        function loadInvestAmountChart() {
+        function loadInvestAmountChart(startDate = null, endDate = null) {
             // Show loading state
             $('#investAmountChart').html('<div class="text-center py-5"><i class="las la-spinner fa-spin fa-3x"></i><p class="mt-2">Đang tải dữ liệu...</p></div>');
             
-            $.get("{{ route('admin.invest.report.statistics') }}", function(response) {
+            let url = "{{ route('admin.invest.report.statistics') }}";
+            
+            // Add date range parameters if provided
+            if (startDate && endDate) {
+                url += `?start_date=${startDate.format('YYYY-MM-DD')}&end_date=${endDate.format('YYYY-MM-DD')}`;
+            }
+            
+            $.get(url, function(response) {
                 const investAmountChartEl = document.getElementById('investAmountChart');
                 // Clear the loading indicator
                 $('#investAmountChart').html('');
                 
                 if (investAmountChartEl && response && response.months && response.invest_amounts) {
+                    // Destroy previous chart instance if it exists
+                    if (investAmountChartInstance) {
+                        investAmountChartInstance.destroy();
+                    }
+                    
                     investAmountChartInstance = barAmountChart(
                         investAmountChartEl,
                         '{{ __($general->cur_text ?? "") }}',
@@ -383,6 +419,21 @@
                 }
             });
         }
+        
+        // Initialize date range pickers
+        $('#investCountDateRange').daterangepicker(dateRangeOptions, function(start, end) {
+            changeDatePickerText('#investCountDateRange', start, end);
+            loadInvestCountChart(start, end);
+        });
+        
+        $('#investAmountDateRange').daterangepicker(dateRangeOptions, function(start, end) {
+            changeDatePickerText('#investAmountDateRange', start, end);
+            loadInvestAmountChart(start, end);
+        });
+        
+        // Set initial text for date range pickers
+        changeDatePickerText('#investCountDateRange', start, end);
+        changeDatePickerText('#investAmountDateRange', start, end);
         
         // Load charts initially
         loadInvestCountChart();
@@ -401,9 +452,21 @@
             }, 1000);
             
             if (chartId === 'investCountChart') {
-                loadInvestCountChart();
+                // Get current date range values if set
+                const dateRangePicker = $('#investCountDateRange').data('daterangepicker');
+                if (dateRangePicker) {
+                    loadInvestCountChart(dateRangePicker.startDate, dateRangePicker.endDate);
+                } else {
+                    loadInvestCountChart();
+                }
             } else if (chartId === 'investAmountChart') {
-                loadInvestAmountChart();
+                // Get current date range values if set
+                const dateRangePicker = $('#investAmountDateRange').data('daterangepicker');
+                if (dateRangePicker) {
+                    loadInvestAmountChart(dateRangePicker.startDate, dateRangePicker.endDate);
+                } else {
+                    loadInvestAmountChart();
+                }
             }
         });
     </script>
@@ -436,6 +499,25 @@
         /* Make sure the y-axis values are clearly visible */
         .apexcharts-yaxis text {
             font-weight: 600 !important;
+        }
+        
+        /* Date range picker styles */
+        .date-filter-container {
+            max-width: 300px;
+            margin: 0 auto;
+        }
+        
+        .date-range-picker {
+            cursor: pointer;
+            background-color: #fff !important;
+        }
+        
+        .daterangepicker {
+            z-index: 1000 !important;
+        }
+        
+        .daterangepicker .ranges li.active {
+            background-color: var(--primary);
         }
     </style>
 @endpush

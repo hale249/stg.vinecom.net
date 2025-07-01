@@ -17,7 +17,7 @@
                             $statusText = 'Chờ duyệt';
                         } elseif($status == \App\Constants\Status::INVEST_RUNNING) {
                             $statusClass = 'success';
-                            $statusText = 'Đang chạy';
+                            $statusText = 'Đang hoạt động';
                         } elseif($status == \App\Constants\Status::INVEST_COMPLETED) {
                             $statusClass = 'primary';
                             $statusText = 'Hoàn thành';
@@ -85,6 +85,12 @@
                                         <span>@lang('Trạng thái')</span>
                                         {!! $invest->statusBadge !!}
                                     </li>
+                                    @if($invest->referral_code)
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span>@lang('Người giới thiệu')</span>
+                                        <span class="fw-bold">{{ $invest->referrer->fullname ?? 'N/A' }}</span>
+                                    </li>
+                                    @endif
                                 </ul>
                             </div>
                         </div>

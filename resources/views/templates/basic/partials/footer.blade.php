@@ -11,7 +11,7 @@
             <div class="row gy-4 gy-sm-5 gy-lg-0 justify-content-md-between justify-content-lg-start">
                 <div class="col-sm-6 col-lg-3 order-1">
                     <div class="footer-item">
-                        <a class="footer-item__logo" href="{{ route('home') }}">
+                        <a class="footer-item__logo" href="{{ route('projects') }}">
                             <img src="{{ siteLogo() }}" alt="@lang('Site Logo')">
                         </a>
                         <p class="footer-item__desc">{{ __(@$contactInfo->data_values->short_details) }}</p>
@@ -22,7 +22,7 @@
                         <h6 class="footer-item__title">@lang('Quick Links')</h6>
                         <ul class="footer-menu">
                             <li class="footer-menu__item">
-                                <a class="footer-menu__link" href="{{ route('home') }}">@lang('Home')</a>
+                                <a class="footer-menu__link" href="{{ route('projects') }}">@lang('Projects')</a>
                             </li>
 
                             @foreach ($pages as $page)
@@ -31,10 +31,6 @@
                                         href="{{ route('pages', [$page->slug]) }}">{{ __($page->name) }}</a>
                                 </li>
                             @endforeach
-
-                            <li class="footer-menu__item">
-                                <a class="footer-menu__link" href="{{ route('blogs') }}">@lang('Blogs')</a>
-                            </li>
                             <li class="footer-menu__item">
                                 <a class="footer-menu__link" href="{{ route('contact') }}">@lang('Contact')</a>
                             </li>
@@ -120,7 +116,7 @@
     <div class="footer-bottom">
         <div class="container">
             <p class="footer-bottom__text text-center">
-                @lang('Copyright') <a href="{{ route('home') }}" class="text--base"> {{ gs('site_name') }}</a>
+                @lang('Copyright') <a href="{{ route('projects') }}" class="text--base"> {{ gs('site_name') }}</a>
                 &copy; @php echo date('Y') @endphp @lang('All rights reserved.')
             </p>
         </div>
