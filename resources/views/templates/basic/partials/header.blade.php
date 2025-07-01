@@ -32,12 +32,19 @@
                         @php
                             $languages = App\Models\Language::all();
                             $selectedLang = $languages->where('code', session('lang'))->first();
+                            // Set default language if selectedLang is null
+                            if (!$selectedLang && count($languages) > 0) {
+                                $selectedLang = $languages->first();
+                            } elseif (!$selectedLang) {
+                                // Create a basic object with default values if no languages exist
+                                $selectedLang = (object) ['image' => 'default.png', 'name' => 'English', 'code' => 'en'];
+                            }
                         @endphp
                         <div class="dropdown dropdown--lang">
                             <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown"
                                     aria-expanded="false">
                                 <img class="dropdown-flag"
-                                     src="{{ getImage(getFilePath('language') . '/' . $selectedLang->image, getFileSize('language')) }}"
+                                     src="{{ getImage(getFilePath('language') . '/' . @$selectedLang->image, getFileSize('language')) }}"
                                      alt="@lang('Language Flag')">
                                 <span>{{ __($selectedLang->name) }}</span>
                             </button>
