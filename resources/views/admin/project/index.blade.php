@@ -113,6 +113,27 @@
                                                         <i class="la la-cog"></i> @lang('SEO Setting')
                                                     </a>
 
+                                                    <!-- Fake Investment Dropdown -->
+                                                    <div class="dropdown-item">
+                                                        <button class="btn btn-sm btn-outline--info w-100 mb-1" data-bs-toggle="modal" data-bs-target="#fakeInvestmentModal{{ $project->id }}">
+                                                            <i class="las la-chart-line"></i> @lang('Fake Tiến độ đầu tư')
+                                                        </button>
+                                                        
+                                                        @if(Session::has('using_fake_data_' . $project->id))
+                                                            <form action="{{ route('admin.project.fake.reset', $project->id) }}" method="POST" class="resetForm">
+                                                                @csrf
+                                                                <button type="submit" class="btn btn-sm btn-outline--danger w-100">
+                                                                    <i class="las la-undo-alt"></i> @lang('Reset về số thực')
+                                                                </button>
+                                                            </form>
+                                                            <div class="mt-1 text-center">
+                                                                <span class="badge badge--warning">
+                                                                    <i class="las la-exclamation-triangle"></i> @lang('Dữ liệu giả')
+                                                                </span>
+                                                            </div>
+                                                        @endif
+                                                    </div>
+
                                                     @if ($project->status != Status::PROJECT_END)
                                                         <a class="dropdown-item text--danger cancelOrderModal"
                                                             data-url="{{ route('admin.project.end', $project->id) }}">
@@ -182,6 +203,52 @@
         </div>
     </div>
     <x-confirmation-modal />
+    
+    <!-- Fake Investment Modals -->
+    @foreach($projects as $project)
+        <div class="modal fade" id="fakeInvestmentModal{{ $project->id }}" tabindex="-1" role="dialog" aria-labelledby="fakeInvestmentModalLabel{{ $project->id }}" aria-hidden="true">
+            <div class="modal-dialog" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="fakeInvestmentModalLabel{{ $project->id }}">
+                            @lang('Fake Tiến độ đầu tư') - {{ $project->title }}
+                        </h5>
+                        <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                            <i class="las la-times"></i>
+                        </button>
+                    </div>
+                    <form action="{{ route('admin.project.fake.investment', $project->id) }}" method="POST">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="form-group">
+                                <label>@lang('Tiến độ hiện tại')</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" value="{{ $project->investment_progress }}%" readonly>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label>@lang('Tăng tiến độ thêm (%)')</label>
+                                <div class="input-group">
+                                    <input type="number" name="percentage" class="form-control" min="1" max="100" value="10" required>
+                                    <span class="input-group-text">%</span>
+                                </div>
+                                <small class="text-muted">@lang('Nhập phần trăm muốn tăng thêm (1-100)')</small>
+                            </div>
+                            
+                            <div class="progress mt-3">
+                                <div class="progress-bar bg-success" role="progressbar" style="width: {{ $project->investment_progress }}%" aria-valuenow="{{ $project->investment_progress }}" aria-valuemin="0" aria-valuemax="100">{{ $project->investment_progress }}%</div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn--dark" data-bs-dismiss="modal">@lang('Hủy')</button>
+                            <button type="submit" class="btn btn--primary">@lang('Áp dụng')</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    @endforeach
 @endsection
 
 @push('breadcrumb-plugins')
@@ -226,6 +293,39 @@
     <script>
         (function($) {
             "use strict";
+            
+            // Handle fake investment percentage input
+            $('input[name="percentage"]').on('input', function() {
+                const modal = $(this).closest('.modal');
+                const currentProgress = parseFloat(modal.find('.progress-bar').attr('aria-valuenow'));
+                const percentage = parseFloat($(this).val()) || 0;
+                
+                // Calculate new progress (capped at 100%)
+                const newProgress = Math.min(100, currentProgress + percentage);
+                
+                // Update progress bar
+                const progressBar = modal.find('.progress-bar');
+                progressBar.css('width', newProgress + '%');
+                progressBar.attr('aria-valuenow', newProgress);
+                progressBar.text(newProgress.toFixed(2) + '%');
+                
+                // Change color based on progress
+                if (newProgress >= 100) {
+                    progressBar.removeClass('bg-success bg-warning').addClass('bg-danger');
+                } else if (newProgress >= 75) {
+                    progressBar.removeClass('bg-success bg-danger').addClass('bg-warning');
+                } else {
+                    progressBar.removeClass('bg-warning bg-danger').addClass('bg-success');
+                }
+            });
+            
+            // Add animation to reset buttons
+            $('.resetForm').on('submit', function(e) {
+                const btn = $(this).find('button[type="submit"]');
+                btn.html('<i class="la la-spinner fa-spin"></i> Đang reset...');
+                btn.prop('disabled', true);
+            });
+            
             $('.cancelOrderModal').on('click', function() {
                 var modal = $('#orderStatusModal');
                 var url = $(this).data('url');

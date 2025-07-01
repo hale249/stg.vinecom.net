@@ -83,32 +83,75 @@ class ReportController extends Controller
     {
         $pageTitle = 'Doanh số theo hợp đồng';
         
-        // Get contracts with their revenue data
+        // First handle date range if present
+        $dateFilterApplied = false;
+        $startDate = null;
+        $endDate = null;
+        
+        if ($request->date) {
+            try {
+                $date = explode('-', $request->date);
+                $startDate = trim($date[0]);
+                $endDate = trim(@$date[1] ?? $startDate);
+                
+                // Convert to Carbon instances with proper parsing
+                $startDate = \Carbon\Carbon::parse($startDate)->startOfDay();
+                $endDate = \Carbon\Carbon::parse($endDate)->endOfDay();
+                $dateFilterApplied = true;
+            } catch (\Exception $e) {
+                // If date parsing fails, don't apply the filter
+                $notify[] = ['error', 'Invalid date format: ' . $e->getMessage()];
+                return back()->withNotify($notify);
+            }
+        }
+        
+        // Bypass the searchable mixin's dateFilter completely for this controller method
+        
+        // Start building our base query
         $contracts = Invest::with('project', 'user')
-            ->select('id', 'invest_no', 'user_id', 'project_id', 'total_price', 'roi_amount', 'quantity', 'unit_price', 'total_earning', 'status', 'created_at')
-            ->searchable(['project:title', 'user:username,firstname,lastname', 'invest_no']);
-            
-        // Apply filters if provided
+            ->select('id', 'invest_no', 'user_id', 'project_id', 'total_price', 'roi_amount', 'quantity', 'unit_price', 'total_earning', 'status', 'created_at');
+        
+        // Apply search filter for text search only
+        if ($request->search) {
+            $search = "%{$request->search}%";
+            $contracts->where(function($query) use ($search) {
+                $query->where('invest_no', 'like', $search)
+                    ->orWhereHas('project', function($q) use ($search) {
+                        $q->where('title', 'like', $search);
+                    })
+                    ->orWhereHas('user', function($q) use ($search) {
+                        $q->where('username', 'like', $search)
+                            ->orWhere('firstname', 'like', $search)
+                            ->orWhere('lastname', 'like', $search);
+                    });
+            });
+        }
+        
+        // Apply status filter if provided, otherwise show all
         if ($request->has('status') && $request->status !== '') {
             $contracts = $contracts->where('status', $request->status);
         }
         
-        if ($request->date) {
-            $date = explode('-', $request->date);
-            $startDate = trim($date[0]);
-            $endDate = trim($date[1]);
+        // Apply date filter manually 
+        if ($dateFilterApplied) {
+            // Log the date range for debugging
+            \Illuminate\Support\Facades\Log::info('Date filtering applied', [
+                'start_date' => $startDate->format('Y-m-d H:i:s'),
+                'end_date' => $endDate->format('Y-m-d H:i:s')
+            ]);
             
-            $contracts = $contracts->whereDate('created_at', '>=', $startDate)
-                ->whereDate('created_at', '<=', $endDate);
+            $contracts = $contracts->where(function($query) use ($startDate, $endDate) {
+                $query->whereDate('created_at', '>=', $startDate)
+                      ->whereDate('created_at', '<=', $endDate);
+            });
         }
         
-        // Get totals for summary - only count active contracts (status=2)
-        $activeContracts = clone $contracts;
-        $activeContracts = $activeContracts->where('status', 2); // Status 2 = INVEST_RUNNING
+        // Get totals for summary based on the current filters
+        $filteredContracts = clone $contracts;
         
-        $totalContractCount = $activeContracts->count();
-        $totalContractAmount = $activeContracts->sum('total_price');
-        $totalEarnings = $activeContracts->sum('total_earning');
+        $totalContractCount = $filteredContracts->count();
+        $totalContractAmount = $filteredContracts->sum('total_price');
+        $totalEarnings = $filteredContracts->sum('total_earning');
         
         // Check if export to Excel is requested
         if ($request->export == 'excel') {
@@ -133,8 +176,15 @@ class ReportController extends Controller
             }
         }
         
+        // For debugging: Log the SQL query being executed
+        \Illuminate\Support\Facades\DB::enableQueryLog();
+        
         // Paginate results - show all contracts in the table based on filters
         $contracts = $contracts->orderBy('id', 'desc')->paginate(getPaginate());
+        
+        // Log the executed queries
+        $queries = \Illuminate\Support\Facades\DB::getQueryLog();
+        \Illuminate\Support\Facades\Log::info('Executed queries', ['queries' => $queries]);
         
         // Get general settings
         $general = gs();

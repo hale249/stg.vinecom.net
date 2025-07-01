@@ -137,6 +137,22 @@
                                 <h4>Tiến độ đầu tư</h4>
                                 <span class="progress-percentage">{{ $project->investment_progress }}%</span>
                             </div>
+                            
+                            <!-- Flash Messages -->
+                            @if(session('success'))
+                                <div class="alert alert-success alert-dismissible fade show mt-2 mb-3" role="alert">
+                                    <i class="las la-check-circle"></i> {{ session('success') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            @endif
+                            
+                            @if(session('error'))
+                                <div class="alert alert-danger alert-dismissible fade show mt-2 mb-3" role="alert">
+                                    <i class="las la-exclamation-circle"></i> {{ session('error') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            @endif
+                            
                             <div class="progress-bar-container">
                                 <div class="progress-bar" style="width: {{ $project->investment_progress }}%"></div>
                             </div>
@@ -717,7 +733,7 @@
         height: 100%;
         background: linear-gradient(90deg, #3498db, #2980b9);
         border-radius: 6px;
-        transition: width 0.3s ease;
+        transition: width 1s ease-in-out;
     }
 
     .progress-stats {
@@ -1539,7 +1555,7 @@
         }
     });
     </script>
-    
+
     @include('templates.basic.projects.buy-modal')
 @endsection
 

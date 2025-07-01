@@ -106,6 +106,12 @@ Route::middleware('admin')->group(function () {
         Route::get('lifetime-return', 'lifetime')->name('lifetime');
         Route::get('repeat-return', 'repeat')->name('repeat');
     });
+    
+    // Project Fake Investment
+    Route::controller('ProjectFakeController')->name('project.fake.')->prefix('project/fake')->group(function () {
+        Route::post('investment/{id}', 'fakeInvestment')->name('investment');
+        Route::post('reset/{id}', 'resetInvestment')->name('reset');
+    });
 
     // Project Documents Management
     Route::controller('ProjectDocumentController')->name('project.documents.')->prefix('project/{projectId}/documents')->group(function () {
