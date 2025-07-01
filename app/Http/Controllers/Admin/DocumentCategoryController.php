@@ -13,7 +13,7 @@ class DocumentCategoryController extends Controller
      */
     public function index()
     {
-        $pageTitle = 'Danh mục tài liệu học tập';
+        $pageTitle = 'Tài liệu học tập';
         $categories = DocumentCategory::latest()->paginate(20);
         
         return view('admin.document_categories.index', compact('pageTitle', 'categories'));

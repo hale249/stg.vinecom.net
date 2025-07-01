@@ -22,14 +22,18 @@ class ContractDocumentController extends Controller
         $general = gs();
         
         $invest = Invest::where('id', $investId)
-            ->where('staff_id', $user->id)
+            ->where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
             ->with(['project', 'user', 'documents'])
             ->firstOrFail();
         
-        // Group documents by type
-        $signedContracts = $invest->documents()->byType('signed_contract')->get();
-        $transferBills = $invest->documents()->byType('transfer_bill')->get();
-        $otherDocuments = $invest->documents()->byType('other')->get();
+        // Group documents by type - with null safety
+        $documents = $invest->documents ?? collect();
+        $signedContracts = $documents->where('type', 'signed_contract')->values();
+        $transferBills = $documents->where('type', 'transfer_bill')->values();
+        $otherDocuments = $documents->where('type', 'other')->values();
         
         // Get notifications for topnav
         $pending_notifications = $user->notifications()->where('user_read', 0)->count();
@@ -61,7 +65,10 @@ class ContractDocumentController extends Controller
         
         $user = Auth::user();
         $invest = Invest::where('id', $investId)
-            ->where('staff_id', $user->id)
+            ->where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
             ->firstOrFail();
         
         // Upload file
@@ -94,7 +101,10 @@ class ContractDocumentController extends Controller
     {
         $user = Auth::user();
         $invest = Invest::where('id', $investId)
-            ->where('staff_id', $user->id)
+            ->where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
             ->firstOrFail();
             
         $document = ContractDocument::where('invest_id', $investId)
@@ -115,7 +125,10 @@ class ContractDocumentController extends Controller
     {
         $user = Auth::user();
         $invest = Invest::where('id', $investId)
-            ->where('staff_id', $user->id)
+            ->where(function($query) use ($user) {
+                $query->where('staff_id', $user->id)
+                      ->orWhere('referral_code', $user->referral_code);
+            })
             ->firstOrFail();
             
         $document = ContractDocument::where('invest_id', $investId)

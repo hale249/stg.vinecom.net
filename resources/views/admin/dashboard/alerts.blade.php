@@ -202,7 +202,7 @@
                                                             <span class="badge bg-success">{{ $contract['days_remaining'] }} ngày</span>
                                                         @endif
                                                     </td>
-                                                    <td>{{ showAmount($contract['amount']) }} VND</td>
+                                                    <td>{{ showAmount($contract['amount']) }}</td>
                                                     <td>
                                                         <a href="{{ route('admin.report.invest.history') }}?search={{ $contract['invest_no'] }}" class="btn btn-sm btn-outline--primary">
                                                             <i class="las la-desktop"></i> Chi tiết
@@ -245,7 +245,7 @@
                                                             <span class="badge bg-success">{{ $contract['days_remaining'] }} ngày</span>
                                                         @endif
                                                     </td>
-                                                    <td>{{ showAmount($contract['amount']) }} VND</td>
+                                                    <td>{{ showAmount($contract['amount']) }}</td>
                                                     <td>
                                                         <a href="{{ route('admin.report.invest.history') }}?search={{ $contract['invest_no'] }}" class="btn btn-sm btn-outline--primary">
                                                             <i class="las la-desktop"></i> Chi tiết

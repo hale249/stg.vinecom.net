@@ -27,7 +27,7 @@
                             <strong>@lang('User'):</strong> {{ __($invest->user->fullname) }} ({{ $invest->user->username }})
                         </div>
                         <div class="mb-3">
-                            <strong>@lang('Amount'):</strong> {{ showAmount($invest->total_price) }} {{ __($general->cur_text) }}
+                            <strong>@lang('Amount'):</strong> {{ showAmount($invest->total_price) }}
                         </div>
                         <div>
                             <strong>@lang('Date'):</strong> {{ showDateTime($invest->created_at) }}

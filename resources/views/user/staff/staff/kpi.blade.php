@@ -40,6 +40,59 @@
             </div>
         </div>
     </div>
+    
+    <!-- KPI Policy Documents Section -->
+    @if(isset($kpiDocuments) && $kpiDocuments->count() > 0)
+    <div class="col-12 mb-4">
+        <div class="card shadow border-0 animate__animated animate__fadeInUp">
+            <div class="card-header bg-white border-bottom-0 d-flex flex-wrap gap-2 align-items-center justify-content-between">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="las la-file-alt text-primary"></i>
+                    <h5 class="mb-0">@lang('Tài liệu chính sách KPI')</h5>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    @foreach($kpiDocuments as $document)
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border h-100">
+                            <div class="card-body">
+                                <div class="d-flex align-items-center mb-3">
+                                    @if($document->isPDF())
+                                        <i class="far fa-file-pdf text-danger fa-2x me-3"></i>
+                                    @elseif($document->isImage())
+                                        <i class="far fa-file-image text-primary fa-2x me-3"></i>
+                                    @else
+                                        <i class="far fa-file-alt text-info fa-2x me-3"></i>
+                                    @endif
+                                    <div>
+                                        <h6 class="mb-1">{{ $document->title }}</h6>
+                                        <div class="text-muted small">{{ $document->file_size_formatted }}</div>
+                                    </div>
+                                </div>
+                                @if($document->description)
+                                <p class="text-muted small mb-3">{{ Str::limit($document->description, 80) }}</p>
+                                @endif
+                                <div class="d-flex justify-content-between align-items-center mt-auto">
+                                    <a href="{{ route('user.staff.staff.documents.download', $document->id) }}" class="btn btn-sm btn-primary">
+                                        <i class="las la-download"></i> @lang('Tải xuống')
+                                    </a>
+                                    @if($document->isViewable())
+                                    <a href="{{ route('user.staff.staff.documents.view', $document->id) }}" class="btn btn-sm btn-outline-secondary" target="_blank">
+                                        <i class="las la-eye"></i> @lang('Xem')
+                                    </a>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+    
     <div class="col-12">
         <div class="card shadow border-0 animate__animated animate__fadeInUp">
             <div class="card-header bg-white border-bottom-0 d-flex flex-wrap gap-2 align-items-center justify-content-between">

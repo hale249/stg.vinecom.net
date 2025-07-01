@@ -63,19 +63,31 @@
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Số tiền đầu tư')</span>
-                                        <span class="fw-bold">{{ showAmount($invest->total_price) }} {{ __($general->cur_text) }}</span>
+                                        <span class="fw-bold">{{ showAmount($invest->total_price) }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Lãi suất')</span>
                                         <span class="fw-bold">{{ $invest->display_roi_percentage }}%</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span>@lang('Tiền lãi mỗi kỳ')</span>
+                                        <span class="fw-bold">{{ showAmount(($invest->roi_amount ?? ($invest->total_price * ($invest->roi_percentage/100))) / 12) }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Thời hạn')</span>
-                                        <span class="fw-bold">{{ $invest->period }} @lang('tháng')</span>
+                                        <span class="fw-bold">{{ $invest->project_duration > 0 ? $invest->project_duration : $invest->period }} @lang('tháng')</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Ngày bắt đầu')</span>
                                         <span class="fw-bold">{{ showDateTime($invest->created_at) }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span>@lang('Thanh toán lãi tiếp theo')</span>
+                                        <span class="fw-bold">{{ $invest->next_time ? showDateTime($invest->next_time) : 'Chưa xác định' }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between px-0">
+                                        <span>@lang('Thanh toán lãi gần nhất')</span>
+                                        <span class="fw-bold">{{ $invest->last_time ? showDateTime($invest->last_time) : 'Chưa có' }}</span>
                                     </li>
                                     <li class="list-group-item d-flex justify-content-between px-0">
                                         <span>@lang('Ngày đáo hạn')</span>
@@ -192,6 +204,87 @@
                     <div class="col-md-12">
                         <div class="card border">
                             <div class="card-header bg-light">
+                                <h5 class="mb-0">@lang('Thông tin lãi suất')</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    @php
+                                        // Calculate Total Earnings and Profit
+                                        $quantity = $invest->quantity > 0 ? $invest->quantity : 1;
+                                        $roiAmount = $invest->roi_amount;
+                                        $roiPercentage = $invest->display_roi_percentage > 0 ? $invest->display_roi_percentage : 0;
+                                        $capitalBack = $invest->capital_back ?? 1;
+                                        $returnType = $invest->project->return_type ?? 2;
+                                        $projectDuration = $invest->project_duration > 0 ? $invest->project_duration : $invest->period;
+                                        $repeatTimes = $invest->repeat_times ?? $projectDuration;
+                                        $timeName = 'Tháng';
+                                        
+                                        $totalEarnings = 0;
+                                        // Calculate annual ROI
+                                        $annualROI = $invest->total_price * ($roiPercentage/100);
+                                        // Calculate monthly payment by dividing annual amount by 12
+                                        $monthlyPayAmount = $annualROI / 12;
+                                        $totalEarnings = $annualROI * $repeatTimes * $quantity;
+                                        
+                                        // Profit Earning (excluding capital back)
+                                        $profitEarning = $totalEarnings;
+                                        
+                                        // Total Earning (including capital back if applicable)
+                                        $totalEarning = $profitEarning;
+                                        if ($capitalBack) {
+                                            $totalEarning += $invest->total_price;
+                                        }
+                                    @endphp
+                                    
+                                    <div class="col-md-6">
+                                        <div class="list-group list-group-flush">
+                                            <div class="list-group-item d-flex justify-content-between px-0">
+                                                <span>@lang('Lãi suất hàng tháng')</span>
+                                                <span class="fw-bold text-primary">{{ $roiPercentage }}%</span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between px-0">
+                                                <span>@lang('Tiền lãi mỗi tháng')</span>
+                                                <span class="fw-bold text-primary">{{ showAmount(($invest->total_price * ($roiPercentage/100)) / 12) }}</span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between px-0">
+                                                <span>@lang('Thời hạn đầu tư')</span>
+                                                <span class="fw-bold">{{ $projectDuration }} {{ __($timeName) }}</span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between px-0">
+                                                <span>@lang('Số kỳ thanh toán')</span>
+                                                <span class="fw-bold">{{ $repeatTimes }} @lang('kỳ')</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="col-md-6">
+                                        <div class="list-group list-group-flush">
+                                            <div class="list-group-item d-flex justify-content-between px-0">
+                                                <span>@lang('Tổng tiền đầu tư')</span>
+                                                <span class="fw-bold">{{ showAmount($invest->total_price) }}</span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between px-0">
+                                                <span>@lang('Tổng tiền lãi')</span>
+                                                <span class="fw-bold text-success">{{ showAmount($profitEarning) }}</span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between px-0">
+                                                <span>@lang('Hoàn trả gốc')</span>
+                                                <span class="badge {{ $capitalBack ? 'badge--success' : 'badge--warning' }}">{{ $capitalBack ? __('Có') : __('Không') }}</span>
+                                            </div>
+                                            <div class="list-group-item d-flex justify-content-between px-0">
+                                                <span>@lang('Tổng nhận về')</span>
+                                                <span class="fw-bold text-success">{{ showAmount($totalEarning) }}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-12">
+                        <div class="card border">
+                            <div class="card-header bg-light">
                                 <h5 class="mb-0">@lang('Lịch sử thanh toán lãi')</h5>
                             </div>
                             <div class="card-body p-0">
@@ -205,10 +298,10 @@
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            @forelse($invest->interests as $interest)
+                                            @forelse($invest->interests ?? collect() as $interest)
                                             <tr>
                                                 <td>{{ showDateTime($interest->created_at) }}</td>
-                                                <td>{{ showAmount($interest->amount) }} {{ __($general->cur_text) }}</td>
+                                                <td>{{ showAmount($interest->amount) }}</td>
                                                 <td>
                                                     @if($interest->status == 1)
                                                         <span class="badge badge--success">@lang('Đã thanh toán')</span>

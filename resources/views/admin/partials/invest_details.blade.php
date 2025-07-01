@@ -14,7 +14,7 @@
                     <!-- Total Invest -->
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <span><i class="las la-money-bill-wave text-primary me-2"></i>@lang('Tổng tiền đầu tư')</span>
-                        <span class="fw-bold">{{ showAmount($invest->total_price) }} VND</span>
+                        <span class="fw-bold">{{ showAmount($invest->total_price) }}</span>
                     </li>
                     <!-- Payment Type -->
                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -179,12 +179,12 @@
                         <!-- Price -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="las la-tag text-primary me-2"></i>@lang('Giá')</span>
-                            <span class="fw-bold">{{ showAmount($invest->unit_price > 0 ? $invest->unit_price : $invest->total_price) }} VND</span>
+                            <span class="fw-bold">{{ showAmount($invest->unit_price > 0 ? $invest->unit_price : $invest->total_price) }}</span>
                         </li>
                         <!-- Subtotal -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="las la-money-bill text-primary me-2"></i>@lang('Tổng cộng')</span>
-                            <span class="fw-bold">{{ showAmount($invest->total_price) }} VND</span>
+                            <span class="fw-bold">{{ showAmount($invest->total_price) }}</span>
                         </li>
                         <!-- Project Type -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -294,12 +294,12 @@
                         <!-- ROI Received -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="las la-coins text-primary me-2"></i>@lang('ROI đã nhận')</span>
-                            <span class="fw-bold">{{ showAmount($actualROI) }} VND</span>
+                            <span class="fw-bold">{{ showAmount($actualROI) }}</span>
                         </li>
                         <!-- Remaining ROI -->
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="las la-hourglass-half text-primary me-2"></i>@lang('ROI còn lại')</span>
-                            <span class="fw-bold">{{ showAmount($remainingROI) }} VND</span>
+                            <span class="fw-bold">{{ showAmount($remainingROI) }}</span>
                         </li>
                         
                         <!-- Progress bar -->
@@ -318,7 +318,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="las la-chart-pie text-primary me-2"></i>@lang('Lợi nhuận thu được')</span>
                             @if ($invest->project->return_type != Status::LIFETIME)
-                                <span class="fw-bold">{{ showAmount($profitEarning) }} VND</span>
+                                <span class="fw-bold">{{ showAmount($profitEarning) }}</span>
                             @else
                                 <span class="fw-bold">{{ showAmount($earningROIAmount) }} /
                                     {{ __($timeName) }}</span>
@@ -328,7 +328,7 @@
                         @if ($invest->project->return_type != Status::LIFETIME)
                             <li class="list-group-item d-flex justify-content-between align-items-center">
                                 <span><i class="las la-calculator text-primary me-2"></i>@lang('Tổng thu nhập')</span>
-                                <span class="fw-bold">{{ showAmount($totalEarning) }} VND</span>
+                                <span class="fw-bold">{{ showAmount($totalEarning) }}</span>
                             </li>
                         @endif
                         <!-- Capital Back -->
@@ -373,7 +373,7 @@
                     <ul class="list-group list-group-flush">
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="las la-money-bill-wave text-primary me-2"></i>@lang('Số tiền thanh toán')</span>
-                            <span class="fw-bold">{{ showAmount($invest->deposit->amount) }} VND</span>
+                            <span class="fw-bold">{{ showAmount($invest->deposit->amount) }}</span>
                         </li>
                         <li class="list-group-item d-flex justify-content-between align-items-center">
                             <span><i class="las la-calendar-check text-primary me-2"></i>@lang('Ngày thanh toán')</span>
