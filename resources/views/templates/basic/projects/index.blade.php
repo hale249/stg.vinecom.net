@@ -136,9 +136,9 @@
 
                 <div class="col-lg-8 col-xl-9" id="singleProject">
                     @if (session('viewType') == 'list')
-                        @include($activeTemplate . '.projects.list-project', ['projects' => $projects])
+                        @include('templates.basic.projects.list-project', ['projects' => $projects])
                     @else
-                        @include($activeTemplate . '.projects.project', ['projects' => $projects])
+                        @include('templates.basic.projects.project', ['projects' => $projects])
                     @endif
                 </div>
             </div>

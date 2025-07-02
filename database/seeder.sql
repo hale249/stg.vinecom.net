@@ -1,3 +1,5 @@
+INSERT INTO `admins` (`id`, `name`, `email`, `username`, `email_verified_at`, `image`, `password`, `remember_token`, `created_at`, `updated_at`) VALUES
+(1, 'Super Admins', 'admin@site.com', 'admin', NULL, '66fd5b32600f51727879986.png', '$2y$12$vc.c.pNxefhOjFzLFNMEW.16i/h1vQCigtZeTLDY12QlIlS0KTWbm', NULL, NULL, '2024-10-02 08:39:46');
 INSERT INTO `cron_jobs` (`id`, `name`, `alias`, `action`, `url`, `cron_schedule_id`, `next_run`, `last_run`, `is_running`, `is_default`, `created_at`, `updated_at`) VALUES
 (5, 'Interest Cron', 'interest_cron', '[\"App\\\\Http\\\\Controllers\\\\CronController\", \"interest\"]', NULL, 1, '2024-10-02 12:03:15', '2024-10-02 11:03:15', 1, 1, '2024-09-09 10:01:42', '2024-10-02 05:03:15');
 INSERT INTO `cron_schedules` (`id`, `name`, `interval`, `status`, `created_at`, `updated_at`) VALUES
