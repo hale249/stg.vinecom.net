@@ -33,9 +33,80 @@
 
 @push('script')
     <script>
+        // Global money formatting functions
+        window.formatMoney = function(amount) {
+            if (!amount) return '';
+            let num = amount.toString().replace(/[^\d]/g, '');
+            num = parseFloat(num) || 0;
+            return num.toLocaleString('vi-VN', {
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0
+            });
+        };
+
+        window.unformatMoney = function(formattedAmount) {
+            if (!formattedAmount) return 0;
+            return parseFloat(formattedAmount.toString().replace(/\./g, '')) || 0;
+        };
+    </script>
+    
+    <script>
         (function($) {
             "use strict";
+            
             $(document).ready(function() {
+                // Format money inputs on page load
+                $('.money-input').each(function() {
+                    let value = $(this).val();
+                    if (value) {
+                        $(this).val(formatMoney(value));
+                    }
+                });
+
+                // Simple money input handling - format on blur, allow typing
+                $('.money-input').on('input', function(e) {
+                    let input = this;
+                    let value = input.value;
+                    
+                    // Only allow numeric characters and dots
+                    let cleanValue = value.replace(/[^\d.]/g, '');
+                    
+                    // Prevent multiple consecutive dots
+                    cleanValue = cleanValue.replace(/\.+/g, '.');
+                    
+                    // Update value if different
+                    if (value !== cleanValue) {
+                        input.value = cleanValue;
+                    }
+                });
+
+                // Format on blur (when user leaves the input)
+                $('.money-input').on('blur', function() {
+                    let input = this;
+                    let value = input.value;
+                    let formatted = formatMoney(value);
+                    input.value = formatted;
+                });
+
+                // Handle paste events
+                $('.money-input').on('paste', function(e) {
+                    let input = this;
+                    setTimeout(() => {
+                        let value = input.value;
+                        let numericValue = value.replace(/[^\d]/g, '');
+                        let formatted = formatMoney(numericValue);
+                        input.value = formatted;
+                    }, 10);
+                });
+
+                // Before form submission, convert formatted values back to numbers
+                $('form').on('submit', function() {
+                    $('.money-input').each(function() {
+                        let numericValue = unformatMoney($(this).val());
+                        $(this).val(numericValue);
+                    });
+                });
+
                 // Date ranger Start here
                 let maxYear = new Date().getFullYear() + 10;
 
@@ -105,7 +176,7 @@
                 }
 
                 function calculateShareAmount() {
-                    let goal = $('.goal').val().trim();
+                    let goal = unformatMoney($('.target_amount').val().trim());
                     let shareCount = $('.share_count').val().trim();
                     let invalidInputPattern = /^-|\b0[0-9]/;
 
@@ -121,20 +192,20 @@
                         if (shareAmount <= 0.00) {
                             $('.share_amount').val('');
                         } else {
-                            $('.share_amount').val(shareAmount.toFixed(2));
+                            $('.share_amount').val(formatMoney(shareAmount));
                         }
                     } else {
                         $('.share_amount').val('');
                     }
                 }
 
-                $('.share_count, .goal').on('input', function(e) {
+                $('.share_count, .target_amount').on('input', function(e) {
                     calculateShareAmount();
                 });
 
                 function calculateShareCount() {
-                    let goal = $('.goal').val().trim();
-                    let shareAmount = $('.share_amount').val().trim();
+                    let goal = unformatMoney($('.target_amount').val().trim());
+                    let shareAmount = unformatMoney($('.share_amount').val().trim());
                     let invalidInputPattern = /^-|\b0[0-9]/;
 
                     if (clearIfGoalEmpty(goal)) {
@@ -161,12 +232,12 @@
                     }
                 }
 
-                $('.goal, .share_amount').on('input', function(e) {
+                $('.target_amount, .share_amount').on('input', function(e) {
                     calculateShareCount();
                 });
 
                 function calculateRoiAmount() {
-                    let goal = $('.share_amount').val().trim();
+                    let goal = unformatMoney($('.share_amount').val().trim());
                     let roi = $('.roi_percentage').val().trim();
                     let invalidInputPattern = /^-|\b0[0-9]/;
 
@@ -187,7 +258,7 @@
                             notify('error', 'ROI amount must be greater than 0');
                             $('.roi_amount').val('');
                         } else {
-                            $('.roi_amount').val(roiAmount.toFixed(2));
+                            $('.roi_amount').val(formatMoney(roiAmount));
                         }
                     } else {
                         $('.roi_amount').val('');
@@ -200,8 +271,8 @@
                 });
 
                 function calculateRoiPercentage() {
-                    let goal = $('.share_amount').val().trim();
-                    let roiAmount = $('.roi_amount').val().trim();
+                    let goal = unformatMoney($('.share_amount').val().trim());
+                    let roiAmount = unformatMoney($('.roi_amount').val().trim());
                     let invalidInputPattern = /^-|\b0[0-9]/;
 
                     if (clearIfGoalEmpty(goal)) {
@@ -274,5 +345,177 @@
                 });
             });
         })(jQuery);
+
+        // Project calculation script
+        document.addEventListener("DOMContentLoaded", function() {
+            // Debug: Ensure share_count input is visible
+            const shareCountInput = document.getElementById('share_count');
+            if (shareCountInput) {
+                console.log('Share count input found:', shareCountInput);
+                shareCountInput.style.display = 'block';
+                shareCountInput.style.visibility = 'visible';
+                shareCountInput.style.opacity = '1';
+            } else {
+                console.error('Share count input not found!');
+            }
+
+            // Initialize tooltips
+            var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+            var tooltipList = tooltipTriggerList.map(function(tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl)
+            });
+
+            // Get form elements
+            const targetAmountInput = document.getElementById('target_amount');
+            const shareAmountInput = document.getElementById('share_amount');
+            const calculateBtn = document.getElementById('calculate-btn');
+            const summaryText = document.getElementById('summary-text');
+            const validationAlert = document.getElementById('validation-alert');
+            const validationText = document.getElementById('validation-text');
+            const calculationModes = document.querySelectorAll('.calculation-mode');
+
+            // Format number with commas
+            function formatNumber(num) {
+                return new Intl.NumberFormat('vi-VN').format(num);
+            }
+
+            // Parse number from formatted string
+            function parseNumber(str) {
+                if (!str) return 0;
+                // Remove all dots and convert to number
+                return parseFloat(str.toString().replace(/\./g, '')) || 0;
+            }
+
+            // Calculate values based on selected mode
+            function calculateValues() {
+                const targetAmount = unformatMoney(targetAmountInput.value);
+                const shareCount = parseNumber(shareCountInput.value);
+                const shareAmount = unformatMoney(shareAmountInput.value);
+                const selectedMode = document.querySelector('input[name="calculation_mode"]:checked').value;
+
+                // Debug logging
+                console.log('Debug - Target Amount:', targetAmountInput.value, '->', targetAmount);
+                console.log('Debug - Share Count:', shareCountInput.value, '->', shareCount);
+                console.log('Debug - Share Amount:', shareAmountInput.value, '->', shareAmount);
+                console.log('Debug - Selected Mode:', selectedMode);
+
+                let calculatedTargetAmount = targetAmount;
+                let calculatedShareCount = shareCount;
+                let calculatedShareAmount = shareAmount;
+                let calculationMessage = '';
+                let validationMessage = '';
+
+                // Hide validation alert initially
+                validationAlert.style.display = 'none';
+
+                switch (selectedMode) {
+                    case 'target_share':
+                        // Calculate share_amount from target_amount and share_count
+                        if (targetAmount > 0 && shareCount > 0) {
+                            calculatedShareAmount = targetAmount / shareCount;
+                            console.log('Debug - Calculated Share Amount:', calculatedShareAmount);
+                            
+                            // Format the result for display
+                            let formattedShareAmount = formatMoney(calculatedShareAmount);
+                            shareAmountInput.value = formattedShareAmount;
+                            
+                            calculationMessage = `Mục tiêu: ${formatMoney(targetAmount)} VNĐ ÷ ${formatNumber(shareCount)} suất = ${formattedShareAmount} VNĐ/suất`;
+                        } else {
+                            validationMessage = 'Vui lòng nhập cả Mục tiêu dự án và Số lượng chia sẻ để tính toán';
+                        }
+                        break;
+
+                    case 'target_amount':
+                        // Calculate share_count from target_amount and share_amount
+                        if (targetAmount > 0 && shareAmount > 0) {
+                            calculatedShareCount = Math.round(targetAmount / shareAmount);
+                            shareCountInput.value = calculatedShareCount;
+                            calculationMessage = `Mục tiêu: ${formatMoney(targetAmount)} VNĐ ÷ ${formatMoney(shareAmount)} VNĐ/suất = ${formatNumber(calculatedShareCount)} suất`;
+                            
+                            // Check if calculation is exact
+                            const exactAmount = calculatedShareCount * shareAmount;
+                            if (Math.abs(exactAmount - targetAmount) > 0.01) {
+                                validationMessage = `Lưu ý: Số lượng suất đã được làm tròn từ ${(targetAmount / shareAmount).toFixed(2)} thành ${calculatedShareCount}. Mục tiêu thực tế sẽ là ${formatMoney(exactAmount)} VNĐ`;
+                            }
+                        } else {
+                            validationMessage = 'Vui lòng nhập cả Mục tiêu dự án và Giá mỗi suất để tính toán';
+                        }
+                        break;
+
+                    case 'share_amount':
+                        // Calculate target_amount from share_count and share_amount
+                        if (shareCount > 0 && shareAmount > 0) {
+                            calculatedTargetAmount = shareCount * shareAmount;
+                            targetAmountInput.value = formatMoney(calculatedTargetAmount);
+                            calculationMessage = `${formatNumber(shareCount)} suất × ${formatMoney(shareAmount)} VNĐ/suất = ${formatMoney(calculatedTargetAmount)} VNĐ`;
+                        } else {
+                            validationMessage = 'Vui lòng nhập cả Số lượng chia sẻ và Giá mỗi suất để tính toán';
+                        }
+                        break;
+                }
+
+                // Update summary
+                if (calculationMessage) {
+                    summaryText.innerHTML = calculationMessage;
+                } else {
+                    summaryText.innerHTML = 'Vui lòng nhập các giá trị để xem tóm tắt tính toán';
+                }
+
+                // Show validation message if any
+                if (validationMessage) {
+                    validationText.innerHTML = validationMessage;
+                    validationAlert.style.display = 'block';
+                }
+
+                // Update final calculation summary
+                updateFinalSummary();
+            }
+
+            // Update final calculation summary
+            function updateFinalSummary() {
+                const targetAmount = unformatMoney(targetAmountInput.value);
+                const shareCount = parseNumber(shareCountInput.value);
+                const shareAmount = unformatMoney(shareAmountInput.value);
+
+                if (targetAmount > 0 && shareCount > 0 && shareAmount > 0) {
+                    const calculatedTarget = shareCount * shareAmount;
+                    const difference = Math.abs(calculatedTarget - targetAmount);
+
+                    if (difference > 0.01) {
+                        summaryText.innerHTML += `<br><span class="text-warning"><i class="las la-exclamation-triangle"></i> Cảnh báo: Mục tiêu nhập (${formatMoney(targetAmount)}) khác với tính toán (${formatMoney(calculatedTarget)}). Chênh lệch: ${formatMoney(difference)} VNĐ</span>`;
+                    } else {
+                        summaryText.innerHTML += `<br><span class="text-success"><i class="las la-check"></i> Tính toán chính xác!</span>`;
+                    }
+                }
+            }
+
+            // Auto-calculate when inputs change
+            function setupAutoCalculation() {
+                const inputs = [targetAmountInput, shareCountInput, shareAmountInput];
+                inputs.forEach(input => {
+                    input.addEventListener('input', function() {
+                        // Temporarily disable auto-calculation to prevent interference
+                        // clearTimeout(input.calculationTimeout);
+                        // input.calculationTimeout = setTimeout(calculateValues, 500);
+                    });
+                });
+            }
+
+            // Calculate button click
+            if (calculateBtn) {
+                calculateBtn.addEventListener('click', calculateValues);
+            }
+
+            // Calculation mode change
+            calculationModes.forEach(mode => {
+                mode.addEventListener('change', function() {
+                    calculateValues();
+                });
+            });
+
+            // Initialize
+            setupAutoCalculation();
+            calculateValues();
+        });
     </script>
 @endpush

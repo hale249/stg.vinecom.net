@@ -15,7 +15,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Support\Facades\Route;
 use Symfony\Component\HttpFoundation\Response;
 
-return Application::configure(basePath: dirname(__DIR__))
+$app = Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
         using: function(){
             Route::namespace('App\Http\Controllers')->group(function(){
@@ -72,6 +72,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'kyc' => KycMiddleware::class,
             'registration.complete' => RegistrationStep::class,
             'maintenance' => MaintenanceMode::class,
+            'staff.role' => \App\Http\Middleware\CheckStaffRole::class,
         ]);
 
         $middleware->validateCsrfTokens(
@@ -99,3 +100,5 @@ return Application::configure(basePath: dirname(__DIR__))
             return $response;
         });
     })->create();
+
+return $app;

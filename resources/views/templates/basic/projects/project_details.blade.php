@@ -1,657 +1,1561 @@
 @extends($activeTemplate . 'layouts.frontend')
 
 @section('content')
-    <section class="offer-details py-120  bg--white">
-        <div class="container">
-            <div class="offer-details-content">
-                <h1 class="offer-details-title pb-2">{{ __($project->title) }}</h1>
-            </div>
-            <div class="offer-details-top">
-                <div class="offer-details-thumb">
-                    <a href="{{ getImage(getFilePath('project') . '/' . $project->image) }}" data-rel="lightcase:my-slideshow">
-                        <img src="{{ getImage(getFilePath('project') . '/' . $project->image) }}" alt="Project Image">
-                    </a>
-
-                    @if (!empty($project->gallery) && count($project->gallery) > 0)
-                        @foreach ($project->gallery as $index => $gallery)
-                            @if ($index < 5)
-                                <a href="{{ getImage(getFilePath('project') . '/' . $gallery) }}" data-rel="lightcase:my-slideshow">
-                                    <img src="{{ getImage(getFilePath('project') . '/' . $gallery) }}" alt="Project Gallery Image"></a>
-                            @endif
-                        @endforeach
-                    @endif
-                </div>
-
-                @if (!empty($project->gallery) && count($project->gallery) > 0)
-                    <div class="offer-details-slider d-lg-none">
-                        <div class="offer-details-thumb-slider">
-                            @foreach ($project->gallery as $index => $gallery)
-                                @if ($index < 5)
-                                    <div class="offer-details-thumb-slider__item">
-                                        <img class="offer-details-thumb-slider__img" src="{{ getImage(getFilePath('project') . '/' . $gallery, getFileSize('project')) }}" alt="@lang('Project Image')" data-index="{{ $index }}">
-                                    </div>
+    <section class="project-details-modern">
+        <!-- Hero Section -->
+        <div class="project-hero">
+            <div class="container">
+                <div class="hero-content">
+                    <div class="breadcrumb-modern">
+                        <a href="{{ route('home') }}" class="breadcrumb-link">
+                            <i class="las la-home"></i>
+                            Trang chủ
+                        </a>
+                        <i class="las la-angle-right"></i>
+                        <a href="{{ route('projects') }}" class="breadcrumb-link">Dự án</a>
+                        <i class="las la-angle-right"></i>
+                        <span class="breadcrumb-current">{{ __($project->title) }}</span>
+                    </div>
+                    
+                    <div class="project-header">
+                        <div class="project-title-section">
+                            <h1 class="project-title">{{ __($project->title) }}</h1>
+                            <div class="project-status-badge">
+                                @if($project->status == 1)
+                                    <span class="status-active">
+                                        <i class="las la-check-circle"></i>
+                                        Đang hoạt động
+                                    </span>
+                                @else
+                                    <span class="status-inactive">
+                                        <i class="las la-pause-circle"></i>
+                                        Tạm dừng
+                                    </span>
                                 @endif
-                            @endforeach
+                            </div>
                         </div>
-
-                        <div class="offer-details-preview-slider">
-                            @foreach ($project->gallery as $index => $gallery)
-                                @if ($index < 5)
-                                    <div class="offer-details-preview-slider__item">
-                                        <img class="offer-details-preview-slider__img" src="{{ getImage(getFilePath('project') . '/' . $gallery, getFileSize('project')) }}" alt="@lang('Project Image')">
-                                    </div>
-                                @endif
-                            @endforeach
+                        
+                        <div class="project-meta-header">
+                            <div class="meta-item">
+                                <i class="las la-calendar"></i>
+                                <span>Bắt đầu: {{ $project->start_date->format('d/m/Y') }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="las la-clock"></i>
+                                <span>Kết thúc: {{ $project->end_date->format('d/m/Y') }}</span>
+                            </div>
+                            <div class="meta-item">
+                                <i class="las la-chart-line"></i>
+                                <span>ROI: {{ getAmount($project->roi_percentage) }}%</span>
+                            </div>
                         </div>
                     </div>
-                @endif
+                </div>
             </div>
-            <div class="offer-details-bottom">
+        </div>
+
+        <div class="container">
+            <div class="project-content-wrapper">
                 <div class="row">
+                    <!-- Main Content -->
                     <div class="col-lg-8">
-                        <div class="offer-details-content">
-                            <ul class="offer-details-meta">
-                                <li class="offer-details-meta__item">
-                                    <span class="label">@lang('Per Share')</span>
-                                    <span class="value">{{ __(showAmount($project->share_amount)) }}</span>
-                                </li>
-                                <li class="offer-details-meta__item">
-                                    <span class="label">@lang('ROI')</span>
-                                    <span class="value">{{ __(getAmount($project->roi_percentage)) }}@lang('%')</span>
-                                </li>
-                                <li class="offer-details-meta__item">
-                                    <span class="label">@lang('Duration')</span>
-                                    <span class="value">{{ $project->maturity_time }} @lang('Months')</span>
-                                </li>
-                                <li class="offer-details-meta__item">
-                                    <span class="label">@lang('Max')</span>
-                                    <span class="value">{{ __(getAmount($project->share_count)) }}
-                                        @lang('Units')</span>
-                                </li>
-                                <li class="offer-details-meta__item">
-                                    <span class="label">@lang('Remaining')</span>
-                                    <span class="value">{{ __(getAmount($project->available_share)) }}
-                                        @lang('Units')</span>
-                                </li>
-                            </ul>
-                            @if ($project->end_date > now() && $project->status != Status::PROJECT_END && $project->available_share > 0)
-                                <button class="btn btn--lg btn--base w-100 mt-4 d-lg-none" type="button" data-toggle="offcanvas-sidebar" data-target="#offer-details-offcanvas-sidebar">
-                                    @lang('Check Details')
-                                </button>
+                        <!-- Project Gallery -->
+                        <div class="project-gallery-modern">
+                            <div class="main-image-container">
+                                <img src="{{ getImage(getFilePath('project') . '/' . $project->image) }}" 
+                                     alt="{{ __($project->title) }}" 
+                                     class="main-project-image"
+                                     id="mainProjectImage">
+                                
+                                @if($project->status == 1 && $project->available_share > 0)
+                                    <div class="investment-badge">
+                                        <i class="las la-fire"></i>
+                                        <span>Đang đầu tư</span>
+                                    </div>
+                                @endif
+                            </div>
+                            
+                            @if (!empty($project->gallery) && count($project->gallery) > 0)
+                                <div class="gallery-thumbnails">
+                                    <div class="thumbnail-item active" data-image="{{ getImage(getFilePath('project') . '/' . $project->image) }}">
+                                        <img src="{{ getImage(getFilePath('project') . '/' . $project->image) }}" alt="Main Image">
+                                    </div>
+                                    @foreach ($project->gallery as $index => $gallery)
+                                        @if ($index < 4)
+                                            <div class="thumbnail-item" data-image="{{ getImage(getFilePath('project') . '/' . $gallery) }}">
+                                                <img src="{{ getImage(getFilePath('project') . '/' . $gallery) }}" alt="Gallery Image {{ $index + 1 }}">
+                                            </div>
+                                        @endif
+                                    @endforeach
+                                </div>
                             @endif
+                        </div>
 
-                            <div class="details-tabs">
-                                <ul class="nav nav-tabs" id="myTab" role="tablist">
+                        <!-- Project Stats Cards -->
+                        <div class="project-stats-modern">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="las la-chart-line"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <span class="stat-value">{{ getAmount($project->roi_percentage) }}%</span>
+                                        <span class="stat-label">Tỷ lệ suất lợi tức</span>
+                                    </div>
+                                </div>
+                                
+                                @php
+                                    $start = \Carbon\Carbon::parse($project->start_date);
+                                    $end = \Carbon\Carbon::parse($project->end_date);
+                                    $months = $start->diffInMonths($end);
+                                @endphp
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="las la-calendar-alt"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <span class="stat-value">{{ $months }}</span>
+                                        <span class="stat-label">Tháng</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="stat-card">
+                                    <div class="stat-icon">
+                                        <i class="las la-wallet"></i>
+                                    </div>
+                                    <div class="stat-content">
+                                        <span class="stat-value">{{ showAmount($project->min_invest_amount) }}</span>
+                                        <span class="stat-label">Số tiền tối thiểu đầu tư</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Investment Progress -->
+                        <div class="investment-progress-modern">
+                            <div class="progress-header">
+                                <h4>Tiến độ đầu tư</h4>
+                                <span class="progress-percentage">{{ $project->investment_progress }}%</span>
+                            </div>
+                            
+                            <!-- Flash Messages -->
+                            @if(session('success'))
+                                <div class="alert alert-success alert-dismissible fade show mt-2 mb-3" role="alert">
+                                    <i class="las la-check-circle"></i> {{ session('success') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            @endif
+                            
+                            @if(session('error'))
+                                <div class="alert alert-danger alert-dismissible fade show mt-2 mb-3" role="alert">
+                                    <i class="las la-exclamation-circle"></i> {{ session('error') }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            @endif
+                            
+                            <div class="progress-bar-container">
+                                <div class="progress-bar" style="width: {{ $project->investment_progress }}%"></div>
+                            </div>
+                            <div class="progress-stats">
+                                <div class="progress-stat">
+                                    <span class="stat-number">{{ showAmount($project->target_amount) }}</span>
+                                    <span class="stat-text">Mục tiêu dự án</span>
+                                </div>
+                                <div class="progress-stat">
+                                    <span class="stat-number">{{ showAmount($project->remaining_amount) }}</span>
+                                    <span class="stat-text">Số tiền còn lại</span>
+                                </div>
+                                <div class="progress-stat">
+                                    <span class="stat-number">{{ showAmount($project->invested_amount) }}</span>
+                                    <span class="stat-text">Đã đầu tư</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Content Tabs -->
+                        <div class="content-tabs-modern">
+                            <ul class="nav nav-tabs-modern" id="projectTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">
+                                        <i class="las la-info-circle"></i>
+                                        Tổng quan
+                                    </button>
+                                </li>
+                                
+                                @if ($project->faqs->isNotEmpty())
                                     <li class="nav-item" role="presentation">
-                                        <button class="nav-link active" id="details-tab" data-bs-toggle="tab" data-bs-target="#details-tab-pane" type="button" role="tab" aria-controls="details-tab-pane" aria-selected="true">@lang('Details')</button>
+                                        <button class="nav-link" id="faq-tab" data-bs-toggle="tab" data-bs-target="#faq" type="button" role="tab">
+                                            <i class="las la-question-circle"></i>
+                                            Câu hỏi thường gặp
+                                        </button>
                                     </li>
-
-                                    @if ($project->faqs->isNotEmpty())
-                                        <li class="nav-item" role="presentation">
-                                            <button class="nav-link" id="faq-tab" data-bs-toggle="tab" data-bs-target="#faq-tab-pane" type="button" role="tab" aria-controls="faq-tab-pane" aria-selected="false">@lang('Faqs')</button>
-                                        </li>
-                                    @endif
-
+                                @endif
+                                
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="location-tab" data-bs-toggle="tab" data-bs-target="#location" type="button" role="tab">
+                                        <i class="las la-map-marker-alt"></i>
+                                        Vị trí
+                                    </button>
+                                </li>
+                                
+                                @if($documents->isNotEmpty())
                                     <li class="nav-item" role="presentation">
-                                        <button class="nav-link" id="maps-tab" data-bs-toggle="tab" data-bs-target="#maps-tab-pane" type="button" role="tab" aria-controls="maps-tab-pane" aria-selected="false">@lang('Maps')</button>
+                                        <button class="nav-link" id="documents-tab" data-bs-toggle="tab" data-bs-target="#documents" type="button" role="tab">
+                                            <i class="las la-file-pdf"></i>
+                                            Tài liệu
+                                        </button>
                                     </li>
-
-                                    <li class="nav-item comment___number" role="presentation">
-                                        <button class="nav-link" id="comments-tab" data-bs-toggle="tab" data-bs-target="#comments-tab-pane" type="button" role="tab" aria-controls="comments-tab-pane" aria-selected="false">@lang('Comments')(<span class="commentCount">{{ $commentCount }}</span>)</button>
-                                    </li>
-                                </ul>
-                                <div class="tab-content" id="myTabContent">
-                                    <div class="tab-pane fade show active" id="details-tab-pane" role="tabpanel" aria-labelledby="home-tab" tabindex="0">
-                                        @php echo $project->description @endphp
-                                        <div class="mt-5 d-flex align-items-center justify-content-center flex-column project-share-box">
-                                            <h6>@lang('Share Project')</h6>
-                                            <ul class="social__links">
-                                                <li>
-                                                    <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" target="_blank"><i class="fab fa-facebook-f"></i></a>
-                                                </li>
-                                                <li>
-                                                    <a href="https://twitter.com/intent/tweet?text={{ __($project->title) }}&amp;url={{ urlencode(url()->current()) }}" target="_blank"><i class="fab fa-twitter"></i></a>
-                                                </li>
-                                                <li>
-                                                    <a href="https://pinterest.com/pin/create/bookmarklet/?media={{ getImage(getFilePath('project') . '/' . $project->image, getFileSize('project')) }}&url={{ urlencode(url()->current()) }}" target="_blank"><i class="fab fa-pinterest-p"></i></a>
-                                                </li>
-                                                <li>
-                                                    <a href="http://www.linkedin.com/shareArticle?mini=true&amp;url={{ urlencode(url()->current()) }}" target="_blank"><i class="fab fa-linkedin-in"></i></a>
-                                                </li>
-                                            </ul>
+                                @endif
+                            </ul>
+                            
+                            <div class="tab-content-modern" id="projectTabContent">
+                                <!-- Overview Tab -->
+                                <div class="tab-pane fade show active" id="overview" role="tabpanel">
+                                    <div class="overview-content">
+                                        <div class="project-description">
+                                            @php echo $project->description @endphp
+                                        </div>
+                                        
+                                        <div class="share-section">
+                                            <h5>Chia sẻ dự án</h5>
+                                            <div class="social-share-buttons">
+                                                <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}" 
+                                                   target="_blank" class="share-btn facebook">
+                                                    <i class="fab fa-facebook-f"></i>
+                                                </a>
+                                                <a href="https://twitter.com/intent/tweet?text={{ __($project->title) }}&amp;url={{ urlencode(url()->current()) }}" 
+                                                   target="_blank" class="share-btn twitter">
+                                                    <i class="fab fa-twitter"></i>
+                                                </a>
+                                                <a href="https://pinterest.com/pin/create/bookmarklet/?media={{ getImage(getFilePath('project') . '/' . $project->image, getFileSize('project')) }}&url={{ urlencode(url()->current()) }}" 
+                                                   target="_blank" class="share-btn pinterest">
+                                                    <i class="fab fa-pinterest-p"></i>
+                                                </a>
+                                                <a href="http://www.linkedin.com/shareArticle?mini=true&amp;url={{ urlencode(url()->current()) }}" 
+                                                   target="_blank" class="share-btn linkedin">
+                                                    <i class="fab fa-linkedin-in"></i>
+                                                </a>
+                                                <button class="share-btn copy-link" data-link="{{ url()->current() }}">
+                                                    <i class="las la-copy"></i>
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
+                                </div>
 
-                                    @if ($project->faqs->isNotEmpty())
-                                        <div class="tab-pane fade" id="faq-tab-pane" role="tabpanel" aria-labelledby="faq-tab" tabindex="0">
-                                            <div class="offer-details-block">
-                                                <h5 class="offer-details-block__title">@lang('Frequently Asked Questions')</h5>
-                                                <div id="faq-accordion" class="accordion custom--accordion">
-                                                    @foreach ($project->faqs as $index => $faq)
-                                                        <div class="accordion-item {{ $index == 0 ? 'active' : '' }}">
-                                                            <h2 class="accordion-header">
-                                                                <button class="accordion-button {{ $index == 0 ? '' : 'collapsed' }}" type="button" data-bs-toggle="collapse" data-bs-target="#faq-accordion-question-{{ $index }}" aria-expanded="{{ $index == 0 ? 'true' : 'false' }}" aria-controls="faq-accordion-question-{{ $index }}">
-                                                                    {{ __($faq->question) }}
-                                                                </button>
-                                                            </h2>
-                                                            <div id="faq-accordion-question-{{ $index }}" class="accordion-collapse collapse {{ $index == 0 ? 'show' : '' }}" data-bs-parent="#faq-accordion">
-                                                                <div class="accordion-body">
-                                                                    <p class="accordion-text">
-                                                                        {{ __($faq->answer) }}
-                                                                    </p>
-                                                                </div>
+                                <!-- FAQ Tab -->
+                                @if ($project->faqs->isNotEmpty())
+                                    <div class="tab-pane fade" id="faq" role="tabpanel">
+                                        <div class="faq-section">
+                                            <div class="faq-accordion" id="faqAccordion">
+                                                @foreach ($project->faqs as $index => $faq)
+                                                    <div class="faq-item">
+                                                        <div class="faq-header" id="faq{{ $index }}">
+                                                            <button class="faq-button {{ $index == 0 ? '' : 'collapsed' }}" 
+                                                                    type="button" 
+                                                                    data-bs-toggle="collapse" 
+                                                                    data-bs-target="#faqCollapse{{ $index }}">
+                                                                <span>{{ __($faq->question) }}</span>
+                                                                <i class="las la-plus"></i>
+                                                            </button>
+                                                        </div>
+                                                        <div id="faqCollapse{{ $index }}" 
+                                                             class="faq-collapse collapse {{ $index == 0 ? 'show' : '' }}" 
+                                                             data-bs-parent="#faqAccordion">
+                                                            <div class="faq-body">
+                                                                {{ __($faq->answer) }}
                                                             </div>
                                                         </div>
-                                                    @endforeach
-                                                </div>
-                                            </div>
-                                        </div>
-                                    @endif
-
-                                    <div class="tab-pane fade" id="maps-tab-pane" role="tabpanel" aria-labelledby="maps-tab" tabindex="0">
-                                        <div class="offer-details-block">
-                                            <h5 class="offer-details-block__title">@lang('Where This Project')</h5>
-
-                                            <div class="offer-details-block__map">
-                                                {!! @$project->map_url !!}
+                                                    </div>
+                                                @endforeach
                                             </div>
                                         </div>
                                     </div>
+                                @endif
 
-                                    <div class="tab-pane fade" id="comments-tab-pane" role="tabpanel" aria-labelledby="comments-tab" tabindex="0">
-                                        <div class="top">
-                                            <h5 class="comment-number"><span class="commentCount">{{ @$commentCount ?? 0 }}</span>
-                                                @lang('Comments')</h5>
+                                <!-- Location Tab -->
+                                <div class="tab-pane fade" id="location" role="tabpanel">
+                                    <div class="location-section">
+                                        <h5>Vị trí dự án</h5>
+                                        <div class="map-container">
+                                            {!! @$project->map_url !!}
                                         </div>
-                                        @if (auth()->check())
-                                            <div class="comment-form-wrapper">
-                                                @php
-                                                    $userImage = auth()->check() ? auth()->user()->image : '';
-                                                @endphp
-                                                <span class="comment-author">
-                                                    <img class="fir-image" src="{{ getImage(getFilePath('userProfile') . '/' . $userImage, getFileSize('userProfile'), avatar: true) }}" alt="profile">
-                                                </span>
+                                    </div>
+                                </div>
 
-                                                <form action="{{ route('user.comment.store', $project->id) }}" class="comment-form ajaxForm" method="post">
+                                <!-- Documents Tab -->
+                                @if($documents->isNotEmpty())
+                                    <div class="tab-pane fade" id="documents" role="tabpanel">
+                                        @include('components.project-documents')
+                                    </div>
+                                @endif
+
+                                <!-- Comments Tab -->
+                                <div class="tab-pane fade" id="comments" role="tabpanel">
+                                    <div class="comments-section">
+                                        @if (auth()->check())
+                                            <div class="comment-form-modern">
+                                                <div class="user-avatar">
+                                                    <img src="{{ getImage(getFilePath('userProfile') . '/' . auth()->user()->image, getFileSize('userProfile'), avatar: true) }}" 
+                                                         alt="User Avatar">
+                                                </div>
+                                                <form action="{{ route('user.comment.store', $project->id) }}" 
+                                                      class="comment-form ajaxForm" method="post">
                                                     @csrf
-                                                    <input type="hidden" name="" value="" autocomplete="off">
-                                                    <div class="form-group position-relative">
-                                                        <textarea class="form--control commentBox" name="comment" placeholder="@lang('Write a comment')" id="comment" required></textarea>
-                                                        <button class="comment-btn" type="submit">
-                                                            <svg class="lucide lucide-send-horizontal" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                                                <path d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z"></path>
-                                                                <path d="M6 12h16"></path>
-                                                            </svg>
+                                                    <div class="form-group">
+                                                        <textarea class="form-control comment-input" 
+                                                                  name="comment" 
+                                                                  placeholder="Viết bình luận của bạn..." 
+                                                                  required></textarea>
+                                                        <button class="comment-submit" type="submit">
+                                                            <i class="las la-paper-plane"></i>
                                                         </button>
                                                     </div>
                                                 </form>
                                             </div>
                                         @endif
-
-                                        <div id="comment__main">
+                                        
+                                        <div class="comments-list" id="commentsList">
                                             @foreach ($comments as $comment)
-                                                <div class="comment-box-item comment-item  parentComment ">
-                                                    <div class="comment-box-item__thumb">
-                                                        <img src="{{ getImage(getFilePath('userProfile') . '/' . @$comment->user->image, getFileSize('userProfile'), avatar: true) }}" alt="User Image">
+                                                <div class="comment-item">
+                                                    <div class="comment-avatar">
+                                                        <img src="{{ getImage(getFilePath('userProfile') . '/' . @$comment->user->image, getFileSize('userProfile'), avatar: true) }}" 
+                                                             alt="User Avatar">
                                                     </div>
-                                                    <div class="comment-box-item__content">
-                                                        <div class="comment-box-item__top">
-                                                            <p class="comment-box-item__name">{{ __(@$comment->user->fullname) }}
-                                                            </p>
-                                                            <p class="comment-box-item__text">
-                                                                {{ __($comment->comment) }}
-                                                            </p>
+                                                    <div class="comment-content">
+                                                        <div class="comment-header">
+                                                            <span class="comment-author">{{ __(@$comment->user->fullname) }}</span>
+                                                            <span class="comment-date">{{ diffForHumans(@$comment->created_at) }}</span>
                                                         </div>
-                                                        <div class="replay_box">
-                                                            <div class="reaction-btn">
-                                                                <span class="time">{{ diffForHumans(@$comment->created_at) }}</span>
-                                                                <div class="reaction-btn__reply">
-                                                                    <button class="reply replay_button">
-                                                                        <span class="icon">
-                                                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-message-square-quote">
-                                                                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                                                                                <path d="M8 12a2 2 0 0 0 2-2V8H8"></path>
-                                                                                <path d="M14 12a2 2 0 0 0 2-2V8h-2"></path>
-                                                                            </svg>
-                                                                        </span>
-                                                                        @lang('Reply')
-                                                                        <span class="incrementCount">{{ $comment->replies->count() }}</span>
-                                                                    </button>
-                                                                </div>
-                                                            </div>
-                                                            @if (auth()->check())
-                                                                <div class="reply-wrapper d-none">
-                                                                    <form action="{{ route('user.comment.store', [$project->id, $comment->id]) }}" class="reply-form mb-3 ajaxForm" method="post">
-                                                                        @csrf
-                                                                        <input name="reply_to" type="hidden" value="203">
-                                                                        <textarea class="form--control reply-form__textarea commentBox" name="comment" placeholder="@lang('Write a Replay')" id="comment" required></textarea>
-                                                                        <div class="reply-form__input-btn">
-                                                                            <button class="reply-form__btn submit-reply" type="submit">
-                                                                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-send-horizontal">
-                                                                                    <path d="M3.714 3.048a.498.498 0 0 0-.683.627l2.843 7.627a2 2 0 0 1 0 1.396l-2.842 7.627a.498.498 0 0 0 .682.627l18-8.5a.5.5 0 0 0 0-.904z">
-                                                                                    </path>
-                                                                                    <path d="M6 12h16"></path>
-                                                                                </svg>
-                                                                            </button>
-                                                                        </div>
-                                                                    </form>
-                                                                </div>
-                                                            @endif
-
-                                                            <div class="comment-item d-none">
-                                                                @foreach ($comment->replies as $replay)
-                                                                    <div class="comment-box-item">
-                                                                        @php
-                                                                            if ($replay->admin_id) {
-                                                                                $profileImage = getImage(getFilePath('adminProfile') . '/' . @$replay->admin->image, getFileSize('adminProfile'), avatar: true);
-                                                                            } else {
-                                                                                $profileImage = getImage(getFilePath('userProfile') . '/' . @$comment->user->image, getFileSize('userProfile'), avatar: true);
-                                                                            }
-                                                                        @endphp
-                                                                        <div class="comment-box-item__thumb">
-                                                                            <img src="{{ $profileImage }}" alt="User Image">
-                                                                        </div>
-                                                                        <div class="comment-box-item__content">
-                                                                            <div class="comment-box-item__top">
-                                                                                <p class="comment-box-item__name">{{ __(@$replay->user->fullname) }}
-                                                                                </p>
-                                                                                <p class="comment-box-item__text">
-                                                                                    <span> {{ __(@$replay->comment) }}</span>
-                                                                                </p>
-                                                                            </div>
-                                                                            <span class="time">{{ diffForHumans(@$replay->created_at) }}</span>
-                                                                        </div>
-                                                                    </div>
-                                                                @endforeach
-                                                            </div>
+                                                        <div class="comment-text">
+                                                            {{ __($comment->comment) }}
                                                         </div>
                                                     </div>
                                                 </div>
                                             @endforeach
                                         </div>
-                                        @if ($commentCount > 5)
-                                            <div class="text-center">
-                                                <button id="load-more" data-page="2" data-project-slug="{{ $project->slug }}">@lang('Load more')</button>
-                                            </div>
-                                        @endif
                                     </div>
                                 </div>
+
+                                <!-- Documents Tab -->
+                                @if($documents->isNotEmpty())
+                                    <div class="tab-pane fade" id="documents" role="tabpanel">
+                                        @include('components.project-documents')
+                                    </div>
+                                @endif
                             </div>
                         </div>
                     </div>
-                    @if ($project->end_date > now() && $project->status != Status::PROJECT_END && $project->available_share > 0)
-                        <div class="col-lg-4" id="sidebar-container">
-                            @include($activeTemplate . 'projects.sidebar')
+
+                    <!-- Sidebar -->
+                    <div class="col-lg-4">
+                        <div class="project-sidebar">
+                            @if ($project->end_date > now() && $project->status != Status::PROJECT_END && $project->available_share > 0)
+                                <div class="investment-card">
+                                    <div class="investment-header">
+                                        <h4>Đầu tư ngay</h4>
+                                        <p>Tham gia dự án này để nhận lợi nhuận hấp dẫn</p>
+                                    </div>
+                                    
+                                    <div class="investment-action">
+                                        <div class="form-group mb-3">
+                                            <label>Số tiền đầu tư</label>
+                                            <div class="input-group">
+                                                <input type="text" 
+                                                       class="form-control" 
+                                                       id="investment_amount_input"
+                                                       placeholder="Nhập số tiền"
+                                                       min="{{ $project->min_invest_amount }}"
+                                                       step="1000000">
+                                                <span class="input-group-text">VNĐ</span>
+                                            </div>
+                                            <small class="form-text">Tối thiểu: {{ showAmount($project->min_invest_amount) }}</small>
+                                        </div>
+                                        
+                                        <div class="investment-summary mb-3">
+                                            <div class="summary-item">
+                                                <span>Kỳ hạn:</span>
+                                                <select id="term_months" class="form-select">
+                                                    @php
+                                                        $start = \Carbon\Carbon::parse($project->start_date);
+                                                        $end = \Carbon\Carbon::parse($project->end_date);
+                                                        $months = $start->diffInMonths($end);
+                                                    @endphp
+                                                    @for ($i = 1; $i <= $months; $i++)
+                                                        <option value="{{ $i }}">{{ $i }} tháng</option>
+                                                    @endfor
+                                                </select>
+                                            </div>
+                                            <div class="summary-item mt-3">
+                                                <span>Lợi nhuận dự kiến:</span>
+                                                <span id="roiDisplay">0 VNĐ</span>
+                                            </div>
+                                        </div>
+                                        
+                                        <button type="button" class="btn btn--primary-modern w-100" data-bs-toggle="modal" data-bs-target="#bitModal">
+                                            <i class="las la-arrow-right"></i>
+                                            Đầu tư ngay
+                                        </button>
+                                    </div>
+                                </div>
+                            @else
+                                <div class="project-closed-card">
+                                    <div class="closed-icon">
+                                        <i class="las la-lock"></i>
+                                    </div>
+                                    <h4>Dự án đã kết thúc</h4>
+                                    <p>Dự án này không còn nhận đầu tư mới</p>
+                                </div>
+                            @endif
+                            
+                            <!-- Related Projects -->
+                            @if($relates->isNotEmpty())
+                                <div class="related-projects">
+                                    <h5>Dự án liên quan</h5>
+                                    @foreach($relates->take(3) as $relatedProject)
+                                        <div class="related-project-item">
+                                            <div class="related-project-image">
+                                                <img src="{{ getImage(getFilePath('project') . '/' . $relatedProject->image) }}" 
+                                                     alt="{{ __($relatedProject->title) }}">
+                                            </div>
+                                            <div class="related-project-info">
+                                                <h6>
+                                                    <a href="{{ route('project.details', $relatedProject->slug) }}">
+                                                        {{ __($relatedProject->title) }}
+                                                    </a>
+                                                </h6>
+                                                <div class="related-project-meta">
+                                                    <span class="roi">{{ getAmount($relatedProject->roi_percentage) }}% ROI</span>
+                                                    <span class="price">{{ showAmount($relatedProject->share_amount) }}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
                         </div>
-                    @endif
+                    </div>
                 </div>
             </div>
-
-            @if (!blank($relates))
-                <section class="our-offers pt-120">
-                    <h4 class="section-heading__title">@lang('Related Offers')</h4>
-                    <div class="tab-content">
-                        <div id="high-offers" class="tab-pane fade show active">
-                            <div class="project-slider related-slider">
-                                @foreach ($relates as $relatedProject)
-                                    <article class="card card--offer ">
-                                        <div class="card-header">
-                                            <a class="card-thumb" href="{{ route('project.details', $relatedProject->slug) }}">
-                                                <img src="{{ getImage(getFilePath('project') . '/' . $relatedProject->image) }}" alt="{{ __($relatedProject->title) }}">
-                                            </a>
-
-                                            <div class="card-offer">
-                                                <span class="card-offer__label">@lang('ROI')</span>
-                                                <span class="card-offer__percentage">{{ getAmount($relatedProject->roi_percentage) }}%</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="card-body">
-                                            <h6 class="card-title">
-                                                <a href="{{ route('project.details', $relatedProject->slug) }}">{{ __($relatedProject->title) }}</a>
-                                            </h6>
-
-                                            <div class="card-content">
-                                                <div class="card-content__wrapper">
-                                                    <span class="card-content__label">@lang('Per Share')</span>
-                                                    <div class="card-content__price">
-                                                        {{ __(showAmount($relatedProject->share_amount)) }}</div>
-                                                </div>
-                                                <a href="{{ route('project.details', $relatedProject->slug) }}" class="btn btn--xsm btn--outline">@lang('Invest Now')</a>
-                                            </div>
-                                            <div class="card-bottom">
-                                                <span class="card-bottom__unit">
-                                                    <i class="las la-boxes"></i>
-                                                    {{ __($relatedProject->available_share) }} @lang('units')
-                                                </span>
-                                                <span class="card-bottom__duration">{{ __(diffForHumans($relatedProject->end_date)) }}</span>
-                                            </div>
-                                        </div>
-                                    </article>
-                                @endforeach
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            @endif
         </div>
     </section>
-    @include($activeTemplate . 'projects.buy-modal')
-@endsection
 
-@push('style-lib')
-    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/lightcase.min.css') }}">
-    <link rel="stylesheet" href="{{ asset($activeTemplateTrue . 'css/slick.css') }}">
-@endpush
+    <style>
+    /* Modern Project Details Styles */
+    .project-details-modern {
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
 
-@push('script-lib')
-    <script src="{{ asset($activeTemplateTrue . 'js/lightcase.min.js') }}"></script>
-    <script src="{{ asset($activeTemplateTrue . 'js/slick.min.js') }}"></script>
-@endpush
+    /* Hero Section */
+    .project-hero {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 60px 0 40px;
+        position: relative;
+        overflow: hidden;
+    }
 
-@push('script')
+    .project-hero::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+        opacity: 0.3;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    .breadcrumb-modern {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 30px;
+        font-size: 0.9rem;
+    }
+
+    .breadcrumb-link {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .breadcrumb-link:hover {
+        color: white;
+    }
+
+    .breadcrumb-current {
+        color: white;
+        font-weight: 500;
+    }
+
+    .project-header {
+        max-width: 800px;
+    }
+
+    .project-title-section {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .project-title {
+        font-size: 2.5rem;
+        font-weight: 700;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .project-status-badge {
+        flex-shrink: 0;
+    }
+
+    .status-active {
+        background: rgba(46, 204, 113, 0.2);
+        color: #2ecc71;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .status-inactive {
+        background: rgba(231, 76, 60, 0.2);
+        color: #e74c3c;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .project-meta-header {
+        display: flex;
+        gap: 30px;
+        flex-wrap: wrap;
+    }
+
+    .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.95rem;
+        opacity: 0.9;
+    }
+
+    .meta-item i {
+        font-size: 1.1rem;
+    }
+
+    /* Content Wrapper */
+    .project-content-wrapper {
+        margin-top: -40px;
+        position: relative;
+        z-index: 3;
+    }
+
+    /* Project Gallery */
+    .project-gallery-modern {
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+    }
+
+    .main-image-container {
+        position: relative;
+        aspect-ratio: 16/9;
+        overflow: hidden;
+    }
+
+    .main-project-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .investment-badge {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #ff6b35, #f7931e);
+        color: white;
+        padding: 8px 16px;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.3);
+    }
+
+    .gallery-thumbnails {
+        display: flex;
+        gap: 12px;
+        padding: 20px;
+        overflow-x: auto;
+    }
+
+    .thumbnail-item {
+        flex: 0 0 80px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s ease;
+    }
+
+    .thumbnail-item.active,
+    .thumbnail-item:hover {
+        opacity: 1;
+    }
+
+    .thumbnail-item img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Project Stats */
+    .project-stats-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+    }
+
+    .stat-card {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+        transition: background-color 0.2s ease;
+    }
+
+    .stat-card:hover {
+        background: #e9ecef;
+    }
+
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.3rem;
+    }
+
+    .stat-content {
+        flex: 1;
+    }
+
+    .stat-value {
+        display: block;
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        display: block;
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* Investment Progress */
+    .investment-progress-modern {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+    }
+
+    .progress-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .progress-header h4 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .progress-percentage {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #3498db;
+    }
+
+    .progress-bar-container {
+        height: 12px;
+        background: #e9ecef;
+        border-radius: 6px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(90deg, #3498db, #2980b9);
+        border-radius: 6px;
+        transition: width 1s ease-in-out;
+    }
+
+    .progress-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .progress-stat {
+        text-align: center;
+    }
+
+    .stat-number {
+        display: block;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #2c3e50;
+        margin-bottom: 4px;
+    }
+
+    .stat-text {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    /* Content Tabs */
+    .content-tabs-modern {
+        background: white;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        overflow: hidden;
+        margin-top: 30px;
+    }
+
+    .nav-tabs-modern {
+        display: flex;
+        background: #f8f9fa;
+        border-bottom: 1px solid #e9ecef;
+        padding: 0;
+        margin: 0;
+        overflow-x: auto;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+
+    .nav-tabs-modern::-webkit-scrollbar {
+        display: none;
+    }
+
+    .nav-tabs-modern .nav-item {
+        flex-shrink: 0;
+    }
+
+    .nav-tabs-modern .nav-link {
+        border: none;
+        background: transparent;
+        color: #6c757d;
+        padding: 16px 24px;
+        font-weight: 500;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+        position: relative;
+    }
+
+    .nav-tabs-modern .nav-link:hover {
+        color: #495057;
+        background: rgba(255, 215, 0, 0.1);
+    }
+
+    .nav-tabs-modern .nav-link.active {
+        color: #000;
+        background: white;
+        border-bottom: 3px solid #FFD700;
+    }
+
+    .nav-tabs-modern .nav-link i {
+        font-size: 1.1rem;
+    }
+
+    .tab-content-modern {
+        padding: 0;
+        background: white;
+        min-height: 400px;
+        max-height: 600px;
+        overflow-y: auto;
+    }
+
+    .tab-pane {
+        padding: 30px;
+        display: none;
+    }
+
+    .tab-pane.active {
+        display: block;
+    }
+
+    .tab-pane.fade {
+        opacity: 0;
+        transition: opacity 0.15s linear;
+    }
+
+    .tab-pane.fade.show {
+        opacity: 1;
+    }
+
+    /* Overview Content */
+    .overview-content {
+        max-width: 100%;
+    }
+
+    .project-description {
+        line-height: 1.8;
+        color: #495057;
+        margin-bottom: 30px;
+    }
+
+    .project-description p {
+        margin-bottom: 1rem;
+    }
+
+    .project-description ul,
+    .project-description ol {
+        margin-bottom: 1rem;
+        padding-left: 1.5rem;
+    }
+
+    .project-description li {
+        margin-bottom: 0.5rem;
+    }
+
+    .project-description strong {
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    /* Share Section */
+    .share-section {
+        border-top: 1px solid #e9ecef;
+        padding-top: 20px;
+        margin-top: 20px;
+    }
+
+    .share-section h5 {
+        margin-bottom: 15px;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .social-share-buttons {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .share-btn {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        color: white;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+    }
+
+    .share-btn.facebook { background: #1877f2; }
+    .share-btn.twitter { background: #1da1f2; }
+    .share-btn.pinterest { background: #e60023; }
+    .share-btn.linkedin { background: #0077b5; }
+    .share-btn.copy-link { background: #6c757d; }
+
+    .share-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        color: white;
+    }
+
+    /* FAQ Section */
+    .faq-section {
+        max-width: 100%;
+    }
+
+    .faq-accordion {
+        border: 1px solid #e9ecef;
+        border-radius: 12px;
+        overflow: hidden;
+    }
+
+    .faq-item {
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .faq-item:last-child {
+        border-bottom: none;
+    }
+
+    .faq-button {
+        width: 100%;
+        padding: 20px;
+        background: white;
+        border: none;
+        text-align: left;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .faq-button:hover {
+        background: #f8f9fa;
+    }
+
+    .faq-button.collapsed i {
+        transform: rotate(0deg);
+    }
+
+    .faq-button i {
+        transition: transform 0.3s ease;
+        transform: rotate(45deg);
+        color: #FFD700;
+    }
+
+    .faq-body {
+        padding: 20px;
+        background: #f8f9fa;
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    /* Location Section */
+    .location-section h5 {
+        margin-bottom: 20px;
+        color: #2c3e50;
+        font-weight: 600;
+    }
+
+    .map-container {
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    }
+
+    .map-container iframe {
+        width: 100%;
+        height: 400px;
+        border: none;
+    }
+
+    /* Comments Section */
+    .comments-section {
+        max-width: 100%;
+    }
+
+    .comment-form-modern {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 12px;
+    }
+
+    .user-avatar {
+        flex-shrink: 0;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+
+    .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .comment-form {
+        flex: 1;
+        display: flex;
+        gap: 10px;
+    }
+
+    .comment-input {
+        flex: 1;
+        border: 1px solid #e9ecef;
+        border-radius: 8px;
+        padding: 12px;
+        resize: vertical;
+        min-height: 50px;
+    }
+
+    .comment-submit {
+        width: 50px;
+        height: 50px;
+        border: none;
+        background: #FFD700;
+        color: #000;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .comment-submit:hover {
+        background: #FFC800;
+        transform: translateY(-2px);
+    }
+
+    .comments-list {
+        max-height: 400px;
+        overflow-y: auto;
+    }
+
+    .comment-item {
+        display: flex;
+        gap: 15px;
+        padding: 20px 0;
+        border-bottom: 1px solid #e9ecef;
+    }
+
+    .comment-item:last-child {
+        border-bottom: none;
+    }
+
+    .comment-avatar {
+        flex-shrink: 0;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+    }
+
+    .comment-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .comment-content {
+        flex: 1;
+    }
+
+    .comment-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 8px;
+    }
+
+    .comment-author {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .comment-date {
+        font-size: 0.85rem;
+        color: #6c757d;
+    }
+
+    .comment-text {
+        color: #495057;
+        line-height: 1.6;
+    }
+
+    /* Sidebar */
+    .project-sidebar {
+        position: sticky;
+        top: 24px;
+    }
+
+    .investment-card {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+    }
+
+    .investment-header {
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .investment-header h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .investment-header p {
+        color: #6c757d;
+        margin: 0;
+    }
+
+    .investment-form .form-group {
+        margin-bottom: 20px;
+    }
+
+    .investment-form label {
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .investment-form .form-control {
+        border: 2px solid #e9ecef;
+        border-radius: 12px;
+        padding: 12px 16px;
+        font-size: 1rem;
+    }
+
+    .investment-form .form-control:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 0.2rem rgba(52, 152, 219, 0.25);
+    }
+
+    .investment-form .input-group-text {
+        background: #f8f9fa;
+        border: 2px solid #e9ecef;
+        border-left: none;
+        color: #6c757d;
+    }
+
+    .investment-form .form-text {
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+
+    .investment-summary {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 20px;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .summary-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .summary-item span:first-child {
+        color: #6c757d;
+    }
+
+    .summary-item span:last-child {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .btn--primary-modern {
+        background: rgb(55, 63, 106);
+        color: white;
+        border: none;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-size: 1rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(55, 63, 106, 0.3);
+    }
+
+    .btn--primary-modern:hover {
+        background: rgb(55, 63, 106);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(55, 63, 106, 0.4);
+        color: white;
+        text-decoration: none;
+    }
+
+    .project-closed-card {
+        background: white;
+        border-radius: 16px;
+        padding: 40px 24px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        margin-bottom: 24px;
+    }
+
+    .closed-icon {
+        font-size: 3rem;
+        color: #6c757d;
+        margin-bottom: 16px;
+    }
+
+    .project-closed-card h4 {
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+
+    .project-closed-card p {
+        color: #6c757d;
+        margin: 0;
+    }
+
+    /* Related Projects */
+    .related-projects {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    }
+
+    .related-projects h5 {
+        color: #2c3e50;
+        margin-bottom: 20px;
+    }
+
+    .related-project-item {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 12px;
+        transition: background-color 0.2s ease;
+        margin-bottom: 16px;
+    }
+
+    .related-project-item:hover {
+        background: #f8f9fa;
+    }
+
+    .related-project-item:last-child {
+        margin-bottom: 0;
+    }
+
+    .related-project-image {
+        flex-shrink: 0;
+        width: 60px;
+        height: 60px;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .related-project-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .related-project-info {
+        flex: 1;
+    }
+
+    .related-project-info h6 {
+        margin: 0 0 8px 0;
+        font-size: 0.95rem;
+    }
+
+    .related-project-info h6 a {
+        color: #2c3e50;
+        text-decoration: none;
+        transition: color 0.2s ease;
+    }
+
+    .related-project-info h6 a:hover {
+        color: #3498db;
+    }
+
+    .related-project-meta {
+        display: flex;
+        gap: 12px;
+        font-size: 0.85rem;
+    }
+
+    .related-project-meta .roi {
+        color: #27ae60;
+        font-weight: 600;
+    }
+
+    .related-project-meta .price {
+        color: #6c757d;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 992px) {
+        .project-title {
+            font-size: 2rem;
+        }
+        
+        .project-meta-header {
+            gap: 20px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .progress-stats {
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        
+        .nav-tabs-modern {
+            padding: 0 16px;
+        }
+        
+        .tab-content-modern {
+            padding: 24px;
+        }
+    }
+
+    @media (max-width: 768px) {
+        .project-hero {
+            padding: 40px 0 30px;
+        }
+        
+        .project-title {
+            font-size: 1.8rem;
+        }
+        
+        .project-title-section {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .project-meta-header {
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .nav-tabs-modern {
+            flex-wrap: wrap;
+        }
+        
+        .nav-tabs-modern .nav-link {
+            padding: 12px 16px;
+            font-size: 0.9rem;
+        }
+        
+        .comment-form-modern {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .comment-form {
+            width: 100%;
+        }
+        .project-header {
+            margin-bottom: 24px;
+        }
+        .project-meta-header {
+            margin-bottom: 16px;
+        }
+        .main-image-container {
+            margin-top: 0;
+        }
+    }
+
+    @media (max-width: 576px) {
+        .project-title {
+            font-size: 1.5rem;
+        }
+        
+        .gallery-thumbnails {
+            padding: 16px;
+        }
+        
+        .thumbnail-item {
+            flex: 0 0 60px;
+            height: 45px;
+        }
+        
+        .investment-card,
+        .related-projects {
+            padding: 20px;
+        }
+        .project-header {
+            margin-bottom: 20px;
+        }
+        .project-meta-header {
+            margin-bottom: 12px;
+        }
+        .main-image-container {
+            margin-top: 0;
+        }
+    }
+    </style>
+
     <script>
-        (function($) {
-            "use strict";
-            $(document).ready(function() {
-                $("a[data-rel^=lightcase]").lightcase();
+    // Gallery functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const mainImage = document.getElementById('mainProjectImage');
+        const thumbnails = document.querySelectorAll('.thumbnail-item');
+        
+        thumbnails.forEach(thumbnail => {
+            thumbnail.addEventListener('click', function() {
+                const imageSrc = this.getAttribute('data-image');
+                mainImage.src = imageSrc;
+                
+                // Update active state
+                thumbnails.forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+        
+        // Investment form calculations
+        const amountInput = document.querySelector('#investment_amount_input');
+        const termSelect = document.getElementById('term_months');
+        const roiDisplay = document.getElementById('roiDisplay');
+        const shareAmount = {{ $project->share_amount }};
+        const roiPercentage = {{ $project->roi_percentage }};
 
-                @if (!empty($project->gallery) && count($project->gallery) > 0)
-                    $(".offer-details-thumb-slider").slick({
-                        slidesToShow: 1,
-                        slidesToScroll: 1,
-                        autoplay: true,
-                        autoplaySpeed: 1500,
-                        dots: false,
-                        arrows: false,
-                        pauseOnHover: true,
-                        asNavFor: ".offer-details-preview-slider",
-                    });
+        // Hàm format số tiền có dấu chấm
+        function formatCurrencyInput(value) {
+            value = value.replace(/\D/g, ''); // chỉ lấy số
+            if (!value) return '';
+            return value.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+        }
 
-                    $(".offer-details-preview-slider").slick({
-                        slidesToShow: 4,
-                        slidesToScroll: 1,
-                        autoplay: true,
-                        autoplaySpeed: 1500,
-                        dots: false,
-                        arrows: false,
-                        pauseOnHover: true,
-                        asNavFor: ".offer-details-thumb-slider",
-                        responsive: [{
-                            breakpoint: 576,
-                            settings: {
-                                slidesToShow: 3,
-                            },
-                        }, ],
-                    });
-                @endif
+        // Hàm lấy số thực từ input đã format
+        function parseCurrencyInput(value) {
+            return parseFloat(value.replace(/\./g, '')) || 0;
+        }
 
-                var STATUS_LIFETIME = {{ Status::LIFETIME }};
-                var STATUS_YES = {{ Status::YES }};
+        function calculateRoi() {
+            const amount = parseCurrencyInput(amountInput.value);
+            const months = parseInt(termSelect.value) || 1;
+            
+            // Calculate ROI using the correct formula:
+            // 1. Annual ROI = Investment Amount * ROI Percentage / 100
+            // 2. Monthly ROI = Annual ROI / 12
+            // 3. Total ROI for selected months = Monthly ROI * months
+            const annualROI = amount * roiPercentage / 100;
+            const monthlyROI = Math.round(annualROI / 12);
+            const totalROI = monthlyROI * months;
+            
+            roiDisplay.textContent = totalROI.toLocaleString('vi-VN') + ' VNĐ';
+        }
 
-                var project = {
-                    shareAmount: {{ $project->share_amount }},
-                    roiAmount: {{ $project->roi_amount }},
-                    roiPercentage: {{ $project->roi_percentage }},
-                    capitalBack: {{ $project->capital_back }},
-                    returnType: {{ $project->return_type }},
-                    projectDuration: {{ $project->project_duration }},
-                    repeatTimes: {{ @$project->repeat_times ?? 0 }},
-                    timeName: '{{ $project->time->name }}',
-                    timeHours: {{ $project->time->hours }},
-                    availableShare: {{ $project->available_share }},
-                    currencySymbol: '{{ gs('cur_sym') }}',
-                    currencyText: '{{ gs('cur_text') }}'
-                };
-
-                $(document).on('click', '.qty-btn', function() {
-                    changeQuantity(this);
-                });
-
-                // Event listener for manual input in the quantity field
-                $(document).on('change', '.product-qty__value', function() {
-                    var quantity = parseInt($(this).val());
-                    if (isNaN(quantity) || quantity < 1) {
-                        quantity = 1;
-                        $(this).val(quantity);
-                    }
-                    if (quantity > project.availableShare) {
-                        quantity = project.availableShare;
-                        $(this).val(quantity);
-                        notify('error', 'Quantity cannot exceed available shares.');
-                    }
-                    updateValues(quantity);
-                });
-
-                // Function to handle increment/decrement actions
-                function changeQuantity(element) {
-                    var $input = $('.product-qty__value');
-                    var currentValue = parseInt($input.val());
-                    var inputValue = currentValue;
-
-                    var minValue = parseInt($input.attr('min'));
-                    var maxValue = parseInt($input.attr('max'));
-
-                    if ($(element).hasClass('product-qty__increment')) {
-                        if (currentValue < maxValue) {
-                            inputValue = currentValue + 1;
-                        }
-                    } else if ($(element).hasClass('product-qty__decrement')) {
-                        if (currentValue > minValue) {
-                            inputValue = currentValue - 1;
-                        }
-                    }
-
-                    $input.val(inputValue);
-                    updateValues(inputValue);
+        if (amountInput && termSelect) {
+            amountInput.addEventListener('input', function(e) {
+                // Lưu vị trí con trỏ và số dấu chấm trước khi format
+                let selectionStart = this.selectionStart;
+                const oldValue = this.value;
+                const oldDotCount = (oldValue.slice(0, selectionStart).match(/\./g) || []).length;
+                // Format lại giá trị
+                const formatted = formatCurrencyInput(this.value);
+                this.value = formatted;
+                // Đếm lại số dấu chấm mới
+                const newDotCount = (formatted.slice(0, selectionStart).match(/\./g) || []).length;
+                // Điều chỉnh vị trí con trỏ dựa trên số dấu chấm thay đổi
+                selectionStart += (newDotCount - oldDotCount);
+                this.setSelectionRange(selectionStart, selectionStart);
+                calculateRoi();
+                // Sync modal if open
+                if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
+                    // Make sure we pass the term value as a proper integer
+                    window.updateModalValues(parseCurrencyInput(this.value), parseInt(termSelect.value) || 1);
                 }
-
-                // Function to update values on the page based on the quantity
-                function updateValues(quantity) {
-                    var totalPayable = project.shareAmount * quantity;
-                    var totalEarnings = 0;
-
-                    if (project.returnType == STATUS_LIFETIME) {
-                        var totalMonths = project.projectDuration;
-                        var payHours = project.timeHours;
-                        var payAmount = project.roiAmount;
-
-                        var totalHours = totalMonths * 720;
-
-                        var totalPayments = Math.floor(totalHours / payHours);
-
-                        totalEarnings = totalPayments * payAmount * quantity;
-                    } else {
-                        var payAmount = project.roiAmount;
-                        totalEarnings = payAmount * project.repeatTimes * quantity;
-                    }
-
-                    $('#modal_quantity').val(quantity);
-
-                    // Update total payable
-                    $('#total-payable').text(project.currencySymbol + totalPayable.toFixed(2));
-
-
-                    // Update total earning last
-                    var totalEarningLast = totalEarnings;
-                    if (project.capitalBack == STATUS_YES) {
-                        totalEarningLast += project.shareAmount * quantity;
-                    }
-
-                    $('#total-earning-last').text(project.currencySymbol + totalEarningLast.toFixed(2));
-
-                    // Update total earning
-                    if (project.returnType == STATUS_LIFETIME) {
-                        $('#total-earning').text(project.currencySymbol + (project.roiAmount * quantity).toFixed(2) + ' / ' + project.timeName);
-                    } else {
-                        $('#total-earning').text(project.currencySymbol + totalEarningLast.toFixed(2));
-                    }
-
-                    // Update quantity total price
-                    $('.quantity-total-price').text(project.currencySymbol + totalPayable.toFixed(2));
-                    $('#total__invest').text(project.currencySymbol + totalPayable.toFixed(2));
-
-                    // Update Earning ROI Amount
-
-                    $('.time-name').text(project.currencySymbol + (project.roiAmount * quantity).toFixed(2) + ' / ' + project.timeName);
-
-                    // Update Earning ROI (%)
-                    $('.roi-percentage').text(project.roiPercentage.toFixed(2) + '%');
-
-                    // Update Capital Back
-                    $('.capital-back').text(project.capitalBack == STATUS_YES ? 'Yes' : 'No');
+            });
+            termSelect.addEventListener('change', function() {
+                calculateRoi();
+                // Sync modal if open
+                if (typeof window.updateModalValues === 'function' && document.getElementById('bitModal')?.classList.contains('show')) {
+                    // Make sure we pass the term value as a proper integer
+                    window.updateModalValues(parseCurrencyInput(amountInput.value), parseInt(this.value) || 1);
                 }
-
-
-                document.querySelectorAll('.payment-options').forEach(function(option) {
-                    option.addEventListener('click', function() {
-                        document.querySelectorAll('.payment-options').forEach(function(
-                            opt) {
-                            opt.classList.remove('active');
-                        });
-                        option.classList.add('active');
-                        $('#payment_type').val(option.getAttribute('data-payment-type'));
-                    });
-                });
-
-
-                $('.project-slider').slick({
-                    slidesToShow: 4,
-                    slidesToScroll: 1,
-                    speed: 1000,
-                    arrows: true,
-                    autoplay: true,
-                    autoplaySpeed: 3000,
-                    prevArrow: '<button type="button" class="slick-prev"><i class="las la-arrow-left"></i></button>',
-                    nextArrow: '<button type="button" class="slick-next"><i class="las la-arrow-right"></i></button>',
-                    responsive: [{
-                            breakpoint: 1200,
-                            settings: {
-                                slidesToShow: 3,
-                            }
-                        },
-                        {
-                            breakpoint: 768,
-                            settings: {
-                                slidesToShow: 2,
-                            }
-                        },
-                        {
-                            breakpoint: 576,
-                            settings: {
-                                slidesToShow: 2,
-                                arrows: false,
-                                dots: true
-                            }
-                        },
-                        {
-                            breakpoint: 425,
-                            settings: {
-                                slidesToShow: 1,
-                                arrows: false,
-                                dots: true
-                            }
-                        }
-                    ],
-                });
-
-                $(document).on('click', '.replay_button', function() {
-                    $(this).closest('.replay_box').find('.reply-wrapper,.comment-item').toggleClass('d-none');
-                });
-
-
-                let lastPage = `{{ $comments->lastPage() }}`;
-                $('#load-more').on('click', function() {
-                    let page = $(this).data('page');
-                    let url = `{{ route('project.details', $project->slug) }}` + `?page=${page}`;
-
-                    $.ajax({
-                        url: url,
-                        type: 'GET',
-                        beforeSend: function() {
-                            $('#load-more').html(`
-                            <div class="spinner-border spinner-border-sm" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                            </div>`);
-                        },
-                        success: function(response) {
-                            if (lastPage <= page) {
-                                $('#load-more').text('No more comments');
-                                $('#load-more').prop('disabled', true);
-                            } else {
-                                $('#load-more').text('Load more');
-                            }
-                            if (response) {
-                                $('#comment__main').append(response);
-                                $('#load-more').data('page', page + 1);
-                            }
-                        },
-                        error: function(response) {
-                            alert('Something went wrong. Please try again.');
-                            $('#load-more').text('Load more');
-                        }
-                    });
-                });
-
-                $(document).on('submit', '.ajaxForm', function(e) {
-                    e.preventDefault();
-                    let form = $(this);
-                    let formData = $(this).serialize();
-                    let actionUrl = $(this).attr('action');
-                    let auth = `{{ auth()->check() }}`;
-
-                    if (!auth) {
-                        notify('error', 'You need to log in first');
-                    }
-
-                    $.ajax({
-                        url: actionUrl,
-                        method: 'POST',
-                        data: formData,
-                        success: function(response) {
-                            if (response.type == 'success') {
-                                form[0].reset();
-                                if (response.comment) {
-                                    $('#comment__main').prepend(response.data);
-
-                                    $('.comment-number').find('.commentCount').text(function(i, oldText) {
-                                        return parseInt(oldText) + 1;
-                                    });
-
-                                    $('.comment___number').find('.commentCount').text(function(i, oldText) {
-                                        return parseInt(oldText) + 1;
-                                    });
-
-                                } else {
-                                    form.closest('.replay_box').find('.comment-item').append(response.data);
-
-                                    form.closest('.replay_box').find('.incrementCount').text(function(i, oldText) {
-                                        return parseInt(oldText) + 1;
-                                    });
-                                }
-                                notify('success', response.message);
-                            } else {
-                                notify('error', response.message);
-                            }
-                        }
-                    });
-                });
-
-                // --- Sync sidebar quantity to modal ---
-                $(document).on('click', '.bookNow', function() {
-                    // Get quantity from sidebar
-                    var sidebarQty = $(this).closest('.offcanvas-sidebar').find('.product-qty__value').val();
-                    sidebarQty = parseInt(sidebarQty) || 1;
-                    // Set biến toàn cục để modal lấy đúng số lượng khi mở
-                    window._modalQuantity = sidebarQty;
-                    // Gọi cập nhật modal
-                    if (typeof updateModalValues === 'function') {
-                        updateModalValues(sidebarQty);
-                    } else if (window.updateModalValues) {
-                        window.updateModalValues(sidebarQty);
-                    }
+            });
+            // Khởi tạo tính toán ban đầu
+            calculateRoi();
+        }
+        
+        // Copy link functionality
+        const copyLinkBtn = document.querySelector('.copy-link');
+        if (copyLinkBtn) {
+            copyLinkBtn.addEventListener('click', function() {
+                const link = this.getAttribute('data-link');
+                navigator.clipboard.writeText(link).then(() => {
+                    // Show success message
+                    this.innerHTML = '<i class="las la-check"></i>';
+                    setTimeout(() => {
+                        this.innerHTML = '<i class="las la-copy"></i>';
+                    }, 2000);
                 });
             });
-        })(jQuery);
+        }
+        
+        // Modal functionality
+        const bitModal = document.getElementById('bitModal');
+        if (bitModal) {
+            bitModal.addEventListener('show.bs.modal', function() {
+                // Get the amount from the input field using the correct parsing function
+                const amount = parseCurrencyInput(document.getElementById('investment_amount_input').value) || shareAmount;
+                // Get the selected term
+                const months = parseInt(document.getElementById('term_months').value) || 1;
+                
+                // Initialize modal values when modal opens
+                if (typeof window.updateModalValues === 'function') {
+                    // Pass the amount and term to updateModalValues
+                    window.updateModalValues(amount, months);
+                }
+            });
+        }
+    });
     </script>
-@endpush
+    
+    @include('templates.basic.projects.buy-modal')
+@endsection
+

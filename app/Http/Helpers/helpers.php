@@ -121,11 +121,11 @@ function showAmount($amount, $decimal = 0, $separate = true, $exceptZeros = fals
     
     if ($currencyFormat) {
         if (gs('currency_format') == Status::CUR_BOTH) {
-            return gs('cur_sym') . $printAmount . ' ' . __(gs('cur_text'));
+            return $printAmount . ' ' . __(gs('cur_text')) . ' ' . gs('cur_sym');
         } else if (gs('currency_format') == Status::CUR_TEXT) {
             return $printAmount . ' ' . __(gs('cur_text'));
         } else {
-            return gs('cur_sym') . $printAmount;
+            return $printAmount . ' ' . gs('cur_sym');
         }
     }
     return $printAmount;
@@ -476,9 +476,9 @@ function convertMatureTime($value) {
 }
 
 function investMaturedDate($project, $endDate = false) {
-    $date = Carbon::parse($project->end_date)->addMonth($project->maturity_time); // investMaturedDate
+    $date = Carbon::parse($project->end_date)->addMonths((int)$project->maturity_time); // investMaturedDate
     if ($endDate) {
-        $date = $date->addMonths($project->project_duration); //investmentEndDate
+        $date = $date->addMonths((int)$project->project_duration); //investmentEndDate
     }
     return $date;
 }
@@ -496,8 +496,7 @@ function getInvestmentRemaining($invest) {
             $investmentEndDate,
         );
 
-        // Return interval in hours
-        $returnIntervalHours = $invest->project->time->hours;
+        $returnIntervalHours = $invest->project->time && $invest->project->time->hours ? $invest->project->time->hours : 24;
 
         // Total number of returns
         $totalReturns = floor($totalDurationHours / $returnIntervalHours);
@@ -526,8 +525,8 @@ function getTotalReturns($invest) {
             $investmentEndDate,
         );
 
-        // Return interval in hours
-        $returnIntervalHours = $invest->project->time->hours;
+        // Return interval in hours - default to 24 if time object is null
+        $returnIntervalHours = $invest->project->time && $invest->project->time->hours ? $invest->project->time->hours : 24;
 
         // Total number of returns
         $totalReturns = floor($totalDurationHours / $returnIntervalHours);
@@ -540,10 +539,95 @@ function getTotalReturns($invest) {
     return $totalReturns;
 }
 
-function generateContractContent($project, $user = null) {
-    $date = now()->format('d/m/Y');
-    $contractNumber = 'SMB/' . date('Y') . '/BHG-' . str_pad($project->id, 4, '0', STR_PAD_LEFT);
-    
+function generateContractContent($project, $user = null, $contractNumber = null, $status = null, $forWeb = false) {
+    $date = now();
+    if (!$contractNumber) {
+        $contractNumber = 'SMB/' . date('Y') . '/BHG-' . str_pad($project->id, 4, '0', STR_PAD_LEFT);
+    }
+    // Chuẩn bị các biến user
+    $benBName = $user ? $user->fullname : '........................';
+    $benBAddress = $user ? $user->address : '........................';
+    $benBBirth = $user && ($user->date_of_birth ?? $user->birth_date ?? null) ? \Carbon\Carbon::parse($user->date_of_birth ?? $user->birth_date)->format('d/m/Y') : '........................';
+    $benBId = $user ? $user->id_number : '........................';
+    $benBIdDate = $user && $user->id_issue_date ? \Carbon\Carbon::parse($user->id_issue_date)->format('d/m/Y') : '........................';
+    $benBIdPlace = $user ? $user->id_issue_place : '........................';
+    $benBMobile = $user ? $user->mobile : '........................';
+    $benBEmail = $user ? $user->email : '........................';
+    $benBAccount = $user ? ($user->bank_account_number ?? $user->account_number ?? '........................') : '........................';
+    $benBBank = $user ? ($user->bank_name ?? '........................') : '........................';
+    $benBBankBranch = $user ? ($user->bank_branch ?? '........................') : '........................';
+    $benBAccountName = $user ? ($user->bank_account_holder ?? $user->account_name ?? '........................') : '........................';
+    $benBCustomerCode = $user ? ($user->customer_code ?? $user->username ?? '........................') : '........................';
+    $benBTax = $user ? ($user->tax_number ?? '........................') : '........................';
+    $benBConsultantName = $project && property_exists($project, 'consultant_name') ? $project->consultant_name : '........................';
+    $benBConsultantCode = $project && property_exists($project, 'consultant_code') ? $project->consultant_code : '........................';
+    $projectTitle = $project ? $project->title : '........................';
+    $projectDescription = $project ? $project->description : '';
+    $today = $date->format('d');
+    $month = $date->format('m');
+    $year = $date->format('Y');
+    $mainContent = <<<HTML
+    <div class="contract-content">
+        <div class="contract-header">
+            <div>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
+            <div>Độc lập - Tự do - Hạnh phúc</div>
+            <div>-------o0o-------</div>
+            <div class="date">Hà Nội, ngày {$today} tháng {$month} năm {$year}</div>
+        </div>
+        <div class="main-title">HỢP ĐỒNG HỢP TÁC KINH DOANH</div>
+        <div class="doc-number">Số: {$contractNumber}</div>
+        <div class="section-label">CĂN CỨ:</div>
+        <ul>
+            <li class="italic">Căn cứ Bộ luật dân sự năm 2015;</li>
+            <li class="italic">Căn cứ Luật thương mại năm 2005 và các văn bản hướng dẫn thi hành;</li>
+            <li class="italic">Căn cứ Luật Đầu tư năm 2020 và các văn bản hướng dẫn thi hành;</li>
+            <li class="italic">Căn cứ các văn bản pháp luật Việt Nam liên quan;</li>
+            <li class="italic">Căn cứ vào năng lực của BHG – Viettel Post;</li>
+            <li class="italic">Căn cứ nhu cầu và khả năng của các Bên;</li>
+        </ul>
+        <p><strong><span class="italic">Hôm nay, ngày {$today} tháng {$month} năm {$year}, tại trụ sở Công ty cổ phần Tập đoàn đầu tư Bắc Hải, chúng tôi gồm có:</span></strong></p>
+        <p><strong>BÊN A: CÔNG TY CỔ PHẦN TẬP ĐOÀN ĐẦU TƯ BẮC HẢI (BHG)</strong></p>
+        <ul>
+            <li>Trụ sở chính: Tầng 04, Tòa nhà Thương mại và Dịch vụ B-CC, Dự án khu nhà ở Ngân Hà Vạn Phúc, phố Tố Hữu, phường Vạn Phúc, quận Hà Đông, TP. Hà Nội;</li>
+            <li>Đại diện (Ông): TRẦN VĂN DUY – Chức vụ: Tổng Giám đốc;</li>
+            <li>Mã doanh nghiệp: 0109034215;</li>
+            <li>Điện thoại: 092 153 939 – Email: hotro@tapdoanbachai.vn;</li>
+            <li>Website: tapdoanbachai.vn;</li>
+            <li>Số tài khoản: 0511100235999 – Ngân hàng: MB – CN Vạn Phúc;</li>
+        </ul>
+        <div class="section-label">BÊN B: Ông/Bà: {$benBName}</div>
+        <ul>
+            <li>Địa chỉ: {$benBAddress};</li>
+            <li>Ngày sinh: {$benBBirth};</li>
+            <li>CC/CCCD số: {$benBId} – Cấp ngày: {$benBIdDate} – Nơi cấp: {$benBIdPlace};</li>
+            <li>Điện thoại: {$benBMobile} – Email: {$benBEmail};</li>
+            <li>Số tài khoản: {$benBAccount} – Ngân hàng: {$benBBank} – Chi nhánh: {$benBBankBranch};</li>
+            <li>Tên chủ tài khoản: {$benBAccountName};</li>
+            <li>Mã số khách hàng: {$benBCustomerCode};</li>
+            <li>Mã số thuế TNCN: {$benBTax};</li>
+            <li>Họ tên chuyên viên tư vấn: {$benBConsultantName} – Mã số CVTV: {$benBConsultantCode};</li>
+        </ul>
+        <div class="section-label">XÉT RẰNG:</div>
+        <ul>
+            <li>Bên A là pháp nhân, được thành lập và hoạt động hợp pháp tại Việt Nam, có chức năng hoạt động đầu tư kinh doanh trong các lĩnh vực: bất động sản, cho thuê máy móc, thiết bị, xây dựng …;</li>
+            <li>Bên A đang đầu tư hạ tầng hệ thống tủ Smartbox cho Tổng Công ty cổ phần Bưu chính Viettel thuê;</li>
+            <li>Bên B là cá nhân, có điều kiện về tài chính, có đầy đủ năng lực hành vi dân sự, có nhu cầu hợp tác với Bên A để cùng kinh doanh;</li>
+        </ul>
+        <p><strong><span class="italic">Bởi vậy, sau khi thống nhất, bàn bạc trên tinh thần hoàn toàn tự nguyện, hai bên đồng ý ký hợp đồng với các điều kiện và điều khoản sau đây:</span></strong></p>
+        <div class="section-title">ĐIỀU 1: NỘI DUNG HỢP TÁC KINH DOANH</div>
+        <p><strong>1.1 Mục đích hợp tác kinh doanh:</strong> Bên A đồng ý nhận và Bên B tự nguyện hợp tác đầu tư theo hình thức góp vốn bằng tiền mặt/tài sản vào BHG để thực hiện dự án {$projectTitle}, phân chia lợi tức theo kết quả kinh doanh.</p>
+        <p><strong>1.2 Chi tiết dự án:</strong> {$projectDescription}</p>
+        <ul>
+            <li>Bên A thực hiện đầu tư các hệ thống tủ Smartbox tại các địa điểm do Bên A và Viettel Post thống nhất;</li>
+            <li>Tủ Smartbox đảm bảo tiêu chuẩn kỹ thuật và hoạt động liên tục, ổn định;</li>
+            <li>Bên A chịu trách nhiệm lắp đặt, chi trả chi phí thuê mặt bằng và các chi phí vận hành liên quan;</li>
+        </ul>
+    </div>
+HTML;
+    if ($forWeb) {
+        $mainContent = addWatermarkToPdf($mainContent, $status);
+        return $mainContent;
+    }
     $contractContent = <<<HTML
 <!DOCTYPE html>
 <html lang="vi">
@@ -559,25 +643,35 @@ function generateContractContent($project, $user = null) {
             margin: 0;
             padding: 0;
         }
-        .container {
-            width: calc(210mm - 40mm);
-            margin: 0 auto;
+        .contract-content {
             font-family: "Times New Roman", Times, serif;
             font-size: 13pt;
             line-height: 1.6;
+            color: #000000;
+            width: 210mm;
+            min-height: 297mm;
+            padding: 20mm;
+            margin: 0 auto;
+            background: white;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
         }
-        .header {
+        .contract-header {
             text-align: center;
             font-weight: bold;
             margin-bottom: 20px;
         }
-        .header .date {
+        .contract-header div {
+            margin-bottom: 5px;
+            line-height: 1.8;
+        }
+        .contract-header .date {
             text-align: right;
             font-weight: normal;
             margin-bottom: 10px;
+            margin-top: 15px;
         }
         .main-title {
-            margin: 5px 0;
+            margin: 15px 0;
             font-size: 16pt;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -595,17 +689,17 @@ function generateContractContent($project, $user = null) {
             margin-top: 15px;
             margin-bottom: 6px;
         }
-        p, ul, li {
+        .contract-content p, .contract-content ul, .contract-content li {
             font-size: 13pt;
             text-align: justify;
             text-justify: inter-word;
         }
-        ul {
+        .contract-content ul {
             list-style-type: disc;
             padding-left: 30px;
             margin: 5px 0 15px 0;
         }
-        li {
+        .contract-content li {
             margin-bottom: 5px;
             text-align: justify;
         }
@@ -620,72 +714,90 @@ function generateContractContent($project, $user = null) {
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div>CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</div>
-            <div>Độc lập - Tự do - Hạnh phúc</div>
-            <div>-------o0o-------</div>
-            <div class="date">Hà Nội, ngày {$date}</div>
-        </div>
-        <div class="main-title">HỢP ĐỒNG HỢP TÁC KINH DOANH</div>
-        <div class="doc-number">Số: {$contractNumber}</div>
-
-        <div class="section-label">CĂN CỨ:</div>
-        <ul>
-            <li class="italic">Căn cứ Bộ luật dân sự năm 2015;</li>
-            <li class="italic">Căn cứ Luật thương mại năm 2005 và các văn bản hướng dẫn thi hành;</li>
-            <li class="italic">Căn cứ Luật Đầu tư năm 2020 và các văn bản hướng dẫn thi hành;</li>
-            <li class="italic">Căn cứ các văn bản pháp luật Việt Nam liên quan;</li>
-            <li class="italic">Căn cứ vào năng lực của BHG – Viettel Post;</li>
-            <li class="italic">Căn cứ nhu cầu và khả năng của các Bên;</li>
-        </ul>
-
-        <p><strong><span class="italic">Hôm nay, ngày {$date}, tại trụ sở Công ty cổ phần Tập đoàn đầu tư Bắc Hải, chúng tôi gồm có:</span></strong></p>
-
-        <p><strong>BÊN A: CÔNG TY CỔ PHẦN TẬP ĐOÀN ĐẦU TƯ BẮC HẢI (BHG)</strong></p>
-        <ul>
-            <li>Trụ sở chính: Tầng 04, Tòa nhà Thương mại và Dịch vụ B-CC, Dự án khu nhà ở Ngân Hà Vạn Phúc, phố Tố Hữu, phường Vạn Phúc, quận Hà Đông, TP. Hà Nội;</li>
-            <li>Đại diện (Ông): TRẦN VĂN DUY – Chức vụ: Tổng Giám đốc;</li>
-            <li>Mã doanh nghiệp: 0109034215;</li>
-            <li>Điện thoại: 092 153 939 – Email: hotro@tapdoanbachai.vn;</li>
-            <li>Website: tapdoanbachai.vn;</li>
-            <li>Số tài khoản: 0511100235999 – Ngân hàng: MB – CN Vạn Phúc;</li>
-        </ul>
-
-        <p><strong>BÊN B: Ông/Bà: ' . ($user ? $user->fullname : '........................') . '</strong></p>
-        <ul>
-            <li>Địa chỉ: ' . ($user ? $user->address : '........................') . ';</li>
-            <li>Ngày sinh: ' . ($user ? $user->birth_date : '........................') . ';</li>
-            <li>CC/CCCD số: ' . ($user ? $user->id_number : '........................') . ' – Cấp ngày: ' . ($user ? $user->id_issue_date : '........................') . ' – Nơi cấp: ' . ($user ? $user->id_issue_place : '........................') . ';</li>
-            <li>Điện thoại: ' . ($user ? $user->mobile : '........................') . ' – Email: ' . ($user ? $user->email : '........................') . ';</li>
-            <li>Số tài khoản: ' . ($user ? $user->account_number : '........................') . ' – Ngân hàng: ' . ($user ? $user->bank_name : '........................') . ' – Chi nhánh: ' . ($user ? $user->bank_branch : '........................') . ';</li>
-            <li>Tên chủ tài khoản: ' . ($user ? $user->account_name : '........................') . ';</li>
-            <li>Mã số khách hàng: ' . ($user ? $user->customer_code : '........................') . ';</li>
-            <li>Mã số thuế TNCN: ' . ($user ? $user->tax_number : '........................') . ';</li>
-            <li>Họ tên chuyên viên tư vấn: ' . ($user ? $user->consultant_name : '........................') . ' – Mã số CVTV: ' . ($user ? $user->consultant_code : '........................') . ';</li>
-        </ul>
-
-        <div class="section-label">XÉT RẰNG:</div>
-        <ul>
-            <li>Bên A là pháp nhân, được thành lập và hoạt động hợp pháp tại Việt Nam, có chức năng hoạt động đầu tư kinh doanh trong các lĩnh vực: bất động sản, cho thuê máy móc, thiết bị, xây dựng …;</li>
-            <li>Bên A đang đầu tư hạ tầng hệ thống tủ Smartbox cho Tổng Công ty cổ phần Bưu chính Viettel thuê;</li>
-            <li>Bên B là cá nhân, có điều kiện về tài chính, có đầy đủ năng lực hành vi dân sự, có nhu cầu hợp tác với Bên A để cùng kinh doanh;</li>
-        </ul>
-
-        <p><strong><span class="italic">Bởi vậy, sau khi thống nhất, bàn bạc trên tinh thần hoàn toàn tự nguyện, hai bên đồng ý ký hợp đồng với các điều kiện và điều khoản sau đây:</span></strong></p>
-
-        <div class="section-title">ĐIỀU 1: NỘI DUNG HỢP TÁC KINH DOANH</div>
-        <p><strong>1.1 Mục đích hợp tác kinh doanh:</strong> Bên A đồng ý nhận và Bên B tự nguyện hợp tác đầu tư theo hình thức góp vốn bằng tiền mặt/tài sản vào BHG để thực hiện dự án {$project->title}, phân chia lợi tức theo kết quả kinh doanh.</p>
-        <p><strong>1.2 Chi tiết dự án:</strong> {$project->description}</p>
-        <ul>
-            <li>Bên A thực hiện đầu tư các hệ thống tủ Smartbox tại các địa điểm do Bên A và Viettel Post thống nhất;</li>
-            <li>Tủ Smartbox đảm bảo tiêu chuẩn kỹ thuật và hoạt động liên tục, ổn định;</li>
-            <li>Bên A chịu trách nhiệm lắp đặt, chi trả chi phí thuê mặt bằng và các chi phí vận hành liên quan;</li>
-        </ul>
-    </div>
+    {$mainContent}
 </body>
 </html>
 HTML;
-
+    $contractContent = addWatermarkToPdf($contractContent, $status);
     return $contractContent;
+}
+
+function generateContractNumber() {
+    // Lấy tháng và năm hiện tại
+    $month = date('m'); // 2 chữ số tháng (01-12)
+    $year = date('y');  // 2 chữ số năm (25 cho 2025)
+    
+    // Tìm số thứ tự hợp đồng trong tháng hiện tại
+    $currentMonth = date('Y-m'); // 2025-06
+    $contractCount = \App\Models\Invest::whereYear('created_at', date('Y'))
+                                      ->whereMonth('created_at', date('m'))
+                                      ->count();
+    
+    // Tăng số thứ tự lên 1 cho hợp đồng mới
+    $contractCount++;
+    
+    // Format: 3 số thứ tự + 2 số tháng + 2 số năm
+    // Ví dụ: 001 + 06 + 25 = 0010625
+    $contractNumber = str_pad($contractCount, 3, '0', STR_PAD_LEFT) . $month . $year;
+    
+    return $contractNumber;
+}
+
+function addWatermarkToPdf($pdfContent, $status = null) {
+    if ($status !== \App\Constants\Status::INVEST_RUNNING) {
+        $watermarkHtml = <<<HTML
+<div class="contract-watermark" style="
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-20deg);
+    z-index: 2;
+    pointer-events: none;
+    user-select: none;
+    width: 80%;
+    text-align: center;
+">
+    <div style="
+        padding: 20px 40px;
+        background: rgba(255, 255, 255, 0.11);
+        border: 2px solid rgba(255, 0, 0, 0.6);
+        border-radius: 0;
+        text-align: center;
+        box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        white-space: nowrap;
+        display: inline-block;
+    ">
+        <div style="
+            margin-bottom: 8px;
+            font-size: 32px;
+            font-weight: bold;
+            font-family: 'Times New Roman', Times, serif;
+            color: rgba(255, 0, 0, 0.5);
+        ">
+            HỢP ĐỒNG CHƯA CÓ HIỆU LỰC PHÁP LÝ
+        </div>
+        <div style="
+            font-size: 20px;
+            font-weight: 600;
+            font-family: Arial, sans-serif;
+            color: rgba(255, 0, 0, 0.5);
+        ">
+            KHÔNG CÓ GIÁ TRỊ SỬ DỤNG
+        </div>
+    </div>
+</div>
+HTML;
+        // Chèn watermark ngay sau <div class="contract-content">
+        $pdfContent = preg_replace('/(<div[^>]*class=["\"][^>]*contract-content[^>]*["\"][^>]*>)/i', '$1' . $watermarkHtml, $pdfContent, 1);
+    }
+    return $pdfContent;
+}
+
+function refreshContractContent($invest) {
+    // Cập nhật nội dung hợp đồng với status hiện tại
+    $contractContent = generateContractContent($invest->project, $invest->user, $invest->invest_no, $invest->status);
+    $invest->contract_content = $contractContent;
+    $invest->save();
+    
+    return $invest;
 }

@@ -20,7 +20,6 @@ class Invest extends Model
         'total_price',
         'roi_percentage',
         'roi_amount',
-        'payment_type',
         'total_earning',
         'total_share',
         'capital_back',
@@ -34,6 +33,12 @@ class Invest extends Model
         'recurring_pay',
         'status',
         'payment_status'
+    ];
+
+    protected $casts = [
+        'project_duration' => 'integer',
+        'repeat_times' => 'integer',
+        'quantity' => 'integer',
     ];
 
     public function deposit()
@@ -51,9 +56,26 @@ class Invest extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function referrer()
+    {
+        return $this->hasOne(User::class, 'referral_code', 'referral_code');
+    }
+
     public function transactions()
     {
         return $this->hasMany(Transaction::class);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(ContractDocument::class);
+    }
+
+    public function interests()
+    {
+        // This is a placeholder relationship that returns an empty collection
+        // to prevent null reference errors in views
+        return $this->hasMany(Transaction::class)->whereNull('id');
     }
 
     public function scopeCompleted($query)
@@ -113,14 +135,8 @@ class Invest extends Model
     public function paymentTypeBadge(): Attribute
     {
         return new Attribute(function () {
-            $html = '';
-            if ($this->payment_type == Status::PAYMENT_WALLET) {
-                $html = '<span class="badge badge--info">' . trans('Wallet') . '</span>';
-            } else {
-                $html = '<span class="badge badge--primary">' . trans('Online') . '</span>';
-            }
-
-            return $html;
+            // Since payment_type is no longer available, default to online payment
+            return '<span class="badge badge--primary">' . trans('Online') . '</span>';
         });
     }
 
@@ -164,5 +180,13 @@ class Invest extends Model
 
             return $html;
         });
+    }
+
+    public function getDisplayRoiPercentageAttribute()
+    {
+        if ($this->roi_percentage && $this->roi_percentage != 0) {
+            return $this->roi_percentage;
+        }
+        return $this->project ? $this->project->roi_percentage : 0;
     }
 }

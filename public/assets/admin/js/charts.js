@@ -1,67 +1,106 @@
 // doughnut
 function piChart(element, labels, data) {
+    if (!element) {
+        console.error('piChart: Element is null or undefined');
+        return;
+    }
+    
+    if (!labels || !labels.length) {
+        console.error('piChart: Labels are missing or empty', labels);
+        return;
+    }
+    
+    if (!data || !data.length) {
+        console.error('piChart: Data is missing or empty', data);
+        return;
+    }
+    
+    console.log('piChart: Creating chart with', { element, labels, data });
+    
+    try {
+        new Chart(element, {
+             type: 'doughnut',
+             data: {
+                  labels: labels,
+                  datasets: [{
+                       data: data,
+                       backgroundColor: [
+                            '#ff7675',
+                            '#6c5ce7',
+                            '#ffa62b',
+                            '#ffeaa7',
+                            '#D980FA',
+                            '#fccbcb',
+                            '#45aaf2',
+                            '#05dfd7',
+                            '#FF00F6',
+                            '#1e90ff',
+                            '#2ed573',
+                            '#eccc68',
+                            '#ff5200',
+                            '#cd84f1',
+                            '#7efff5',
+                            '#7158e2',
+                            '#fff200',
+                            '#ff9ff3',
+                            '#08ffc8',
+                            '#3742fa',
+                            '#1089ff',
+                            '#70FF61',
+                            '#bf9fee',
+                            '#574b90'
+                       ],
+                       borderColor: [
+                            'rgba(231, 80, 90, 0.75)'
+                       ],
+                       borderWidth: 0,
 
-    new Chart(element, {
-         type: 'doughnut',
-         data: {
-              labels: labels,
-              datasets: [{
-                   data: data,
-                   backgroundColor: [
-                        '#ff7675',
-                        '#6c5ce7',
-                        '#ffa62b',
-                        '#ffeaa7',
-                        '#D980FA',
-                        '#fccbcb',
-                        '#45aaf2',
-                        '#05dfd7',
-                        '#FF00F6',
-                        '#1e90ff',
-                        '#2ed573',
-                        '#eccc68',
-                        '#ff5200',
-                        '#cd84f1',
-                        '#7efff5',
-                        '#7158e2',
-                        '#fff200',
-                        '#ff9ff3',
-                        '#08ffc8',
-                        '#3742fa',
-                        '#1089ff',
-                        '#70FF61',
-                        '#bf9fee',
-                        '#574b90'
-                   ],
-                   borderColor: [
-                        'rgba(231, 80, 90, 0.75)'
-                   ],
-                   borderWidth: 0,
-
-              }]
-         },
-         options: {
-              aspectRatio: 1,
-              responsive: true,
-              maintainAspectRatio: true,
-              elements: {
-                   line: {
-                        tension: 0 // disables bezier curves
+                  }]
+             },
+             options: {
+                  aspectRatio: 1,
+                  responsive: true,
+                  maintainAspectRatio: true,
+                  elements: {
+                       line: {
+                            tension: 0 // disables bezier curves
+                       }
+                  },
+                  scales: {
+                       xAxes: [{
+                            display: false
+                       }],
+                       yAxes: [{
+                            display: false
+                       }]
+                  },
+                                     legend: {
+                        display: true,
+                        position: 'right',
+                        labels: {
+                            fontSize: 12,
+                            boxWidth: 12
+                        }
+                   },
+                   tooltips: {
+                        callbacks: {
+                            label: function(tooltipItem, data) {
+                                var dataset = data.datasets[tooltipItem.datasetIndex];
+                                var total = dataset.data.reduce(function(previousValue, currentValue) {
+                                    return previousValue + currentValue;
+                                });
+                                var currentValue = dataset.data[tooltipItem.index];
+                                var percentage = Math.round((currentValue/total) * 100);
+                                return data.labels[tooltipItem.index] + ': ' + currentValue + ' (' + percentage + '%)';
+                            }
+                        }
                    }
-              },
-              scales: {
-                   xAxes: [{
-                        display: false
-                   }],
-                   yAxes: [{
-                        display: false
-                   }]
-              },
-              legend: {
-                   display: false,
-              }
-         }
-    });
+             }
+        });
+        console.log('piChart: Chart created successfully');
+    } catch (error) {
+        console.error('piChart: Error creating chart', error);
+    }
 }
 
 function barChart(element, currency, series, categories, height = 380) {

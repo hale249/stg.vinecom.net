@@ -16,10 +16,10 @@ class InvestReportController extends Controller
 
         $widget['total_invest'] = Transaction::where('remark', 'payment', 'wallet_payment')->sum('amount');
         $widget['profit_to_give'] = Invest::where('status', Status::INVEST_RUNNING)->where('period', '>', 0)->sum('recurring_pay');
-        $widget['profit_paid'] = Invest::where('status', Status::INVEST_RUNNING)->where('period', '>', 0)->sum('paid');
+        $widget['profit_paid'] = Invest::where('status', Status::INVEST_RUNNING)->where('period', '>', 0)->sum('total_earning');
 
         $interestByProjects = Invest::where('period', '>', 0)
-            ->selectRaw("SUM(paid) as total_price, project_id, MAX(paid) as max_paid")
+            ->selectRaw("SUM(total_earning) as total_price, project_id, MAX(total_earning) as max_paid")
             ->with('project')
             ->groupBy('project_id')
             ->orderBy('max_paid', 'desc')
@@ -40,39 +40,74 @@ class InvestReportController extends Controller
 
     public function investStatistics(Request $request)
     {
-        if ($request->time == 'year') {
-            $time = now()->startOfYear();
-            $prevTime = now()->startOfYear()->subYear();
-        } elseif ($request->time == 'month') {
-            $time = now()->startOfMonth();
-            $prevTime = now()->startOfMonth()->subMonth();
+        $months = [];
+        $investCounts = [];
+        $investAmounts = [];
+
+        // Check if start_date and end_date are provided
+        if ($request->has('start_date') && $request->has('end_date')) {
+            $startDate = \Carbon\Carbon::parse($request->start_date);
+            $endDate = \Carbon\Carbon::parse($request->end_date);
+            
+            // Ensure we don't exceed 12 months to maintain chart readability
+            $monthDiff = $startDate->diffInMonths($endDate);
+            if ($monthDiff > 12) {
+                // If more than 12 months, limit to last 12 months from end date
+                $startDate = $endDate->copy()->subMonths(11)->startOfMonth();
+            }
+            
+            // Generate data for each month in the selected range
+            $currentDate = $startDate->copy()->startOfMonth();
+            while ($currentDate <= $endDate) {
+                $monthStart = $currentDate->copy()->startOfMonth();
+                $monthEnd = $currentDate->copy()->endOfMonth();
+                
+                // Format month for display
+                $months[] = $currentDate->format('M Y');
+                
+                // Count investments in this month - vẫn đếm tất cả hợp đồng (kể cả cancelled)
+                $count = Invest::whereBetween('created_at', [$monthStart, $monthEnd])->count();
+                $investCounts[] = $count;
+                
+                // Sum investment amounts in this month - chỉ tính hợp đồng ĐANG CHẠY
+                $amount = Invest::where('status', Status::INVEST_RUNNING)
+                            ->whereBetween('created_at', [$monthStart, $monthEnd])
+                            ->sum('total_price');
+                $investAmounts[] = (float) $amount;
+                
+                // Move to next month
+                $currentDate->addMonth();
+            }
         } else {
-            $time = now()->startOfWeek();
-            $prevTime = now()->startOfWeek()->subWeek();
+            // Default behavior - last 12 months
+            for ($i = 11; $i >= 0; $i--) {
+                $startDate = now()->subMonths($i)->startOfMonth();
+                $endDate = now()->subMonths($i)->endOfMonth();
+                
+                // Format month for display
+                $months[] = now()->subMonths($i)->format('M Y');
+                
+                // Count investments in this month - vẫn đếm tất cả hợp đồng (kể cả cancelled)
+                $count = Invest::whereBetween('created_at', [$startDate, $endDate])->count();
+                $investCounts[] = $count;
+                
+                // Sum investment amounts in this month - chỉ tính hợp đồng ĐANG CHẠY
+                $amount = Invest::where('status', Status::INVEST_RUNNING)
+                            ->whereBetween('created_at', [$startDate, $endDate])
+                            ->sum('total_price');
+                $investAmounts[] = (float) $amount;
+            }
         }
 
-        $invests = Invest::where('created_at', '>=', $time)->selectRaw("SUM(total_price) as total_price, DATE_FORMAT(created_at, '%Y-%m-%d') as date")->groupBy('date')->get();
-        $totalInvest = $invests->sum('total_price');
-
-        $invests = $invests->mapWithKeys(function ($invest) {
-            return [
-                $invest->date => (float)$invest->total_price,
-            ];
-        });
-
-        $prevInvest = Invest::where('created_at', '>=', $prevTime)->where('created_at', '<', $time)->sum('total_price');
-        $investDiff = ($prevInvest ? $totalInvest / $prevInvest * 100 - 100 : 0);
-        if ($investDiff > 0) {
-            $upDown = 'up';
-        } else {
-            $upDown = 'down';
-        }
-        $investDiff = abs($investDiff);
         return [
-            'invests' => $invests,
-            'total_invest' => $totalInvest,
-            'invest_diff' => round($investDiff, 2),
-            'up_down' => $upDown,
+            'months' => $months,
+            'invest_counts' => $investCounts,
+            'invest_amounts' => $investAmounts,
+            // Keep original data for backwards compatibility
+            'invests' => [],
+            'total_invest' => array_sum($investAmounts),
+            'invest_diff' => 0,
+            'up_down' => 'up',
         ];
     }
 

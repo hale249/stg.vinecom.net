@@ -151,7 +151,7 @@
                                 </span>
                                 @php
                                     $endDate = \Carbon\Carbon::parse($project->end_date);
-                                    $maturityDate = $endDate->addMonths($project->maturity_time);
+                                    $maturityDate = $endDate->addMonths((int)$project->maturity_time);
                                 @endphp
 
                                 <span class="detail-list-item__value maturity_time" id="maturity-time">

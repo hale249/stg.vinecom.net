@@ -1,4 +1,3 @@
-
 {
     "Gateway | Transaction": "Cổng thanh toán | Giao dịch",
     "Initiated": "Đã khởi tạo",
@@ -322,7 +321,7 @@
     "Months": "Tháng",
     "Return Type": "Loại hoàn trả",
     "Select Return Type": "Chọn loại hoàn trả",
-    "Lifetime": "Trọn đời",
+    "Lifetime": "Theo kỳ",
     "Repeat": "Lặp lại",
     "Time": "Thời gian",
     "Select Time": "Chọn thời gian",
@@ -464,7 +463,7 @@
     "Mobile Number": "Số điện thoại di động",
     "Address": "Địa chỉ",
     "City": "Thành phố",
-    "State": "Tiểu bang",
+    "State": "Tỉnh",
     "Zip/Postal": "Mã bưu điện",
     "Country": "Quốc gia",
     "Email Verification": "Xác minh email",
@@ -658,8 +657,10 @@
       "Schedule": "Lịch trình",
       "Next Run": "Lần chạy tiếp theo",
       "Last Run": "Lần chạy gần nhất",
-      "Is Running": "Đang chạy",
-      "Running": "Đang chạy",
+      "Is Running": "Đang hoạt động",
+      "Running": "Đang hoạt động",
+      "Running Invest": "Đầu tư đang hoạt động",
+      "Running Invests": "Các khoản đầu tư đang hoạt động",
       "Pause": "Tạm dừng",
       "Customizable": "Có thể tùy chỉnh",
       "Run Now": "Chạy ngay",
@@ -742,7 +743,7 @@
       "Recent Investments": "Đầu tư gần đây",
       "Every": "Mỗi",
       "for": "trong",
-      "LIFETIME": "TRỌN ĐỜI",
+      "LIFETIME": "THEO KỲ",
       "Invested": "Đã đầu tư",
       "Mature Time": "Thời gian đáo hạn",
       "Invested at": "Đầu tư lúc",
@@ -812,7 +813,7 @@
       "Min": "Tối thiểu",
       "Max": "Tối đa",
       "See more": "Xem thêm",
-      "Life Time": "Trọn đời",
+      "Life Time": "Theo kỳ",
       "Repeated": "Lặp lại",
       "Project Image": "Hình ảnh dự án",
       "Duration": "Thời hạn",
@@ -1145,5 +1146,6 @@
     "Data Protection Policy": "Chính sách bảo vệ dữ liệu",
     "Refund Policy": "Chính sách hoàn tiền",
     "Role": "Đối tượng",
-    "Create Business Staff": "Tạo nhân viên kinh doanh"
+    "Create Business Staff": "Tạo nhân viên kinh doanh",
+    "Tổng thu nhập": "Tổng thu nhập"
   }

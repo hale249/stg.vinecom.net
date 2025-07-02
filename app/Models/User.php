@@ -18,6 +18,8 @@ class User extends Authenticatable
         'username',
         'email',
         'is_staff',
+        'role',
+        'manager_id',
         'image',
         'dial_code',
         'mobile',
@@ -110,6 +112,16 @@ class User extends Authenticatable
         return $this->hasMany(SupportTicket::class);
     }
 
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function staffMembers()
+    {
+        return $this->hasMany(User::class, 'manager_id');
+    }
+
     public function fullname(): Attribute
     {
         return new Attribute(
@@ -122,6 +134,16 @@ class User extends Authenticatable
         return new Attribute(
             get: fn () => $this->dial_code . $this->mobile,
         );
+    }
+
+    public function isSalesManager(): bool
+    {
+        return $this->is_staff && $this->role === 'sales_manager';
+    }
+
+    public function isSalesStaff(): bool
+    {
+        return $this->is_staff && $this->role === 'sales_staff';
     }
 
     // SCOPES
@@ -170,9 +192,65 @@ class User extends Authenticatable
         return $query->where('balance', '>', 0);
     }
 
+    public function scopeSalesManagers($query)
+    {
+        return $query->where('is_staff', true)->where('role', 'sales_manager');
+    }
+
+    public function scopeSalesStaff($query)
+    {
+        return $query->where('is_staff', true)->where('role', 'sales_staff');
+    }
+    
+    public function isAdmin(): bool
+    {
+        return false; // Regular users can't be admins
+    }
+    
+    public function isManager(): bool
+    {
+        return $this->is_staff && (
+            $this->role === 'sales_manager' || 
+            $this->role === 'manager' || 
+            strtolower($this->role) === 'manager' ||
+            str_contains(strtolower($this->role), 'manager')
+        );
+    }
+    
+    public function isStaff(): bool
+    {
+        return $this->is_staff && !$this->isManager();
+    }
+
     public function deviceTokens()
     {
         return $this->hasMany(DeviceToken::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(NotificationLog::class);
+    }
+
+    // Staff Salary & KPI Relationships
+    public function staffSalaries()
+    {
+        return $this->hasMany(StaffSalary::class, 'staff_id');
+    }
+
+    public function managedSalaries()
+    {
+        return $this->hasMany(StaffSalary::class, 'manager_id');
+    }
+
+    public function staffKpis()
+    {
+        return $this->hasMany(StaffKPI::class, 'staff_id');
+    }
+
+    public function managedKpis()
+    {
+        return $this->hasMany(StaffKPI::class, 'manager_id');
     }
 
 }

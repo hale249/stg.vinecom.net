@@ -101,6 +101,7 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::controller('InvestController')->prefix('invest')->name('invest.')->group(function () {
                 Route::post('/store', 'order')->name('order');
                 Route::get('/contract/{id}', 'showContract')->name('contract');
+                Route::get('/contract/{id}/watermark', 'viewContractWithWatermark')->name('contract.watermark');
                 Route::post('/confirm/{id}', 'confirm')->name('confirm');
                 Route::post('/cancel/{id}', 'cancel')->name('cancel');
                 Route::get('/contract/{id}/download', 'downloadContract')->name('contract.download');
@@ -120,6 +121,62 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::get('manual', 'manualDepositConfirm')->name('manual.confirm');
             Route::post('manual', 'manualDepositUpdate')->name('manual.update');
             Route::any('/{investId?}', 'deposit')->name('index');
+        });
+
+        // Sales Staff Role-Based Routes
+        Route::middleware('staff.role:sales_manager')->name('staff.')->group(function () {
+            Route::controller('User\SalesManagerController')->prefix('manager')->name('manager.')->group(function () {
+                Route::get('/', 'dashboard')->name('dashboard');
+                Route::get('team-members', 'teamMembers')->name('team_members');
+                Route::post('create-staff', 'createStaffMember')->name('create_staff');
+                Route::get('contracts', 'teamContracts')->name('contracts');
+                Route::get('approval-requests', 'approvalRequests')->name('approval_requests');
+                Route::post('approve-contract/{id}', 'approveContract')->name('approve_contract');
+                Route::post('reject-contract/{id}', 'rejectContract')->name('reject_contract');
+                Route::get('alerts', 'alerts')->name('alerts');
+                Route::get('reports', 'reports')->name('reports');
+                Route::get('report/transactions', 'reportTransactions')->name('report.transactions');
+                Route::get('report/interests', 'reportInterests')->name('report.interests');
+                Route::get('report/commissions', 'reportCommissions')->name('report.commissions');
+                Route::get('hr/salary', 'salaryDashboard')->name('hr.salary');
+                Route::get('hr/kpi', 'kpiDashboard')->name('hr.kpi');
+                Route::post('hr/kpi', 'storeKPI')->name('hr.kpi.store');
+                Route::get('hr/kpi/export', 'exportKPI')->name('hr.kpi.export');
+                Route::get('hr/kpi/{id}', 'showKPI')->name('hr.kpi.show');
+                Route::get('hr/kpi/{id}/edit', 'editKPI')->name('hr.kpi.edit');
+                Route::put('hr/kpi/{id}', 'updateKPI')->name('hr.kpi.update');
+                Route::delete('hr/kpi/{id}', 'destroyKPI')->name('hr.kpi.destroy');
+                Route::get('hr/performance', 'performanceDashboard')->name('hr.performance');
+                
+                // Attendance Management Routes
+                Route::get('hr/attendance', 'attendanceDashboard')->name('hr.attendance');
+                Route::post('hr/attendance/store', 'storeAttendance')->name('hr.attendance.store');
+                Route::post('hr/attendance/delete/{id}', 'deleteAttendance')->name('hr.attendance.delete');
+                Route::get('hr/attendance/export', 'exportAttendance')->name('hr.attendance.export');
+                Route::post('hr/attendance/import', 'importAttendance')->name('hr.attendance.import');
+            });
+        });
+        
+        Route::middleware('staff.role:sales_staff')->name('staff.')->group(function () {
+            Route::controller('User\SalesStaffController')->prefix('staff')->name('staff.')->group(function () {
+                Route::get('/', 'dashboard')->name('dashboard');
+                Route::get('contracts', 'contracts')->name('contracts');
+                Route::get('contract/{id}', 'contractDetails')->name('contract.details');
+                Route::get('create-contract', 'createContract')->name('create_contract');
+                Route::post('store-contract', 'storeContract')->name('store_contract');
+                Route::post('cancel-contract/{id}', 'cancelContract')->name('cancel_contract');
+                Route::get('alerts', 'alerts')->name('alerts');
+                Route::get('customers', 'customers')->name('customers');
+                Route::get('salary', 'salary')->name('salary');
+                Route::get('kpi', 'kpi')->name('kpi');
+            });
+            
+            // Staff notification routes
+            Route::controller('User\NotificationController')->prefix('notifications')->name('notifications.')->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('{id}', 'show')->name('show');
+                Route::post('{id}/read', 'markAsRead')->name('read');
+            });
         });
     });
 });

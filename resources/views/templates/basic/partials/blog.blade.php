@@ -5,6 +5,22 @@
                 <img src="{{ frontendImage('blog', 'thumb_' . @$blog->data_values->image, '416x185') }}"
                     alt="{{ __($blog->data_values->title) }}"
                     class="blog-thumbnail">
+                @php
+                    $categoryClass = '';
+                    $categoryName = '';
+                    
+                    if($blog->category == 'company') {
+                        $categoryClass = 'company-news';
+                        $categoryName = 'Tin tức doanh nghiệp';
+                    } elseif($blog->category == 'market') {
+                        $categoryClass = 'market-news';
+                        $categoryName = 'Tin tức thị trường';
+                    }
+                @endphp
+                
+                @if($blog->category)
+                <span class="blog-category {{ $categoryClass }}">{{ $categoryName }}</span>
+                @endif
             </a>
             <div class="card-body">
                 <h6 class="card-title">
@@ -47,6 +63,27 @@
 
     .card--blog:hover .card-thumb img.blog-thumbnail {
         transform: scale(1.1);
+    }
+    
+    .blog-category {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        padding: 4px 12px;
+        border-radius: 4px;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+        z-index: 1;
+        text-transform: uppercase;
+    }
+    
+    .blog-category.company-news {
+        background-color: #3498db;
+    }
+    
+    .blog-category.market-news {
+        background-color: #e74c3c;
     }
 </style>
 @endpush

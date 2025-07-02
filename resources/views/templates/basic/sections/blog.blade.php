@@ -1,6 +1,6 @@
 @php
     $blogContent = getContent('blog.content', true);
-    $blogs = getContent('blog.element', false, 3, orderById: true);
+    $blogs = App\Models\Frontend::where('data_keys', 'blog.element')->latest()->take(3)->get();
 @endphp
 <section class="our-blogs pt-70 pb-120 bg--white">
     <div class="container">

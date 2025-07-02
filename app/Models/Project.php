@@ -6,6 +6,7 @@ use App\Constants\Status;
 use App\Traits\GlobalStatus;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
 
 class Project extends Model
 {
@@ -14,12 +15,16 @@ class Project extends Model
     protected $casts = [
         'gallery' => 'array',
         'seo_content' => 'object',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'maturity_date' => 'datetime',
     ];
 
     protected $fillable = [
         'title',
         'slug',
         'goal',
+        'share_count',
         'share_amount',
         'roi_percentage',
         'roi_amount',
@@ -58,6 +63,26 @@ class Project extends Model
     public function comment()
     {
         return $this->hasMany(Comment::class, 'project_id')->where('comment_id', null);
+    }
+
+    public function documents()
+    {
+        return $this->hasMany(ProjectDocument::class)->public()->ordered();
+    }
+
+    public function legalDocuments()
+    {
+        return $this->hasMany(ProjectDocument::class)->public()->byType('legal')->ordered();
+    }
+
+    public function financialDocuments()
+    {
+        return $this->hasMany(ProjectDocument::class)->public()->byType('financial')->ordered();
+    }
+
+    public function technicalDocuments()
+    {
+        return $this->hasMany(ProjectDocument::class)->public()->byType('technical')->ordered();
     }
 
     public function scopeBeforeEndDate($query)
@@ -126,5 +151,58 @@ class Project extends Model
 
             return $html;
         });
+    }
+
+    /**
+     * Calculate and update the maturity date based on the project's maturity_time
+     */
+    public function updateMaturityDate()
+    {
+        $endDate = Carbon::parse($this->end_date);
+        $this->maturity_date = $endDate->addMonths((int)$this->maturity_time);
+        return $this;
+    }
+
+    /**
+     * Get the target amount (calculated from share_count * share_amount for consistency)
+     */
+    public function getTargetAmountAttribute()
+    {
+        return $this->share_count * $this->share_amount;
+    }
+
+    /**
+     * Get the remaining amount to be invested
+     */
+    public function getRemainingAmountAttribute()
+    {
+        return $this->available_share * $this->share_amount;
+    }
+
+    /**
+     * Get the invested amount
+     */
+    public function getInvestedAmountAttribute()
+    {
+        return ($this->share_count - $this->available_share) * $this->share_amount;
+    }
+
+    /**
+     * Get the investment progress percentage
+     */
+    public function getInvestmentProgressAttribute()
+    {
+        if ($this->share_count == 0) {
+            return 0;
+        }
+        return round((($this->share_count - $this->available_share) / $this->share_count) * 100, 2);
+    }
+
+    /**
+     * Get the number of shares sold
+     */
+    public function getSoldSharesAttribute()
+    {
+        return $this->share_count - $this->available_share;
     }
 }

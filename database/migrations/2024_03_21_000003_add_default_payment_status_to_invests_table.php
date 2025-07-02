@@ -9,6 +9,12 @@ return new class extends Migration
 {
     public function up()
     {
+        if (!Schema::hasTable('invests')) {
+            // If the invests table doesn't exist yet, we'll skip this migration
+            // It will be created by the create_invests_table migration
+            return;
+        }
+        
         Schema::table('invests', function (Blueprint $table) {
             $table->tinyInteger('payment_status')->default(Status::PAYMENT_PENDING)->change();
         });
@@ -16,6 +22,10 @@ return new class extends Migration
 
     public function down()
     {
+        if (!Schema::hasTable('invests')) {
+            return;
+        }
+        
         Schema::table('invests', function (Blueprint $table) {
             $table->tinyInteger('payment_status')->change();
         });

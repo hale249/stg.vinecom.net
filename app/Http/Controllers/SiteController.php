@@ -17,8 +17,8 @@ class SiteController extends Controller {
     public function index() {
         $pageTitle   = 'Home';
         $sections    = Page::where('tempname', activeTemplate())->where('slug', '/')->first();
-        $seoContents = $sections->seo_content;
-        $seoImage    = @$seoContents->image ? getImage(getFilePath('seo') . '/' . @$seoContents->image, getFileSize('seo')) : null;
+        $seoContents = $sections ? $sections->seo_content : null;
+        $seoImage    = @$seoContents && @$seoContents->image ? getImage(getFilePath('seo') . '/' . @$seoContents->image, getFileSize('seo')) : null;
         return view('Template::home', compact('pageTitle', 'sections', 'seoContents', 'seoImage'));
     }
 
@@ -103,12 +103,28 @@ class SiteController extends Controller {
         return back();
     }
 
-    public function blogs() {
-        $blogs     = Frontend::where('tempname', activeTemplateName())->where('data_keys', 'blog.element')->latest()->paginate(getPaginate(12));
-        $pageTitle = 'Blogs';
-        $page      = Page::where('tempname', activeTemplate())->where('slug', 'blog')->first();
-        $sections  = $page->secs;
-        return view('Template::blog', compact('blogs', 'pageTitle', 'sections'));
+    public function blogs($category = null) {
+        $blogsQuery = Frontend::where('tempname', activeTemplateName())->where('data_keys', 'blog.element');
+        
+        if ($category) {
+            $blogsQuery->where('category', $category);
+        }
+        
+        $blogs = $blogsQuery->latest()->paginate(getPaginate(12));
+        
+        // Set page title based on category
+        if ($category == 'company') {
+            $pageTitle = 'Tin tức doanh nghiệp';
+        } elseif ($category == 'market') {
+            $pageTitle = 'Tin tức thị trường';
+        } else {
+            $pageTitle = 'Tin tức';
+        }
+        
+        $page = Page::where('tempname', activeTemplate())->where('slug', 'blog')->first();
+        $sections = $page->secs;
+        
+        return view('Template::blog', compact('blogs', 'pageTitle', 'sections', 'category'));
     }
 
     public function blogDetails($slug) {
@@ -139,7 +155,7 @@ class SiteController extends Controller {
         $imgWidth  = explode('x', $size)[0];
         $imgHeight = explode('x', $size)[1];
         $text      = $imgWidth . '×' . $imgHeight;
-        $fontFile  = realpath('assets/font/solaimanLipi_bold.ttf');
+        $fontFile  = public_path('assets/font/solaimanLipi_bold.ttf');
         $fontSize  = round(($imgWidth - 50) / 8);
         if ($fontSize <= 9) {
             $fontSize = 9;
@@ -148,19 +164,19 @@ class SiteController extends Controller {
             $fontSize = 30;
         }
 
-        $image     = imagecreatetruecolor($imgWidth, $imgHeight);
-        $colorFill = imagecolorallocate($image, 100, 100, 100);
-        $bgFill    = imagecolorallocate($image, 255, 255, 255);
-        imagefill($image, 0, 0, $bgFill);
-        $textBox    = imagettfbbox($fontSize, 0, $fontFile, $text);
+        $image     = \imagecreatetruecolor($imgWidth, $imgHeight);
+        $colorFill = \imagecolorallocate($image, 100, 100, 100);
+        $bgFill    = \imagecolorallocate($image, 255, 255, 255);
+        \imagefill($image, 0, 0, $bgFill);
+        $textBox    = \imagettfbbox($fontSize, 0, $fontFile, $text);
         $textWidth  = abs($textBox[4] - $textBox[0]);
         $textHeight = abs($textBox[5] - $textBox[1]);
         $textX      = ($imgWidth - $textWidth) / 2;
         $textY      = ($imgHeight + $textHeight) / 2;
         header('Content-Type: image/jpeg');
-        imagettftext($image, $fontSize, 0, $textX, $textY, $colorFill, $fontFile, $text);
-        imagejpeg($image);
-        imagedestroy($image);
+        \imagettftext($image, $fontSize, 0, $textX, $textY, $colorFill, $fontFile, $text);
+        \imagejpeg($image);
+        \imagedestroy($image);
     }
 
     public function maintenance() {

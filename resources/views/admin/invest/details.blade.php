@@ -9,7 +9,7 @@
                         <div class="d-flex align-items-center justify-content-between mb-3">
                             <div>
                                 <img src="{{ getImage(getFilePath('userProfile') . '/' . @$invest->user->image, getFileSize('userProfile'), avatar: true) }}"
-                                    alt="@lang('Profile Image')" class="b-radius--10" style="max-width: 100px;">
+                                    alt="@lang('Ảnh hồ sơ')" class="b-radius--10" style="max-width: 100px;">
                             </div>
                             <div>
                                 <h4 class="mb-1">
@@ -22,11 +22,11 @@
 
                         <div class="border-top pt-3">
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text--small">@lang('Name')</span>
+                                <span class="text--small">@lang('Họ tên')</span>
                                 <span class="text--small"><strong>{{ @$invest->user->fullname }}</strong></span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="text--small">@lang('Username')</span>
+                                <span class="text--small">@lang('Tên đăng nhập')</span>
                                 <span class="text--small"><strong>{{ @$invest->user->username }}</strong></span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -34,7 +34,7 @@
                                 <span class="text--small"><strong>{{ @$invest->user->email }}</strong></span>
                             </div>
                             <div class="d-flex justify-content-between align-items-center">
-                                <span class="text--small">@lang('Invest ID')</span>
+                                <span class="text--small">@lang('Mã đầu tư')</span>
                                 <span class="text--small"><strong>{{ $invest->invest_no }}</strong></span>
                             </div>
                         </div>
@@ -42,7 +42,7 @@
                         <div class="mt-3">
                             <a href="{{ route('admin.users.notification.single', $invest->user->id) }}"
                                 class="btn btn-outline--primary btn-sm w-100"><i class="las la-paper-plane"></i>
-                                @lang('Send Notification')</a>
+                                @lang('Gửi thông báo')</a>
                         </div>
                     </div>
                 </div>
@@ -53,18 +53,18 @@
         </div>
 
         <div class="col-12">
-            <h5 class="my-2">@lang('All Interests')</h5>
+            <h5 class="my-2">@lang('Lịch sử thanh toán lãi')</h5>
             <div class="card mb-5">
                 <div class="card-body p-0">
                     <div class="table-responsive--md  table-responsive">
                         <table class="table table--light style--two">
                             <thead>
                                 <tr>
-                                    <th>@lang('TRX')</th>
-                                    <th>@lang('Transacted')</th>
-                                    <th>@lang('Amount')</th>
-                                    <th>@lang('Post Balance')</th>
-                                    <th>@lang('Details')</th>
+                                    <th>@lang('Mã giao dịch')</th>
+                                    <th>@lang('Thời gian')</th>
+                                    <th>@lang('Số tiền')</th>
+                                    <th>@lang('Số dư sau giao dịch')</th>
+                                    <th>@lang('Chi tiết')</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -112,20 +112,26 @@
 @push('breadcrumb-plugins')
     <x-back route="{{ route('admin.invest.index') }}" />
 
+    <!-- Document Management Button -->
+    <a href="{{ route('admin.invest.documents.index', $invest->id) }}" class="btn btn-sm btn-outline--info">
+        <i class="las la-file-upload"></i>
+        @lang('Tài liệu hợp đồng')
+    </a>
+
     <!-- Stop/Start Returns Button -->
     @if ($invest->project->return_type == Status::LIFETIME && $invest->status == Status::INVEST_RUNNING)
         <!-- Button for stopping returns -->
-        <button type="button" class="btn btn-sm btn-outline--danger confirmationBtn" data-question="@lang('Are you sure you want to stop the returns for this investment?')"
+        <button type="button" class="btn btn-sm btn-outline--danger confirmationBtn" data-question="@lang('Bạn có chắc chắn muốn dừng trả lãi cho khoản đầu tư này?')"
             data-action="{{ route('admin.invest.stop.returns', $invest->id) }}">
             <i class="las la-times"></i>
-            @lang('Stop Returns')
+            @lang('Dừng trả lãi')
         </button>
     @elseif ($invest->project->return_type == Status::LIFETIME && $invest->status == Status::INVEST_CLOSED)
         <!-- Button for starting returns -->
-        <button type="button" class="btn btn-sm btn-outline--success confirmationBtn" data-question="@lang('Are you sure you want to start the returns for this investment?')"
+        <button type="button" class="btn btn-sm btn-outline--success confirmationBtn" data-question="@lang('Bạn có chắc chắn muốn bắt đầu trả lãi cho khoản đầu tư này?')"
             data-action="{{ route('admin.invest.start.returns', $invest->id) }}">
             <i class="las la-play-circle"></i>
-            @lang('Start Returns')
+            @lang('Bắt đầu trả lãi')
         </button>
     @endif
 @endpush

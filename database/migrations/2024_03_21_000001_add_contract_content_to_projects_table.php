@@ -8,11 +8,23 @@ return new class extends Migration
 {
     public function up()
     {
-        // This migration is no longer needed as we're using a template
+        if (!Schema::hasTable('projects')) {
+            return;
+        }
+        
+        Schema::table('projects', function (Blueprint $table) {
+            $table->text('contract_content')->nullable();
+        });
     }
 
     public function down()
     {
-        // This migration is no longer needed as we're using a template
+        if (!Schema::hasTable('projects')) {
+            return;
+        }
+        
+        Schema::table('projects', function (Blueprint $table) {
+            $table->dropColumn('contract_content');
+        });
     }
 }; 

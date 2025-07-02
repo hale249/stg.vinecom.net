@@ -23,6 +23,9 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         Builder::mixin(new Searchable);
+        
+        // Register the RouteServiceProvider
+        $this->app->register(RouteServiceProvider::class);
     }
 
     /**
@@ -45,6 +48,8 @@ class AppServiceProvider extends ServiceProvider
             }
         }
 
+        // Register Template namespace
+        view()->addNamespace('Template', resource_path('views/templates/basic'));
 
         $viewShare['emptyMessage'] = 'Data not found';
         view()->share($viewShare);

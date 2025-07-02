@@ -11,6 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
+        if (Schema::hasTable('invests')) {
+            return; // Table already created by earlier migration
+        }
+        
         Schema::create('invests', function (Blueprint $table) {
             $table->id();
             $table->string('invest_no', 255)->nullable();
@@ -20,8 +24,8 @@ return new class extends Migration
             $table->decimal('unit_price', 28, 8)->default(0);
             $table->decimal('total_price', 28, 8)->default(0);
             $table->decimal('total_earning', 28, 8)->default(0);
-            $table->integer('payment_type');
-            $table->integer('payment_status');
+            $table->integer('payment_type')->default(1);
+            $table->integer('payment_status')->default(2);
             $table->decimal('roi_amount', 28, 8)->default(0);
             $table->decimal('roi_percentage', 28, 8)->default(0);
             $table->decimal('total_share', 28, 8)->default(0);

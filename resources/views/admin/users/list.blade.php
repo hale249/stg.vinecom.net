@@ -43,8 +43,16 @@
                                     </td>
                                     <td>
                                         @if($user->is_staff)
-                                            <span class="badge badge--success"
-                                                  style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Staff')</span>
+                                            @if($user->role == 'sales_manager')
+                                                <span class="badge badge--success"
+                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Quản lý')</span>
+                                            @elseif($user->role == 'sales_staff')
+                                                <span class="badge badge--info"
+                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Nhân viên')</span>
+                                            @else
+                                                <span class="badge badge--success"
+                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Staff')</span>
+                                            @endif
                                         @else
                                             <span class="badge badge--primary"
                                                   style="font-size: 1.2em; padding: 0.5em 1em;">@lang('User')</span>
@@ -110,7 +118,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title" id="createStaffModalLabel">@lang('Create Business Staff')</h5>
+                    <h5 class="modal-title" id="createStaffModalLabel">@lang('Tạo nhân viên hoặc quản lý')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.users.staff.create') }}" method="POST">
@@ -138,6 +146,22 @@
                             <label for="password" class="required">@lang('Password')</label>
                             <input type="password" class="form-control" id="password" name="password" required>
                         </div>
+                        <div class="form-group mb-3">
+                            <label for="role" class="required">@lang('Vai trò')</label>
+                            <select class="form-control" id="role" name="role" required>
+                                <option value="sales_manager">@lang('Quản lý')</option>
+                                <option value="sales_staff">@lang('Nhân viên')</option>
+                            </select>
+                        </div>
+                        <div class="form-group mb-3" id="manager-select-container" style="display: none;">
+                            <label for="manager_id">@lang('Chọn quản lý')</label>
+                            <select class="form-control" id="manager_id" name="manager_id">
+                                <option value="">@lang('Chọn một quản lý')</option>
+                                @foreach(\App\Models\User::salesManagers()->get() as $manager)
+                                    <option value="{{ $manager->id }}">{{ $manager->fullname }} ({{ $manager->email }})</option>
+                                @endforeach
+                            </select>
+                        </div>
                     </div>
                     <div class="modal-footer border-0 pt-0">
                         <button type="submit" class="btn btn--primary w-100 h-45">@lang('Submit')</button>
@@ -152,7 +176,7 @@
     <x-search-form placeholder="Username / Email"/>
     <button class="btn btn-sm btn-outline--primary float-sm-end" data-bs-toggle="modal"
             data-bs-target="#createStaffModal" type="button">
-        <i class="las la-plus"></i>@lang('Create Business Staff')
+        <i class="las la-plus"></i>@lang('Tạo nhân viên/quản lý')
     </button>
 @endpush
 
@@ -160,6 +184,15 @@
     <script>
         (function ($) {
             "use strict";
+
+            // Show/hide manager select based on role
+            $('#role').on('change', function() {
+                if ($(this).val() === 'sales_staff') {
+                    $('#manager-select-container').show();
+                } else {
+                    $('#manager-select-container').hide();
+                }
+            });
 
             // Handle form submission
             $('#createStaffModal form').on('submit', function (e) {
@@ -202,6 +235,7 @@
                 form.trigger('reset');
                 form.find('.is-invalid').removeClass('is-invalid');
                 form.find('.invalid-feedback').remove();
+                $('#manager-select-container').hide();
             });
 
         })(jQuery);

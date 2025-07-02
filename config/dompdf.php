@@ -296,6 +296,17 @@ return [
          * @var bool
          */
         'enable_html5_parser' => true,
+
+        // Thêm cấu hình font_family cho Times New Roman
+        'font_family' => [
+            'Times New Roman' => [
+                'R' => 'times-new-roman.ttf',
+                // Nếu có các file bold, italic thì thêm vào:
+                // 'B' => 'times-new-roman-bold.ttf',
+                // 'I' => 'times-new-roman-italic.ttf',
+                // 'BI' => 'times-new-roman-bold-italic.ttf',
+            ],
+        ],
     ],
 
 ];

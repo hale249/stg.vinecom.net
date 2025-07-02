@@ -62,7 +62,6 @@ class ProfileController extends Controller
         $user->tax_number = $request->tax_number;
         $user->address = $request->address;
         $user->city = $request->city;
-        $user->state = $request->state;
         $user->zip = $request->zip;
 
         $user->save();
@@ -80,7 +79,7 @@ class ProfileController extends Controller
     {
         $passwordValidation = Password::min(6);
         if (gs('secure_password')) {
-            $passwordValidation = $passwordValidation->mixedCase()->numbers()->symbols()->uncompromised();
+            $passwordValidation = $passwordValidation->mixedCase()->numbers()->symbols();
         }
 
         $this->validate($request, [

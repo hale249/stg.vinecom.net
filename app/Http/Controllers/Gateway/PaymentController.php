@@ -140,10 +140,21 @@ class PaymentController extends Controller
         $transaction->user_id      = $user->id;
         $transaction->invest_id    = $entity->invest_id ?? 0;
         $transaction->amount       = $entity->amount ?? $entity->total_price;
-        $transaction->post_balance = $user->balance;
+        
+        // For payment transactions, don't include in balance
+        if ($remark == 'payment') {
+            // For investment payments, don't affect the balance
+            $transaction->post_balance = $user->balance;
+            $transaction->trx_type     = '-'; // Still show as negative for record keeping
+            $transaction->details      = 'Payment Via ' . $methodName;
+        } else {
+            // For deposits, add to balance
+            $transaction->post_balance = $user->balance;
+            $transaction->trx_type     = '+';
+            $transaction->details      = 'Deposit Via ' . $methodName;
+        }
+        
         $transaction->charge       = $entity->charge ?? 0;
-        $transaction->trx_type     = $remark == 'deposit' ? '+' : '-';
-        $transaction->details      = $remark == 'deposit' ? 'Deposit Via ' . $methodName : 'Payment Via ' . $methodName;
         $transaction->remark       = $remark;
         $transaction->trx          = $entity->trx ?? $entity->invest_no;
         $transaction->save();
@@ -167,11 +178,6 @@ class PaymentController extends Controller
     public static function confirmOrder($invest, $deposit = null, $user = null)
     {
         $user = $invest->user;
-        if (!$deposit || $deposit->invest_id == 0 || $invest->payment_type == Status::PAYMENT_WALLET) {
-            $user->balance -= $invest->total_price;
-            $user->save();
-        }
-
         $project = $invest->project;
         $project->available_share -= $invest->quantity;
         $project->save();
@@ -189,10 +195,50 @@ class PaymentController extends Controller
             'quantity'     => $invest->quantity
         ]);
 
+        // Chỉ thiết lập next_time và last_time nếu chưa được thiết lập
+        if (!$invest->next_time) {
+            // Calculate the next payment date based on contract start date
+            $startDate = now(); // Default to current date for contract start
+            
+            // If the project has a specific start date, use that
+            if ($project->start_date) {
+                $startDate = \Carbon\Carbon::parse($project->start_date);
+                
+                // If start date is in the past, use current date
+                if ($startDate->isPast()) {
+                    $startDate = now();
+                }
+            }
+            
+            // Calculate the next payment date based on the interval
+            $paymentDate = $startDate->copy()->addMonth(); // Default to monthly
+            
+            // If the project has specific time settings
+            if ($project->time && $project->time->hours) {
+                $interval = $project->time->hours;
+                if ($interval == 24 * 30) { // Monthly (approximately)
+                    // Set to same day next month
+                    $paymentDate = $startDate->copy()->addMonth();
+                } elseif ($interval == 24 * 7) { // Weekly
+                    $paymentDate = $startDate->copy()->addWeek();
+                } elseif ($interval == 24) { // Daily
+                    $paymentDate = $startDate->copy()->addDay();
+                } else {
+                    // Custom interval in hours
+                    $paymentDate = $startDate->copy()->addHours($interval);
+                }
+            }
+
+            $invest->next_time = $paymentDate;
+            $invest->last_time = $startDate;
+        }
+        
         $invest->payment_status = Status::PAYMENT_SUCCESS;
-        $invest->next_time      = investMaturedDate($project);
-        $invest->status         = Status::INVEST_RUNNING;
+        $invest->status = Status::INVEST_RUNNING;
         $invest->save();
+
+        // Refresh contract content to remove watermark
+        refreshContractContent($invest);
     }
 
     public function depositConfirm()

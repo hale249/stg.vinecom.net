@@ -12,6 +12,8 @@ use App\Models\Transaction;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
+use Carbon\Carbon;
+use App\Models\Invest;
 
 class UserController extends Controller
 {
@@ -43,19 +45,23 @@ class UserController extends Controller
             ->with(['project'])
             ->latest()
             ->paginate(getPaginate());
-        return view('Template::user.investment.contract', compact('pageTitle', 'invests'));
+        $general = gs();
+        return view('Template::user.investment.contract', compact('pageTitle', 'invests', 'general'));
     }
 
     public function home()
     {
+        $pageTitle = 'User Dashboard';
         $user = auth()->user();
-        
-        // Debug information
-        $allInvests = $user->invests()->get();
-        $runningInvests = $user->invests()->where('status', Status::INVEST_RUNNING)->get();
-        $completedInvests = $user->invests()->where('status', Status::INVEST_COMPLETED)->get();
-        
-        \Log::info('Debug Invest Counts', [
+        $transactions = Transaction::where('user_id', $user->id)->orderBy('id', 'desc')->take(5)->get();
+
+        $allInvests = Invest::where('user_id', $user->id);
+        $runningInvests = (clone $allInvests)->where('status', Status::INVEST_RUNNING);
+        $completedInvests = (clone $allInvests)->where('status', Status::INVEST_COMPLETED);
+
+        $general = gs();
+
+        session()->put('user', [
             'user_id' => $user->id,
             'all_invests_count' => $allInvests->count(),
             'running_invests_count' => $runningInvests->count(),
@@ -63,20 +69,39 @@ class UserController extends Controller
             'unique_projects' => $allInvests->pluck('project_id')->unique()->count()
         ]);
 
+        // Calculate projected future profits (keep this for "Tổng lợi tức theo giá trị HĐ")
+        $projectedEarnings = $this->calculateTotalProjectedEarnings($user->id);
+        
+        // Calculate actual received profits (for balance calculation)
+        $actualProfits = Transaction::where('user_id', $user->id)
+            ->where('trx_type', '+')
+            ->where('remark', 'profit')
+            ->sum('amount');
+        
+        // Calculate total investment only for accepted and running investments
+        $totalInvestment = $user->invests()
+            ->where('status', Status::INVEST_RUNNING)
+            ->sum('total_price');
+        
         $investData = [
             'completed' => $user->invests()->completed()->count(),
-            'total_invest' => $user->invests()->totalInvest(),
-            'total_earning' => $user->invests()->totalEarn(),
+            'total_invest' => $totalInvestment, // Only count running investments
+            'total_earning' => $projectedEarnings, // Keep this as projected earnings for "Tổng lợi tức theo giá trị HĐ"
+            'actual_profits' => $actualProfits, // Add this for reference
             'invest_count' => $user->invests()->where('status', Status::INVEST_RUNNING)->select('project_id')->distinct()->count(),
             'total_deposit' => $user->deposits()->directDeposit()->sum('amount'),
             'total_withdraw' => $user->withdrawals()->approved()->sum('amount')
         ];
+        
+        // Debug output for investData
+        \Log::info('User Dashboard investData:', $investData);
 
         return view('Template::user.dashboard', [
-            'pageTitle' => 'Dashboard',
+            'pageTitle' => $pageTitle,
             'user' => $user,
             'invests' => $user->invests()->latest()->paginate(getPaginate(5)),
-            'investData' => $investData
+            'investData' => $investData,
+            'transactions' => $transactions
         ]);
     }
 
@@ -300,5 +325,64 @@ class UserController extends Controller
         header('Content-Disposition: attachment; filename="' . $title);
         header("Content-Type: " . $mimetype);
         return readfile($filePath);
+    }
+
+    /**
+     * Calculate total projected earnings at maturity for all user's investments
+     * 
+     * @param int $userId
+     * @return float
+     */
+    private function calculateTotalProjectedEarnings($userId)
+    {
+        try {
+            $totalProjectedEarnings = 0;
+            
+            // Get all running investments with their projects
+            $investments = Invest::where('user_id', $userId)
+                ->where('status', Status::INVEST_RUNNING)
+                ->with('project') // Eager load the project
+                ->get();
+            
+            if ($investments->isEmpty()) {
+                return 0;
+            }
+            
+            foreach ($investments as $invest) {
+                $project = $invest->project;
+                
+                if (!$project) {
+                    continue;
+                }
+                
+                // Get investment amount
+                $amount = $invest->total_price;
+                
+                // Get project ROI percentage
+                $roiPercentage = $project->roi_percentage;
+                
+                // Get term in months (maturity_time)
+                $termMonths = $project->maturity_time ?: 5; // Default to 5 months if not set
+                
+                // Calculate annual ROI
+                $annualROI = ($amount * $roiPercentage / 100);
+                
+                // Calculate monthly ROI (annual ROI divided by 12)
+                $monthlyROI = $annualROI / 12;
+                
+                // Calculate total projected earnings (monthly ROI * term months)
+                $projectedEarning = $monthlyROI * $termMonths;
+                
+                $totalProjectedEarnings += $projectedEarning;
+            }
+            
+            return $totalProjectedEarnings;
+        } catch (\Exception $e) {
+            // Log the error
+            \Log::error("Error calculating projected earnings: " . $e->getMessage());
+            
+            // Fallback: return 0
+            return 0;
+        }
     }
 }

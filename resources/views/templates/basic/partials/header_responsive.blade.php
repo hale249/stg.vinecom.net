@@ -2,13 +2,13 @@
     <div class="container">
         <nav class="navbar navbar-expand-lg">
             <div class="navbar-left">
-                <a class="navbar-brand logo" href="{{ route('home') }}">
+                <a class="navbar-brand logo" href="{{ route('projects') }}">
                     <img src="{{ siteLogo() }}" alt="@lang('logo')">
                 </a>
             </div>
 
             <div class="navbar-right">
-                <a class="navbar-brand logo d-block d-lg-none order-1" href="{{ route('home') }}">
+                <a class="navbar-brand logo d-block d-lg-none order-1" href="{{ route('projects') }}">
                     <img src="{{ siteLogo() }}" alt="@lang('logo')">
                 </a>
                 <button class="navbar-toggler header-button order-3 order-lg-2" type="button" data-bs-toggle="collapse"
@@ -26,12 +26,19 @@
                                     @php
                                         $languages = App\Models\Language::all();
                                         $selectedLang = $languages->where('code', session('lang'))->first();
+                                        // Set default language if selectedLang is null
+                                        if (!$selectedLang && count($languages) > 0) {
+                                            $selectedLang = $languages->first();
+                                        } elseif (!$selectedLang) {
+                                            // Create a basic object with default values if no languages exist
+                                            $selectedLang = (object) ['image' => 'default.png', 'name' => 'English', 'code' => 'en'];
+                                        }
                                     @endphp
                                     <div class="dropdown dropdown--lang style-two d-lg-none">
                                         <button class="dropdown-toggle" type="button" data-bs-toggle="dropdown"
                                                 aria-expanded="false">
                                             <img class="dropdown-flag"
-                                                 src="{{ getImage(getFilePath('language') . '/' . $selectedLang->image, getFileSize('language')) }}"
+                                                 src="{{ getImage(getFilePath('language') . '/' . @$selectedLang->image, getFileSize('language')) }}"
                                                  alt="@lang('Language Flag')">
                                             <span>{{ __($selectedLang->name) }}</span>
                                         </button>
@@ -40,7 +47,7 @@
                                             @foreach ($languages as $lang)
                                                 <a class="dropdown-item" href="{{ route('lang', $lang->code) }}">
                                                     <img class="dropdown-flag"
-                                                         src="{{ getImage(getFilePath('language') . '/' . $lang->image, getFileSize('language')) }}"
+                                                         src="{{ getImage(getFilePath('language') . '/' . @$lang->image, getFileSize('language')) }}"
                                                          alt="@lang('Language Flag')">
                                                     <span>
                                                         {{ __($lang->name) }}
@@ -64,10 +71,6 @@
                         </li>
                         <li class="nav-item">
                             <a class="nav-link {{ menuActive('home') }}"
-                               href="{{ route('home') }}">@lang('Home')</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link {{ menuActive(['projects', 'project.details']) }}"
                                href="{{ route('projects') }}">@lang('Projects')</a>
                         </li>
                         @foreach ($pages as $page)
@@ -77,10 +80,6 @@
                                    href="{{ route('pages', [$page->slug]) }}">{{ __($page->name) }}</a>
                             </li>
                         @endforeach
-                        <li class="nav-item">
-                            <a class="nav-link {{ menuActive(['blogs', 'blog.details']) }}"
-                               href="{{ route('blogs') }}">@lang('Blogs')</a>
-                        </li>
                         <li class="nav-item">
                             <a class="nav-link {{ menuActive('contact') }}"
                                href="{{ route('contact') }}">@lang('Contact')</a>

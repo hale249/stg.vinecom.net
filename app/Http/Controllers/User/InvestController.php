@@ -1,7 +1,6 @@
 <?php
 
 namespace App\Http\Controllers\User;
-
 use App\Constants\Status;
 use App\Http\Controllers\Controller;
 use App\Http\Controllers\Gateway\PaymentController;
@@ -17,23 +16,15 @@ class InvestController extends Controller {
     use GlobalStatus;
 
     public function order(Request $request) {
-        /*
-         * Users can now invest in two different ways:
-         * 1. By providing the number of units (previous behaviour – field `quantity`).
-         * 2. By providing an arbitrary amount (new behaviour – field `amount`).
-         * Either `quantity` **or** `amount` must be present. If both are present, `amount` will be
-         * taken as the source of truth.
-         */
 
         $rules = [
             'project_id'    => 'required|exists:projects,id',
-            'payment_type'  => 'required|in:1,2',
             'referral_code' => 'nullable|exists:users,referral_code',
+            'months'        => 'nullable|integer|min:1',
         ];
 
-        // Conditional validation depending on which field the client sends
         if ($request->filled('amount')) {
-            $rules['amount'] = 'numeric|min:0.01'; // Minimum 0.01 of currency
+            $rules['amount'] = 'numeric|min:0.01'; 
         } else {
             $rules['quantity'] = 'required|integer|min:1';
         }
@@ -42,7 +33,6 @@ class InvestController extends Controller {
 
         $user = auth()->user();
 
-        // Check KYC status
         if ($user->kv != Status::KYC_VERIFIED) {
             $notify[] = ['error', 'Vui lòng hoàn thành xác minh danh tính (KYC) trước khi đầu tư. <a href="' . route('user.kyc.form') . '" class="text-white">Nhấn vào đây để xác minh</a>'];
             return back()->withNotify($notify);
@@ -54,89 +44,100 @@ class InvestController extends Controller {
             return back()->withNotify($notify);
         }
 
-        /*
-         * ---------------------------------------------------------------------
-         * Determine investment amount & quantity
-         * ---------------------------------------------------------------------
-         */
-
-        // Calculate unit price based on total package and total units from database
-        $totalPackage = $project->share_amount * $project->share_count; // Tổng gói
-        $totalUnits = $project->share_count; // Tổng số đơn vị tối đa từ database
-        $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
-
-        // Fallback defaults – will be overwritten depending on investment mode
-        $quantity        = 1;
-        $totalPrice      = $unitPrice;
+        // Determine the minimum investment amount based on the project configuration
+        // If min_invest_amount is null or 0, fall back to share_amount (unit price)
+        $minInvestAmount = ($project->min_invest_amount > 0) 
+            ? $project->min_invest_amount 
+            : $project->share_amount;
+            
+        $quantity        = 1; 
+        $totalPrice      = 0;
         $recurringAmount = 0;
 
         if ($request->filled('amount')) {
-            // --- Investment by AMOUNT ---------------------------------------
-            if ($request->amount < $unitPrice) {
-                $notify[] = ['error', 'Số tiền đầu tư tối thiểu là ' . showAmount($unitPrice) . ' (1 đơn vị)'];
+            // Validate minimum investment amount
+            if ($request->amount < $minInvestAmount) {
+                if ($project->min_invest_amount > 0) {
+                    $notify[] = ['error', 'Số tiền đầu tư tối thiểu là ' . showAmount($minInvestAmount)];
+                } else {
+                    $notify[] = ['error', 'Số tiền đầu tư tối thiểu là ' . showAmount($minInvestAmount) . ' (1 đơn vị)'];
+                }
                 return back()->withNotify($notify);
             }
 
             $totalPrice = getAmount($request->amount);
-            $quantity = round($totalPrice / $unitPrice); // Calculate number of units
-
-            // Calculate ROI amount based on percentage so profit scales with amount
             $projectRoiPercentage = getAmount($project->roi_percentage);
-            $project->roi_amount  = ($totalPrice * $projectRoiPercentage) / 100; // Dynamically override for this investment
-
-            // Recurring amount per payout period
-            $recurringAmount = $project->roi_amount;
+            
+            // Calculate annual ROI
+            $annualROI = ($totalPrice * $projectRoiPercentage / 100);
+            
+            // Calculate monthly ROI (annual ROI divided by 12)
+            $recurringAmount = round($annualROI / 12, 0);
 
         } else {
-            // --- Investment by QUANTITY ------------------------------------
-            if ($request->quantity > $project->available_share) {
+            // This is for quantity-based investments (if that feature is still supported in your UI)
+            // Calculate based on minimum investment amount or share amount
+            $quantity        = (int) $request->quantity;
+            $totalPrice      = $minInvestAmount * $quantity;
+            $projectRoiPercentage = getAmount($project->roi_percentage);
+            
+            // Calculate annual ROI
+            $annualROI = ($totalPrice * $projectRoiPercentage / 100);
+            
+            // Calculate monthly ROI (annual ROI divided by 12)
+            $recurringAmount = round($annualROI / 12, 0);
+            
+            if ((int) $request->quantity > $project->available_share) {
                 $notify[] = ['error', 'Số lượng đơn vị không được vượt quá ' . $project->available_share . ' đơn vị còn lại.'];
                 return back()->withNotify($notify);
             }
-
-            $quantity        = (int) $request->quantity;
-            $totalPrice      = $unitPrice * $quantity;
-            $recurringAmount = ($quantity * $project->roi_amount);
         }
 
         $totalEarning = 0;
         $investClosed = null;
         $totalShare = $project->share_count;
 
+        // Make sure months is properly parsed as an integer
+        $selectedDuration = $request->filled('months') ? (int)$request->months : (int)$project->project_duration;
+        
+        // Ensure the duration is valid (not zero or negative)
+        if ($selectedDuration <= 0) {
+            $selectedDuration = (int)$project->project_duration;
+        }
+
         if ($project->return_type == Status::LIFETIME) {
             $totalEarning = 0;
-            $investClosed = Carbon::parse($project->maturity_date)->addMonths($project->project_duration);
+            $investClosed = Carbon::parse($project->maturity_date)->addMonths($selectedDuration);
         } else if ($project->return_type == Status::REPEAT) {
             $totalEarning = $recurringAmount * $project->repeat_times;
         }
 
         $invest = new Invest();
-        $invest->invest_no = getTrx();
+        $invest->invest_no = generateContractNumber();
         $invest->user_id = $user->id;
         $invest->project_id = $request->project_id;
         $invest->quantity = $quantity;
-        $invest->unit_price = $unitPrice;
+        $invest->unit_price = $minInvestAmount;
         $invest->total_price = $totalPrice;
-        $invest->roi_percentage = $project->roi_percentage;
-        $invest->roi_amount = $project->roi_amount;
-        $invest->payment_type = $request->payment_type;
+        $invest->roi_percentage = $projectRoiPercentage;
+        $invest->roi_amount = $recurringAmount;
+        $invest->payment_status = Status::PAYMENT_PENDING;
         $invest->total_earning = $totalEarning;
         $invest->total_share = $totalShare;
         $invest->capital_back = $project->capital_back;
         $invest->capital_status = Status::NO;
         $invest->return_type = $project->return_type;
-        $invest->project_duration = $project->project_duration;
+        $invest->project_duration = (int)$selectedDuration;
         $invest->project_closed = $investClosed ?? null;
         $invest->repeat_times = $project->repeat_times ?? 0;
-        $invest->time_name = $project->time->name;
-        $invest->hours = $project->time->hours;
+        $invest->time_name = $project->time->name ?? 'Tháng';
+        $invest->hours = $project->time->hours ?? 24;
         $invest->recurring_pay = $recurringAmount;
-        $invest->contract_content = generateContractContent($project, $user);
+        $invest->contract_content = generateContractContent($project, $user, $invest->invest_no, $invest->status);
         $invest->contract_confirmed = true;
         $invest->referral_code = $request->referral_code;
         $invest->save();
 
-        // Redirect to contract confirmation page
         return redirect()->route('user.invest.contract', $invest->id);
     }
 
@@ -160,31 +161,12 @@ class InvestController extends Controller {
 
         $user = auth()->user();
         
-        // Check if user has enough balance
-        if ($user->balance < $invest->total_price) {
-            $notify[] = ['error', 'Số dư tài khoản không đủ để thực hiện đầu tư.'];
-            return back()->withNotify($notify);
-        }
-
-        // Deduct balance
-        $user->balance -= $invest->total_price;
-        $user->save();
-
-        // Create transaction record
-        $transaction = new Transaction();
-        $transaction->user_id = $user->id;
-        $transaction->invest_id = $invest->id;
-        $transaction->amount = $invest->total_price;
-        $transaction->post_balance = $user->balance;
-        $transaction->trx_type = '-';
-        $transaction->details = 'Đầu tư vào dự án ' . $invest->project->title;
-        $transaction->remark = 'payment';
-        $transaction->trx = $invest->invest_no;
-        $transaction->save();
-
         // Update investment status
         $invest->status = Status::INVEST_PENDING_ADMIN_REVIEW;
         $invest->save();
+
+        // Refresh contract content to add watermark
+        refreshContractContent($invest);
 
         notify($invest->user, 'INVEST_SUBMITTED_FOR_REVIEW', [
             'invest_id' => $invest->invest_no,
@@ -205,16 +187,31 @@ class InvestController extends Controller {
 
         $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('templates.basic.user.invest.contract_pdf', [
             'invest' => $invest,
-            'user' => auth()->user()
+            'user' => auth()->user(),
+            'status' => $invest->status
         ]);
 
         $pdf->setPaper('A4', 'portrait');
         $pdf->setOption('isHtml5ParserEnabled', true);
         $pdf->setOption('isRemoteEnabled', true);
-        $pdf->setOption('defaultFont', 'DejaVu Sans');
+        $pdf->setOption('defaultFont', 'Times New Roman');
         $pdf->setOption('encoding', 'UTF-8');
 
         return $pdf->download('contract-' . $invest->invest_no . '.pdf');
+    }
+
+    public function viewContractWithWatermark($id)
+    {
+        $invest = Invest::where('id', $id)
+            ->where('user_id', auth()->id())
+            ->firstOrFail();
+
+        // Generate contract content with current status (including watermark if needed)
+        $contractContent = generateContractContent($invest->project, $invest->user, $invest->invest_no, $invest->status, true);
+
+        $pageTitle = 'Investment Contract';
+        $activeTemplate = activeTemplate();
+        return view('templates.basic.user.invest.contract_with_watermark', compact('pageTitle', 'invest', 'activeTemplate', 'contractContent'));
     }
 
     public function history()
@@ -260,33 +257,40 @@ class InvestController extends Controller {
         $request->validate([
             'project_id' => 'required|exists:projects,id',
             'amount'     => 'required|numeric|min:0.01',
+            'months'     => 'nullable|integer|min:1',
         ]);
 
         $project = \App\Models\Project::findOrFail($request->project_id);
         $amount = getAmount($request->amount);
         $user = auth()->user();
 
-        $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
-        if ($amount < $unitPrice) {
-            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . number_format($unitPrice, 0, ',', '.') . ' VNĐ (1 đơn vị).');
+        $minInvestAmount = $project->min_invest_amount ?? $project->share_amount;
+        $minInvestAmount = (float) $minInvestAmount;
+        if ($amount < $minInvestAmount) {
+            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . showAmount($minInvestAmount) . '.');
         }
 
         // Kiểm tra dự án có hợp lệ không
         if (!$project->maturity_time || $project->maturity_time <= 0) {
-            abort(400, 'Dự án không có thông tin kỳ hạn hợp lệ.');
+            // Sử dụng giá trị mặc định 12 tháng nếu không có thông tin kỳ hạn
+            $project->maturity_time = 12;
         }
 
         $schedule = [];
         $annualRate = $project->roi_percentage;
-        $totalPeriods = (int) $project->maturity_time;
+        $totalPeriods = $request->months ? (int) $request->months : (int) $project->maturity_time;
         $principal = $amount;
         $cumulativeInterest = 0;
+
+        // Calculate monthly ROI using the correct formula
+        $annualROI = ($principal * $annualRate / 100);
+        $monthlyROI = round($annualROI / 12, 0);
 
         // Ngày ký hợp đồng là ngày hiện tại
         $contractDate = \Carbon\Carbon::now();
         
         // Ngày đáo hạn
-        $maturityDate = $project->maturity_date ? \Carbon\Carbon::parse($project->maturity_date) : $contractDate->copy()->addMonths($totalPeriods);
+        $maturityDate = $contractDate->copy()->addMonths($totalPeriods);
         
         // Đảm bảo ngày đáo hạn không nhỏ hơn ngày hiện tại
         if ($maturityDate <= $contractDate) {
@@ -314,8 +318,8 @@ class InvestController extends Controller {
                 return true; // Đếm tất cả các ngày
             }, $periodEnd) + 1;
             
-            // Tính lãi kỳ này (làm tròn đến 0 chữ số thập phân)
-            $periodInterest = round(($principal * ($annualRate / 100 / 365)) * $daysInPeriod, 0);
+            // Sử dụng ROI hàng tháng cố định thay vì tính theo ngày
+            $periodInterest = $monthlyROI;
             $cumulativeInterest += $periodInterest;
 
             $schedule[] = [
@@ -362,33 +366,40 @@ class InvestController extends Controller {
         $request->validate([
             'project_id' => 'required|exists:projects,id',
             'amount'     => 'required|numeric|min:0.01',
+            'months'     => 'nullable|integer|min:1',
         ]);
 
         $project = \App\Models\Project::findOrFail($request->project_id);
         $amount = getAmount($request->amount);
         $user = auth()->check() ? auth()->user() : null;
 
-        $unitPrice = $project->share_amount; // Giá 1 đơn vị từ database
-        if ($amount < $unitPrice) {
-            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . number_format($unitPrice, 0, ',', '.') . ' VNĐ (1 đơn vị).');
+        $minInvestAmount = $project->min_invest_amount ?? $project->share_amount;
+        $minInvestAmount = (float) $minInvestAmount;
+        if ($amount < $minInvestAmount) {
+            abort(400, 'Số tiền đầu tư không được nhỏ hơn mức tối thiểu ' . showAmount($minInvestAmount) . '.');
         }
 
         // Kiểm tra dự án có hợp lệ không
         if (!$project->maturity_time || $project->maturity_time <= 0) {
-            abort(400, 'Dự án không có thông tin kỳ hạn hợp lệ.');
+            // Sử dụng giá trị mặc định 12 tháng nếu không có thông tin kỳ hạn
+            $project->maturity_time = 12;
         }
 
         $schedule = [];
         $annualRate = $project->roi_percentage;
-        $totalPeriods = (int) $project->maturity_time;
+        $totalPeriods = $request->months ? (int) $request->months : (int) $project->maturity_time;
         $principal = $amount;
         $cumulativeInterest = 0;
+
+        // Calculate monthly ROI using the correct formula
+        $annualROI = ($principal * $annualRate / 100);
+        $monthlyROI = round($annualROI / 12, 0);
 
         // Ngày ký hợp đồng là ngày hiện tại
         $contractDate = \Carbon\Carbon::now();
         
         // Ngày đáo hạn
-        $maturityDate = $project->maturity_date ? \Carbon\Carbon::parse($project->maturity_date) : $contractDate->copy()->addMonths($totalPeriods);
+        $maturityDate = $contractDate->copy()->addMonths($totalPeriods);
         
         // Đảm bảo ngày đáo hạn không nhỏ hơn ngày hiện tại
         if ($maturityDate <= $contractDate) {
@@ -416,8 +427,8 @@ class InvestController extends Controller {
                 return true; // Đếm tất cả các ngày
             }, $periodEnd) + 1;
             
-            // Tính lãi kỳ này (làm tròn đến 0 chữ số thập phân)
-            $periodInterest = round(($principal * ($annualRate / 100 / 365)) * $daysInPeriod, 0);
+            // Sử dụng ROI hàng tháng cố định thay vì tính theo ngày
+            $periodInterest = $monthlyROI;
             $cumulativeInterest += $periodInterest;
 
             $schedule[] = [

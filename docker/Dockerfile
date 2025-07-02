@@ -9,14 +9,15 @@ RUN apt-get update && apt-get install -y \
     libgmp-dev \
     libonig-dev \
     libxml2-dev \
+    libzip-dev \
     zip \
     unzip \
     git \
     curl \
-    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd gmp
+    && docker-php-ext-install pdo_mysql mbstring exif pcntl bcmath gd gmp zip
 
-# Cài Composer
-COPY --from=composer:2.6 /usr/bin/composer /usr/bin/composer
+# Cài đặt Composer trực tiếp thay vì dùng composer image
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
 
 # Thiết lập thư mục làm việc
 WORKDIR /var/www

@@ -112,8 +112,8 @@ class ManageUsersController extends Controller
 
         $invest['total_invests'] = Invest::where('user_id', $user->id)->sum('total_price');
         $invest['total_interests'] = Transaction::where('user_id', $user->id)->where('remark', 'profit')->sum('amount');
-        $invest['running_invests'] = Invest::where('user_id', $user->id)->running()->sum('paid');
-        $invest['completed_invests'] = Invest::where('user_id', $user->id)->completed()->sum('paid');
+        $invest['running_invests'] = Invest::where('user_id', $user->id)->running()->sum('total_price');
+        $invest['completed_invests'] = Invest::where('user_id', $user->id)->completed()->sum('total_price');
 
         return view('admin.users.detail', compact('pageTitle', 'user', 'totalDeposit', 'totalWithdrawals', 'totalTransaction', 'countries', 'invest'));
     }
@@ -504,7 +504,9 @@ class ManageUsersController extends Controller
                 'firstname' => 'required|string',
                 'lastname' => 'required|string',
                 'email' => 'required|email|unique:users,email',
-                'password' => 'required|string|min:6'
+                'password' => 'required|string|min:6',
+                'role' => 'required|in:sales_manager,sales_staff',
+                'manager_id' => 'nullable|exists:users,id'
             ]);
             $referralCode = ReferralCodeGenerator::generateStaffReferralCode();
 
@@ -514,9 +516,15 @@ class ManageUsersController extends Controller
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
             $user->is_staff = 1;
+            $user->role = $request->role;
+            
+            if ($request->role == 'sales_staff' && $request->manager_id) {
+                $user->manager_id = $request->manager_id;
+            }
+            
             $user->referral_code = $referralCode;
-            $user->ev = 0; // Email verified
-            $user->sv = 0; // SMS verified
+            $user->ev = 1; // Email verified
+            $user->sv = 1; // SMS verified
             $user->ts = 0; // 2FA status
             $user->tv = 0; // 2FA verified
             $user->kv = 0; // KYC verified
@@ -539,16 +547,8 @@ class ManageUsersController extends Controller
                     'errors' => $e->errors()
                 ], 422);
             }
-            throw $e;
-        } catch (\Exception $e) {
-            if ($request->ajax()) {
-                return response()->json([
-                    'success' => false,
-                    'message' => 'An error occurred while creating staff user'
-                ], 500);
-            }
-            throw $e;
+            
+            return back()->withErrors($e)->withInput();
         }
-        return back()->withNotify($notify);
     }
 }

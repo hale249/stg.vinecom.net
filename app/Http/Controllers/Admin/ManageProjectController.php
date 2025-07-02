@@ -48,33 +48,56 @@ class ManageProjectController extends Controller
         return view('admin.project.create', compact('pageTitle', 'project', 'times', 'galleries', 'categories'));
     }
 
+    public function show($id)
+    {
+        $pageTitle = 'Project Details';
+        $project = Project::with(['category', 'time'])->findOrFail($id);
+        return view('admin.project.show', compact('pageTitle', 'project'));
+    }
+
     public function store(Request $request, $id = 0)
     {
         $isRequired = $id ? 'nullable' : 'required';
+        
+        // Convert formatted money inputs back to numeric values
+        $request->merge([
+            'target_amount' => $this->convertFormattedMoney($request->target_amount),
+            'share_amount' => $this->convertFormattedMoney($request->share_amount),
+            'roi_amount' => $this->convertFormattedMoney($request->roi_amount),
+            'min_invest_amount' => $this->convertFormattedMoney($request->min_invest_amount),
+        ]);
+        
         $request->validate([
             'title'          => 'required|string|max:40',
-            'goal'           => 'required|numeric|gt:0',
+            'target_amount'  => 'required|numeric|gt:0',
             'description'    => 'required|string',
-            'share_amount'   => 'required|numeric|gt:0',
+            'share_amount'   => 'nullable|numeric|gte:0',
+            'min_invest_amount' => 'required|numeric|gt:0',
             'share_count'    => "$isRequired|numeric|gt:0",
             'roi_amount'     => 'required|numeric|gt:0',
             'roi_percentage' => 'required|numeric|gt:0',
             'map_url'        => 'required|string|regex:/^<iframe.*src="https:\/\/www\.google\.com\/maps\/embed\?pb=.+".*><\/iframe>$/',
             'start_date'     => 'required|date',
             'end_date'       => 'required|date',
-            'maturity_time'  => 'required|numeric|gt:0',
             'image'          => [$isRequired, 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
             'gallery'        => "$isRequired|array|min:0|max:4",
             'gallery.*'      => [$isRequired, 'image', new FileTypeValidate(['jpeg', 'jpg', 'png'])],
             'category_id'    => "$isRequired|exists:categories,id",
-            'time_id'        => "$isRequired|exists:times,id",
-            'return_type'    => 'required|in:' . Status::REPEAT . ',' . Status::LIFETIME
         ]);
 
-        if ($request->return_type == Status::REPEAT) {
-            $request->validate([
-                'repeat_times' => 'required|numeric|gt:0'
-            ]);
+        // Calculate and validate the relationship between target_amount, share_count, and share_amount
+        $targetAmount = $request->target_amount;
+        $shareCount = $request->share_count;
+        $shareAmount = $request->share_amount;
+        
+        // Ensure consistency: target_amount should equal share_count * share_amount, but only if share_amount is provided
+        if ($shareCount > 0 && $shareAmount > 0) {
+            $calculatedTarget = $shareCount * $shareAmount;
+            $difference = abs($calculatedTarget - $targetAmount);
+
+            if ($difference > 0.01) {
+                $targetAmount = $calculatedTarget;
+            }
         }
 
         if ($id) {
@@ -92,8 +115,8 @@ class ManageProjectController extends Controller
             $redirect = back();
         } else {
             $project = new Project();
-            $project->available_share = $request->share_count;
-            $project->share_count = $request->share_count;
+            $project->available_share = $shareCount;
+            $project->share_count = $shareCount;
             $notify[] = ['success', 'Project created successfully'];
             $redirect = redirect()->route('admin.project.index');
         }
@@ -121,31 +144,29 @@ class ManageProjectController extends Controller
             }
         }
 
-        $investEndDate = Carbon::parse($request->end_date);
-        $maturityMonths = (int)$request->maturity_time;
-        $matureDate = $investEndDate->addMonths($maturityMonths);
-        // ROI Amount
-        $roiAmount = $request->roi_percentage / 100 * $request->share_amount;
-
         $project->title = $request->title;
-        $project->slug = $request->slug;
-        $project->goal = $request->goal;
-        $project->share_amount = $request->share_amount;
+        $project->slug = slug($request->title);
+        $project->goal = $targetAmount; // Store the calculated target amount
+        $project->share_amount = $shareAmount;
+        $project->min_invest_amount = $request->min_invest_amount;
+        $project->share_count = $shareCount;
         $project->roi_percentage = $request->roi_percentage;
-        $project->roi_amount = $roiAmount;
+        $project->roi_amount = $request->roi_percentage / 100 * $request->min_invest_amount;
         $project->start_date = $request->start_date;
         $project->end_date = $request->end_date;
-        $project->maturity_time = $request->maturity_time;
-        $project->maturity_date = $matureDate;
-        $project->time_id = $request->time_id;
-        $project->repeat_times = $request->repeat_times ?? 0;
-        $project->return_type = @$request->return_type == Status::REPEAT ? Status::REPEAT : Status::LIFETIME;
+        
+        // Calculate maturity_time in months from start and end dates
+        $startDate = Carbon::parse($request->start_date);
+        $endDate = Carbon::parse($request->end_date);
+        $project->maturity_time = $startDate->diffInMonths($endDate);
 
-        if ($project->return_type == Status::REPEAT) {
-            $project->capital_back = @$request->capital_back ? Status::YES : Status::NO;
-        } else {
-            $project->capital_back = Status::NO;
-        }
+        $project->maturity_date = $request->end_date;
+        
+        // Set default values for removed fields
+        $project->time_id = 0;
+        $project->repeat_times = 0;
+        $project->return_type = Status::LIFETIME;
+        $project->capital_back = Status::NO;
 
         $project->category_id = $request->category_id;
         $project->map_url = $request->map_url;
@@ -259,9 +280,23 @@ class ManageProjectController extends Controller
 
     public function repeat()
     {
-        $pageTitle = 'Repeated Return Projects';
+        $pageTitle = 'Repeat Return Projects';
         $projects = $this->projectData('repeat');
-
         return view('admin.project.index', compact('pageTitle', 'projects'));
+    }
+
+    /**
+     * Convert formatted money string to numeric value
+     * Example: "200.000.000" -> 200000000
+     */
+    private function convertFormattedMoney($value)
+    {
+        if (empty($value)) {
+            return 0;
+        }
+        
+        // Remove all dots and convert to numeric
+        $numericValue = str_replace('.', '', $value);
+        return (float) $numericValue;
     }
 }

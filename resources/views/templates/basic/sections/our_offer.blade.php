@@ -33,9 +33,10 @@
                                     </a>
 
                                     <div class="card-offer">
-                                        <span class="card-offer__label">@lang('ROI')</span>
-                                        <span
-                                            class="card-offer__percentage">{{ getAmount($project->roi_percentage) }}%</span>
+                                        <span class="card-offer__percentage">
+                                            <i class="las la-chart-line text--warning me-1"></i>
+                                            {{ getAmount($project->roi_percentage) }}%
+                                        </span>
                                     </div>
                                 </div>
 
