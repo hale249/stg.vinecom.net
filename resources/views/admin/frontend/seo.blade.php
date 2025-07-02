@@ -23,7 +23,7 @@
                                     <label>@lang('Meta Keywords')</label>
                                     <small class="ms-2 mt-2  ">@lang('Separate multiple keywords by') <code>,</code>(@lang('comma')) @lang('or') <code>@lang('enter')</code> @lang('key')</small>
                                     <select name="keywords[]" class="form-control select2-auto-tokenize" multiple="multiple" required>
-                                        @if (@$seo->data_values->keywords)
+                                        @if (@$seo->data_values?->keywords)
                                             @foreach ($seo->data_values->keywords as $option)
                                                 <option value="{{ $option }}" selected>{{ __($option) }}</option>
                                             @endforeach

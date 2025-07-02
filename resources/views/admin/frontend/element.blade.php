@@ -25,7 +25,7 @@
                                             <input type="hidden" name="has_image[]" value="1">
                                             <div class="form-group">
                                                 <label>{{ __(keyToTitle($imgKey)) }}</label>
-                                                <x-image-uploader class="w-100" :imagePath="frontendImage($key,@$data->data_values->$imgKey,$section->element->images->$imgKey->size)" name="image_input[{{ @$imgKey }}]" id="image-upload-input{{ $loop->index }}" :size="$section->element->images->$imgKey->size" :required="false" />
+                                                <x-image-uploader class="w-100" :imagePath="frontendImage($key,@$data->data_values?->$imgKey,$section->element->images->$imgKey->size)" name="image_input[{{ @$imgKey }}]" id="image-upload-input{{ $loop->index }}" :size="$section->element->images->$imgKey->size" :required="false" />
 
                                             </div>
                                         </div>
@@ -47,7 +47,7 @@
                                         <div class="col-md-12">
                                             <div class="form-group">
                                                 <label>{{ __(keyToTitle($k)) }}</label>
-                                                <textarea rows="10" class="form-control" name="{{ $k }}" required>{{ old($k,@$data->data_values->$k) }}</textarea>
+                                                <textarea rows="10" class="form-control" name="{{ $k }}" required>{{ old($k,@$data->data_values?->$k) }}</textarea>
                                             </div>
                                         </div>
                                     @elseif($content == 'textarea-nic')
@@ -66,7 +66,7 @@
                                                 <label>{{ __(keyToTitle(@$selectName)) }}</label>
                                                 <select class="form-control select2" data-minimum-results-for-search="-1" name="{{ @$selectName }}" required>
                                                     @foreach ($content->options as $selectItemKey => $selectOption)
-                                                        <option value="{{ $selectItemKey }}" @if (@$data->data_values->$selectName == $selectItemKey) selected @endif>{{ __($selectOption) }}</option>
+                                                        <option value="{{ $selectItemKey }}" @if (@$data->data_values?->$selectName == $selectItemKey) selected @endif>{{ __($selectOption) }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>

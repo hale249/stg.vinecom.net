@@ -11,8 +11,8 @@
                     <ul class="social-list">
                         @foreach ($socialLinks as $socialLink)
                             <li class="social-list__item">
-                                <a href="{{ @$socialLink->data_values->url }}" class="social-list__link" target="_blank">
-                                    @php echo @$socialLink->data_values->social_icon @endphp
+                                <a href="{{ @$socialLink->data_values->url  ?? ''}}" class="social-list__link" target="_blank">
+                                    @php echo @$socialLink->data_values?->social_icon ?? '' @endphp
                                 </a>
                             </li>
                         @endforeach

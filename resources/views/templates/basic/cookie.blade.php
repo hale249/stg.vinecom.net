@@ -7,7 +7,7 @@
                     <div class="random-card">
                         <div class="dashboard-card__body offer-details-desc">
                             @php
-                                echo $cookie->data_values->description;
+                                echo $cookie->data_values?->description;
                             @endphp
                         </div>
                     </div>

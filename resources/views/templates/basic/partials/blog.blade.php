@@ -8,7 +8,7 @@
             </a>
             <div class="card-body">
                 <h6 class="card-title">
-                    <a href="{{ route('blog.details', $blog->slug) }}">{{ __($blog->data_values->title) }}</a>
+                    <a href="{{ route('blog.details', $blog->slug) }}">{{ __($blog->data_values?->title) }}</a>
                 </h6>
                 <ul class="blog-meta">
                     <li class="card-meta__item">
@@ -17,7 +17,7 @@
                     </li>
                 </ul>
                 <p class="card-desc">
-                    @php echo substr(strip_tags($blog->data_values->description), 0, 100) @endphp
+                    @php echo substr(strip_tags($blog->data_values?->description), 0, 100) @endphp
                 </p>
                 <a class="btn btn--sm btn--outline"
                     href="{{ route('blog.details', $blog->slug) }}">@lang('Read More')</a>
@@ -34,7 +34,7 @@
         padding-top: 44.47%; /* 185/416 = 0.4447 = 44.47% */
         overflow: hidden;
     }
-    
+
     .card--blog .card-thumb img.blog-thumbnail {
         position: absolute;
         top: 0;
@@ -44,7 +44,7 @@
         object-fit: cover;
         transition: transform 0.3s ease;
     }
-    
+
     .card--blog:hover .card-thumb img.blog-thumbnail {
         transform: scale(1.1);
     }

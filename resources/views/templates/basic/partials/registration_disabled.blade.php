@@ -5,11 +5,11 @@
     <div class="container">
         <div class="register-disable-image">
             <img class="fit-image"
-                src="{{ frontendImage('register_disable', @$registrationDisabled->data_values->image, '280x280') }}"
+                src="{{ frontendImage('register_disable', @$registrationDisabled->data_values?->image, '280x280') }}"
                 alt="@lang('Registration Disabled')">
         </div>
 
-        <h5 class="register-disable-title">{{ __(@$registrationDisabled->data_values->heading) }}</h5>
+        <h5 class="register-disable-title">{{ __(@$registrationDisabled->data_values?->heading) }}</h5>
         <p class="register-disable-desc">
             {{ __(@$registrationDisabled->data_values->subheading) }}
         </p>

@@ -186,7 +186,7 @@ class GeneralSettingController extends Controller {
         $general->save();
 
         $maintenance = Frontend::where('data_keys', 'maintenance.data')->firstOrFail();
-        $image       = @$maintenance->data_values->image;
+        $image       = @$maintenance->data_values->image ?? '';
         if ($request->hasFile('image')) {
             try {
                 $old   = $image;

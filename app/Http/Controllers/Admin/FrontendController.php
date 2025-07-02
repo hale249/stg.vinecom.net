@@ -129,7 +129,7 @@ class FrontendController extends Controller
             }
         }
         if ($type == 'data') {
-            $inputContentValue['image'] = @$content->data_values->image;
+            $inputContentValue['image'] = @$content->data_values->image ?? '';
             if ($request->hasFile('image_input')) {
                 try {
                     $inputContentValue['image'] = fileUploader($request->image_input, getFilePath('seo'), getFileSize('seo'), @$content->data_values->image);
