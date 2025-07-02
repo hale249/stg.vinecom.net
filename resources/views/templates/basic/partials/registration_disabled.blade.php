@@ -5,17 +5,17 @@
     <div class="container">
         <div class="register-disable-image">
             <img class="fit-image"
-                src="{{ frontendImage('register_disable', @$registrationDisabled->data_values?->image, '280x280') }}"
+                src="{{ frontendImage('register_disable', @$registrationDisabled?->data_values?->image, '280x280') }}"
                 alt="@lang('Registration Disabled')">
         </div>
 
-        <h5 class="register-disable-title">{{ __(@$registrationDisabled->data_values?->heading) }}</h5>
+        <h5 class="register-disable-title">{{ __(@$registrationDisabled?->data_values?->heading) }}</h5>
         <p class="register-disable-desc">
-            {{ __(@$registrationDisabled->data_values->subheading) }}
+            {{ __(@$registrationDisabled?->data_values?->subheading ?? '') }}
         </p>
         <div class="text-center">
-            <a href="{{ @$registrationDisabled->data_values->button_url }}"
-                class="register-disable-footer-link btn btn--base">{{ __(@$registrationDisabled->data_values->button_name) }}</a>
+            <a href="{{ @$registrationDisabled?->data_values?->button_url ?? '' }}"
+                class="register-disable-footer-link btn btn--base">{{ __(@$registrationDisabled?->data_values?->button_name) }}</a>
         </div>
     </div>
 </div>

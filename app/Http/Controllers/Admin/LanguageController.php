@@ -261,7 +261,7 @@ class LanguageController extends Controller
         }
         $frontendData = Frontend::where('data_keys', '!=', 'seo.data')->get();
         foreach ($frontendData as $frontend) {
-            foreach ($frontend->data_values as $key => $frontendValue) {
+            foreach ($frontend?->data_values as $key => $frontendValue) {
                 if ($key != 'has_image' && !isImage($frontendValue) && !isHtml($frontendValue)) {
                     $langKeys[] = $frontendValue;
                 }

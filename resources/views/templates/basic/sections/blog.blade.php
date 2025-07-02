@@ -9,11 +9,11 @@
                 <div class="section-heading">
                     <div class="section-heading__sec-name">
                         <img class="me-2" src="{{ siteFavicon() }}" alt="@lang('Favicon')">
-                        <span>{{ __($blogContent->data_values->small_heading) }}</span>
+                        <span>{{ __($blogContent?->data_values?->small_heading) }}</span>
                         <img class="ms-2" src="{{ siteFavicon() }}" alt="@lang('Favicon')">
                     </div>
-                    <h3 class="section-heading__title">{{ __($blogContent->data_values->heading) }}</h3>
-                    <p class="section-heading__desc">{{ __($blogContent->data_values->subheading) }} </p>
+                    <h3 class="section-heading__title">{{ __($blogContent?->data_values?->heading) }}</h3>
+                    <p class="section-heading__desc">{{ __($blogContent?->data_values?->subheading) }} </p>
                 </div>
             </div>
         </div>

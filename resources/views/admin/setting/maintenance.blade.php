@@ -18,14 +18,14 @@
                     <div class="col-xl-4">
                         <div class="form-group">
                             <label>@lang('Image')</label>
-                            <x-image-uploader class="w-100" :imagePath="getImage(getFilePath('maintenance') . '/' . @$maintenance->data_values->image, getFileSize('maintenance'))" :size="getFileSize('maintenance')" :required="false" name="image" />
+                            <x-image-uploader class="w-100" :imagePath="getImage(getFilePath('maintenance') . '/' . @$maintenance?->data_values?->image, getFileSize('maintenance'))" :size="getFileSize('maintenance')" :required="false" name="image" />
 
                         </div>
                     </div>
                     <div class="col-xl-8">
                         <div class="form-group">
                           <label>@lang('Description')</label>
-                            <textarea class="form-control nicEdit" rows="10" name="description">@php echo @$maintenance->data_values->description @endphp</textarea>
+                            <textarea class="form-control nicEdit" rows="10" name="description">@php echo @$maintenance?->data_values?->description @endphp</textarea>
                         </div>
                     </div>
                   </div>

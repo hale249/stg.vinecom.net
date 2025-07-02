@@ -64,7 +64,7 @@ class FrontendController extends Controller
     {
         $section = @getPageSections()->$key;
         abort_if(!$section || !$section->builder, 404);
-        
+
         // Get title based on category
         $pageTitle = $section->name;
         if ($key == 'blog') {
@@ -80,25 +80,25 @@ class FrontendController extends Controller
                     break;
             }
         }
-        
+
         // Filter content by category if specified
         $content = Frontend::where('data_keys', $key . '.content')->where('tempname', activeTemplateName());
-        
+
         if ($key == 'blog' && $category) {
             $content = $content->where('category', $category);
         }
-        
+
         $content = $content->orderBy('id', 'desc')->first();
-        
+
         // Filter elements by category if specified
         $elements = Frontend::where('data_keys', $key . '.element')->where('tempname', activeTemplateName());
-        
+
         if ($key == 'blog' && $category) {
             $elements = $elements->where('category', $category);
         }
-        
+
         $elements = $elements->orderBy('id', 'desc')->get();
-        
+
         return view('admin.frontend.section', compact('section', 'content', 'elements', 'key', 'pageTitle', 'category'));
     }
 
@@ -161,7 +161,7 @@ class FrontendController extends Controller
             }
         }
         if ($type == 'data') {
-            $inputContentValue['image'] = @$content->data_values->image ?? '';
+            $inputContentValue['image'] = @$content?->data_values->image ?? '';
             if ($request->hasFile('image_input')) {
                 try {
                     $inputContentValue['image'] = fileUploader($request->image_input, getFilePath('seo'), getFileSize('seo'), @$content->data_values->image);
@@ -176,25 +176,25 @@ class FrontendController extends Controller
                     $imgData = @$request->image_input[$imgKey];
                     if (is_file($imgData)) {
                         try {
-                            $inputContentValue[$imgKey] = $this->storeImage($imgJson, $type, $key, $imgData, $imgKey, @$content->data_values->$imgKey);
+                            $inputContentValue[$imgKey] = $this->storeImage($imgJson, $type, $key, $imgData, $imgKey, @$content?->data_values?->$imgKey);
                         } catch (\Exception $exp) {
                             $notify[] = ['error', 'Couldn\'t upload the image'];
                             return back()->withNotify($notify);
                         }
-                    } else if (isset($content->data_values->$imgKey)) {
-                        $inputContentValue[$imgKey] = $content->data_values->$imgKey;
+                    } else if (isset($content?->data_values?->$imgKey)) {
+                        $inputContentValue[$imgKey] = $content?->data_values?->$imgKey;
                     }
                 }
             }
         }
         $content->data_values = $inputContentValue;
         $content->slug = slug($request->slug);
-        
+
         // Set category if blog post
         if ($key == 'blog' && $request->has('category')) {
             $content->category = $request->category;
         }
-        
+
         if ($type != 'data') {
             $content->tempname = activeTemplateName();
         }

@@ -3,7 +3,7 @@
     $faqElement = getContent('faq.element', orderById: true);
 @endphp
 <section class="faq-section bg-img py-120"
-    data-background-image="{{ frontendImage('faq', @$faqContent->data_values->image), '1920x646' }}">
+    data-background-image="{{ frontendImage('faq', @$faqContent?->data_values?->image), '1920x646' }}">
     <div class="container">
         <div class="row">
             <div class="col-lg-5">

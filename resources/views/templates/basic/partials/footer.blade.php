@@ -14,7 +14,7 @@
                         <a class="footer-item__logo" href="{{ route('projects') }}">
                             <img src="{{ siteLogo() }}" alt="@lang('Site Logo')">
                         </a>
-                        <p class="footer-item__desc">{{ __(@$contactInfo->data_values?->short_details ?? '') }}</p>
+                        <p class="footer-item__desc">{{ __(@$contactInfo?->data_values?->short_details ?? '') }}</p>
                     </div>
                 </div>
                 <div class="col-5 col-sm-4 col-md-3 col-lg-2 order-3 order-lg-2">
@@ -58,7 +58,7 @@
                             @foreach ($policyPages as $page)
                                 <li class="footer-menu__item">
                                     <a class="footer-menu__link" href="{{ route('policy.pages', $page->slug) }}">
-                                        {{ __(@$page->data_values?->title ?? '') }}
+                                        {{ __(@$page?->data_values?->title ?? '') }}
                                     </a>
                                 </li>
                             @endforeach
@@ -73,21 +73,21 @@
                             <li class="contact-list__item">
                                 <i class="fas fa-envelope"></i>
                                 <a class="contact-list__link"
-                                    href="mailto:{{ __(@$contactInfo->data_values?->email_address ?? '') }}">
-                                    {{ __(@$contactInfo->data_values?->email_address ?? '') }}
+                                    href="mailto:{{ __(@$contactInfo?->data_values?->email_address ?? '') }}">
+                                    {{ __(@$contactInfo?->data_values?->email_address ?? '') }}
                                 </a>
                             </li>
                             <li class="contact-list__item">
                                 <i class="fas fa-phone-volume"></i>
                                 <a class="contact-list__link"
                                     href="tel:{{ __(@$contactInfo->data_values?->contact_number ?? '') }}">
-                                    {{ __(@$contactInfo->data_values?->contact_number ?? '') }}
+                                    {{ __(@$contactInfo?->data_values?->contact_number ?? '') }}
                                 </a>
                             </li>
                             <li class="contact-list__item">
                                 <i class="fas fa-location-dot"></i>
                                 <span class="contact-list__text">
-                                    {{ __(@$contactInfo->data_values?->address ?? '') }}
+                                    {{ __(@$contactInfo?->data_values?->address ?? '') }}
                                 </span>
                             </li>
                         </ul>
@@ -97,10 +97,10 @@
                             <ul class="social-list style-two">
                                 @foreach ($socialIcons as $link)
                                     <li class="social-list__item">
-                                        <a href="{{ @$link->data_values->url  ?? ''}}" class="social-list__link flex-center"
+                                        <a href="{{ @$link?->data_values?->url  ?? ''}}" class="social-list__link flex-center"
                                             target="_blank">
                                             @php
-                                                echo @$link->data_values->social_icon ?? '';
+                                                echo @$link?->data_values?->social_icon ?? '';
                                             @endphp
                                         </a>
                                     </li>

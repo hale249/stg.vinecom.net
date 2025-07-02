@@ -7,7 +7,7 @@
         <div class="row gy-5 gy-lg-0 justify-content-center">
             <div class="col-md-10 col-lg-6 col-xxl-7">
                 <div class="why-invest__thumb">
-                    <img src="{{ frontendImage('choose_us', @$whyWeContent->data_values->image, '666x556') }}"
+                    <img src="{{ frontendImage('choose_us', @$whyWeContent?->data_values?->image, '666x556') }}"
                         alt="@lang('Image')">
 
                     <div class="why-invest__thumb-overlay">

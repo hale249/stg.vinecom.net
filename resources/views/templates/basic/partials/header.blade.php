@@ -11,8 +11,8 @@
                     <ul class="social-list">
                         @foreach ($socialLinks as $socialLink)
                             <li class="social-list__item">
-                                <a href="{{ @$socialLink->data_values->url  ?? ''}}" class="social-list__link" target="_blank">
-                                    @php echo @$socialLink->data_values?->social_icon ?? '' @endphp
+                                <a href="{{ @$socialLink?->data_values->url  ?? ''}}" class="social-list__link" target="_blank">
+                                    @php echo @$socialLink?->data_values?->social_icon ?? '' @endphp
                                 </a>
                             </li>
                         @endforeach
@@ -22,7 +22,7 @@
                 <div class="header-top__item two">
                     @foreach ($topbarContents as $item)
                         <p class="header-top__text" data-s-break="1" data-s-length="1">
-                            {{ __($item->data_values->text) }}
+                            {{ __($item?->data_values?->text ?? '') }}
                         </p>
                     @endforeach
                 </div>

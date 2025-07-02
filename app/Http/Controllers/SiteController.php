@@ -87,7 +87,7 @@ class SiteController extends Controller {
 
     public function policyPages($slug) {
         $policy      = Frontend::where('slug', $slug)->where('data_keys', 'policy_pages.element')->firstOrFail();
-        $pageTitle   = $policy->data_values->title;
+        $pageTitle   = $policy->data_values->title ?? '';
         $seoContents = $policy->seo_content;
         $seoImage    = @$seoContents->image ? frontendImage('policy_pages', $seoContents->image, getFileSize('seo'), true) : null;
         return view('Template::policy', compact('policy', 'pageTitle', 'seoContents', 'seoImage'));
@@ -105,13 +105,13 @@ class SiteController extends Controller {
 
     public function blogs($category = null) {
         $blogsQuery = Frontend::where('tempname', activeTemplateName())->where('data_keys', 'blog.element');
-        
+
         if ($category) {
             $blogsQuery->where('category', $category);
         }
-        
+
         $blogs = $blogsQuery->latest()->paginate(getPaginate(12));
-        
+
         // Set page title based on category
         if ($category == 'company') {
             $pageTitle = 'Tin tức doanh nghiệp';
@@ -120,10 +120,10 @@ class SiteController extends Controller {
         } else {
             $pageTitle = 'Tin tức';
         }
-        
+
         $page = Page::where('tempname', activeTemplate())->where('slug', 'blog')->first();
         $sections = $page->secs;
-        
+
         return view('Template::blog', compact('blogs', 'pageTitle', 'sections', 'category'));
     }
 
@@ -145,7 +145,7 @@ class SiteController extends Controller {
 
     public function cookiePolicy() {
         $cookieContent = Frontend::where('data_keys', 'cookie.data')->first();
-        abort_if($cookieContent->data_values->status != Status::ENABLE, 404);
+        abort_if($cookieContent?->data_values?->status != Status::ENABLE, 404);
         $pageTitle = 'Cookie Policy';
         $cookie    = Frontend::where('data_keys', 'cookie.data')->first();
         return view('Template::cookie', compact('pageTitle', 'cookie'));
