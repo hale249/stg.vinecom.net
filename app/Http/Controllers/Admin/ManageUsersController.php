@@ -500,14 +500,34 @@ class ManageUsersController extends Controller
     public function createStaff(Request $request)
     {
         try {
-            $request->validate([
+            // Basic validation
+            $validator = \Illuminate\Support\Facades\Validator::make($request->all(), [
                 'firstname' => 'required|string',
                 'lastname' => 'required|string',
                 'email' => 'required|email|unique:users,email',
                 'password' => 'required|string|min:6',
-                'role' => 'required|in:sales_manager,sales_staff',
-                'manager_id' => 'nullable|exists:users,id'
+                'role' => 'required|in:sales_staff,sales_manager,sales_director,regional_director',
+                'position_level' => 'required|string',
             ]);
+            
+            // Add manager_id validation based on role
+            if (in_array($request->role, ['sales_staff', 'sales_manager', 'sales_director'])) {
+                $validator->addRules([
+                    'manager_id' => 'required|exists:users,id'
+                ]);
+            }
+            
+            if ($validator->fails()) {
+                if ($request->ajax()) {
+                    return response()->json([
+                        'success' => false,
+                        'errors' => $validator->errors()
+                    ], 422);
+                }
+                
+                return back()->withErrors($validator)->withInput();
+            }
+            
             $referralCode = ReferralCodeGenerator::generateStaffReferralCode();
 
             $user = new User();
@@ -517,8 +537,10 @@ class ManageUsersController extends Controller
             $user->password = Hash::make($request->password);
             $user->is_staff = 1;
             $user->role = $request->role;
+            $user->position_level = $request->position_level;
             
-            if ($request->role == 'sales_staff' && $request->manager_id) {
+            // Manager assignment based on role hierarchy
+            if ($request->manager_id) {
                 $user->manager_id = $request->manager_id;
             }
             

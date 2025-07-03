@@ -26,6 +26,10 @@
             </div>
         </div>
         <div class="col-lg-4 text-lg-end">
+            <a href="{{ route('admin.kpi.level.populate') }}" class="btn btn-success me-2">
+                <i class="las la-file-import me-1"></i>
+                Nhập dữ liệu mẫu
+            </a>
             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addKpiModal">
                 <i class="las la-plus-circle me-1"></i>
                 Thêm chính sách mới

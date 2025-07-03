@@ -139,12 +139,88 @@ Route::middleware(['auth'])->prefix('user/manager')->name('user.staff.manager.')
 // This catch-all route must be the last route
 Route::get('/{slug}', 'SiteController@pages')->name('pages');
 
+// Route for getting managers by roles (for staff creation form)
+Route::get('/admin/users/list/managers', function (\Illuminate\Http\Request $request) {
+    $roles = $request->input('roles', []);
+    
+    if (!is_array($roles)) {
+        $roles = [$roles];
+    }
+    
+    $managers = \App\Models\User::where('is_staff', 1)
+        ->whereIn('role', $roles)
+        ->select('id', 'firstname', 'lastname', 'email', 'role', 'position_level')
+        ->get()
+        ->map(function($user) {
+            $user->fullname = $user->firstname . ' ' . $user->lastname;
+            return $user;
+        });
+    
+    return response()->json([
+        'success' => true,
+        'managers' => $managers
+    ]);
+})->name('admin.users.list.managers');
+
+// Route to get KPI levels for staff creation form
+Route::get('/admin/users/list/positions', function () {
+    // Get KPI data from the database
+    $kpis = App\Models\KpiPolicy::all();
+    
+    // Group KPI levels by role_level
+    $positionsByRole = [
+        'sales_staff' => [],
+        'sales_manager' => [],
+        'sales_director' => [],
+        'regional_director' => []
+    ];
+    
+    foreach ($kpis as $kpi) {
+        if (!isset($kpi->role_level) || !isset($kpi->level_name)) {
+            continue;
+        }
+        
+        $roleMapping = [
+            'staff_level' => 'sales_staff',
+            'mid_manager_level' => 'sales_manager',
+            'senior_manager_level' => 'sales_director',
+            'regional_director_level' => 'regional_director'
+        ];
+        
+        $role = $roleMapping[$kpi->role_level] ?? null;
+        if (!$role) {
+            continue;
+        }
+        
+        // Check if this position name is already added to avoid duplicates
+        $positionExists = false;
+        foreach ($positionsByRole[$role] as $position) {
+            if ($position['value'] === $kpi->level_name) {
+                $positionExists = true;
+                break;
+            }
+        }
+        
+        if (!$positionExists) {
+            $positionsByRole[$role][] = [
+                'value' => $kpi->level_name,
+                'label' => $kpi->level_name
+            ];
+        }
+    }
+    
+    // Return the positions grouped by role
+    return response()->json([
+        'success' => true,
+        'positionsByRole' => $positionsByRole
+    ]);
+})->name('admin.users.list.positions');
+
 Route::get('admin/kpi-level', function () {
     $pageTitle = 'Thiết lập cấp bậc & KPI';
     
-    // Get KPI data from session for demo purposes
-    // In a real implementation, we would retrieve from the database
-    $kpis = session('kpis', collect([]));
+    // Get KPI data from database
+    $kpis = App\Models\KpiPolicy::all();
     
     // Extract unique level names from KPIs for filtering
     $uniqueLevelNames = $kpis->pluck('level_name')->unique()->values();
@@ -222,11 +298,6 @@ Route::post('admin/kpi-level', function (\Illuminate\Http\Request $request) {
         'notes' => 'nullable|string',
     ]);
     
-    // Store in session for demo purposes
-    // In a real implementation, we would store in the database
-    $kpis = session('kpis', collect([]));
-    $validated['id'] = time(); // Use timestamp as a temporary ID
-    
     // Set default values for actual data
     $validated['actual_sales'] = $validated['actual_sales'] ?? 0;
     $validated['actual_contracts'] = $validated['actual_contracts'] ?? 0;
@@ -239,8 +310,8 @@ Route::post('admin/kpi-level', function (\Illuminate\Http\Request $request) {
     // Calculate management commission based on percentage
     $validated['hh_quan_ly'] = round($validated['kpi_default'] * ($validated['hh_quan_ly_percent'] / 100));
     
-    $kpis->push((object)$validated);
-    session(['kpis' => $kpis]);
+    // Create new KPI policy in the database
+    App\Models\KpiPolicy::create($validated);
     
     return redirect()->route('admin.kpi.level.index')->with('success', 'KPI đã được tạo thành công!');
 })->name('admin.kpi.level.store');
@@ -264,21 +335,13 @@ Route::put('admin/kpi-level/{id}', function (\Illuminate\Http\Request $request, 
         'notes' => 'nullable|string',
     ]);
     
-    // Update in session for demo purposes
-    // In a real implementation, we would update in the database
-    $kpis = session('kpis', collect([]));
+    // Find KPI policy in database
+    $kpi = App\Models\KpiPolicy::find($id);
     
-    $index = $kpis->search(function($kpi) use ($id) {
-        return $kpi->id == $id;
-    });
-    
-    if ($index !== false) {
-        $validated['id'] = $id;
-        
+    if ($kpi) {
         // Preserve actual sales and contracts data if they exist
-        $existingKpi = $kpis[$index];
-        $validated['actual_sales'] = $existingKpi->actual_sales ?? 0;
-        $validated['actual_contracts'] = $existingKpi->actual_contracts ?? 0;
+        $validated['actual_sales'] = $kpi->actual_sales ?? 0;
+        $validated['actual_contracts'] = $kpi->actual_contracts ?? 0;
         
         // Calculate overall KPI percentage
         $targetSales = $validated['target_sales'] ?? $validated['kpi_default'] ?? 1; // Avoid division by zero
@@ -288,8 +351,9 @@ Route::put('admin/kpi-level/{id}', function (\Illuminate\Http\Request $request, 
         // Calculate management commission based on percentage
         $validated['hh_quan_ly'] = round($validated['kpi_default'] * ($validated['hh_quan_ly_percent'] / 100));
         
-        $kpis[$index] = (object)$validated;
-        session(['kpis' => $kpis]);
+        // Update the KPI policy
+        $kpi->update($validated);
+        
         return redirect()->route('admin.kpi.level.index')->with('success', 'KPI đã được cập nhật thành công!');
     }
     
@@ -321,26 +385,176 @@ Route::put('admin/kpi-detail/{id}', function (\Illuminate\Http\Request $request,
         $validated['month_display'] = $validated['month'];
     }
     
-    // In a real implementation, we would update in the database
-    // For now, we'll store in session to demonstrate functionality
-    $kpis = session('kpis', collect([]));
+    // Find KPI policy in database
+    $kpi = App\Models\KpiPolicy::find($id);
     
-    // Check if KPI detail exists
-    $index = $kpis->search(function($kpi) use ($id) {
-        return $kpi->id == $id;
-    });
-    
-    if ($index !== false) {
-        // Update existing KPI detail
-        $validated['id'] = $id;
-        $kpis[$index] = (object)array_merge((array)$kpis[$index], $validated);
+    if ($kpi) {
+        // Update the KPI detail
+        $kpi->update($validated);
     } else {
         // Create new KPI detail
-        $validated['id'] = time(); // Use timestamp as a temporary ID
-        $kpis->push((object)$validated);
+        App\Models\KpiPolicy::create(array_merge($validated, ['id' => $id]));
     }
-    
-    session(['kpis' => $kpis]);
     
     return redirect()->route('admin.kpi.level.index')->with('success', 'Thông tin KPI theo tháng đã được cập nhật!');
 })->name('admin.kpi.detail.update');
+
+Route::get('admin/kpi-level/populate', function () {
+    // Clear existing data before populating
+    App\Models\KpiPolicy::truncate();
+    
+    // Define KPI policies from Excel data
+    $kpiData = [
+        [
+            'level_name' => 'QLKD 1',
+            'role_level' => 'staff_level',
+            'kpi_default' => 500000000,
+            'kpi_month_1' => 250000000,
+            'kpi_month_2' => 350000000,
+            'kpi_tuyen_dung' => 'Cá nhân',
+            'luong_bhxh' => 5350000,
+            'luong_co_ban' => 6000000,
+            'luong_kinh_doanh' => 7000000,
+            'thuong_kinh_doanh' => 7500000,
+            'hh_quan_ly' => 0,
+            'hh_quan_ly_percent' => 0.1,
+            'notes' => '2,60 / 650.000',
+            'overall_kpi_percentage' => 0
+        ],
+        [
+            'level_name' => 'QLKD 2',
+            'role_level' => 'staff_level',
+            'kpi_default' => 800000000,
+            'kpi_month_1' => 400000000,
+            'kpi_month_2' => 560000000,
+            'kpi_tuyen_dung' => 'Cá nhân',
+            'luong_bhxh' => 5350000,
+            'luong_co_ban' => 7000000,
+            'luong_kinh_doanh' => 9000000,
+            'thuong_kinh_doanh' => 12000000,
+            'hh_quan_ly' => 0,
+            'hh_quan_ly_percent' => 0.1,
+            'notes' => '2,00 / 1.650.000',
+            'overall_kpi_percentage' => 0
+        ],
+        [
+            'level_name' => 'QLKD 3',
+            'role_level' => 'staff_level',
+            'kpi_default' => 1000000000,
+            'kpi_month_1' => 500000000,
+            'kpi_month_2' => 700000000,
+            'kpi_tuyen_dung' => 'Cá nhân',
+            'luong_bhxh' => 5350000,
+            'luong_co_ban' => 8500000,
+            'luong_kinh_doanh' => 11500000,
+            'thuong_kinh_doanh' => 15000000,
+            'hh_quan_ly' => 0,
+            'hh_quan_ly_percent' => 0.1,
+            'notes' => '2,00 / 3.150.000',
+            'overall_kpi_percentage' => 0
+        ],
+        [
+            'level_name' => 'GĐKD 1',
+            'role_level' => 'mid_manager_level',
+            'kpi_default' => 4000000000,
+            'kpi_month_1' => 2000000000,
+            'kpi_month_2' => 2800000000,
+            'kpi_tuyen_dung' => 'CN + TĐ 05 NS',
+            'luong_bhxh' => 6000000,
+            'luong_co_ban' => 10000000,
+            'luong_kinh_doanh' => 20000000,
+            'thuong_kinh_doanh' => 15000000,
+            'hh_quan_ly' => 4000000,
+            'hh_quan_ly_percent' => 0.75,
+            'notes' => '0,75 / 4.000.000',
+            'overall_kpi_percentage' => 0
+        ],
+        [
+            'level_name' => 'GĐKD 2',
+            'role_level' => 'mid_manager_level',
+            'kpi_default' => 5000000000,
+            'kpi_month_1' => 2500000000,
+            'kpi_month_2' => 3500000000,
+            'kpi_tuyen_dung' => 'CN + TĐ 05 NS',
+            'luong_bhxh' => 7000000,
+            'luong_co_ban' => 11000000,
+            'luong_kinh_doanh' => 26000000,
+            'thuong_kinh_doanh' => 15000000,
+            'hh_quan_ly' => 5000000,
+            'hh_quan_ly_percent' => 0.74,
+            'notes' => '0,74 / 4.000.000',
+            'overall_kpi_percentage' => 0
+        ],
+        [
+            'level_name' => 'GĐTT 1',
+            'role_level' => 'senior_manager_level',
+            'kpi_default' => 8000000000,
+            'kpi_month_1' => 4000000000,
+            'kpi_month_2' => 5600000000,
+            'kpi_tuyen_dung' => 'TĐ 10-20 NS',
+            'luong_bhxh' => 9000000,
+            'luong_co_ban' => 15000000,
+            'luong_kinh_doanh' => 25000000,
+            'thuong_kinh_doanh' => 0,
+            'hh_quan_ly' => 8000000,
+            'hh_quan_ly_percent' => 0.5,
+            'notes' => '0,50 / 6.000.000',
+            'overall_kpi_percentage' => 0
+        ],
+        [
+            'level_name' => 'GĐTT 2',
+            'role_level' => 'senior_manager_level',
+            'kpi_default' => 10000000000, 
+            'kpi_month_1' => 5000000000,
+            'kpi_month_2' => 7000000000,
+            'kpi_tuyen_dung' => 'TĐ 10-20 NS',
+            'luong_bhxh' => 10000000,
+            'luong_co_ban' => 17000000,
+            'luong_kinh_doanh' => 32000000,
+            'thuong_kinh_doanh' => 0,
+            'hh_quan_ly' => 10000000,
+            'hh_quan_ly_percent' => 0.49,
+            'notes' => '0,49 / 7.000.000',
+            'overall_kpi_percentage' => 0
+        ],
+        [
+            'level_name' => 'GĐ Vùng 1',
+            'role_level' => 'regional_director_level',
+            'kpi_default' => 15000000000,
+            'kpi_month_1' => 7500000000,
+            'kpi_month_2' => 10500000000,
+            'kpi_tuyen_dung' => 'TĐ 20-30 NS',
+            'luong_bhxh' => 12000000,
+            'luong_co_ban' => 20000000,
+            'luong_kinh_doanh' => 30000000,
+            'thuong_kinh_doanh' => 0,
+            'hh_quan_ly' => 15000000,
+            'hh_quan_ly_percent' => 0.33,
+            'notes' => '0,33 / 8.000.000',
+            'overall_kpi_percentage' => 0
+        ],
+        [
+            'level_name' => 'GĐ Vùng 2',
+            'role_level' => 'regional_director_level',
+            'kpi_default' => 20000000000,
+            'kpi_month_1' => 10000000000,
+            'kpi_month_2' => 14000000000,
+            'kpi_tuyen_dung' => 'TĐ 20-30 NS',
+            'luong_bhxh' => 15000000,
+            'luong_co_ban' => 22000000,
+            'luong_kinh_doanh' => 43000000,
+            'thuong_kinh_doanh' => 0,
+            'hh_quan_ly' => 20000000,
+            'hh_quan_ly_percent' => 0.33,
+            'notes' => '0,33 / 7.000.000',
+            'overall_kpi_percentage' => 0
+        ],
+    ];
+
+    // Insert data into database
+    foreach ($kpiData as $data) {
+        App\Models\KpiPolicy::create($data);
+    }
+
+    return redirect()->route('admin.kpi.level.index')->with('success', 'KPI data has been populated successfully!');
+})->name('admin.kpi.level.populate');

@@ -12,7 +12,22 @@
             </div>
             <div class="sidebar__user-content">
                 <h6 class="sidebar__user-name text-white mb-1">{{auth()->user()->fullname}}</h6>
-                <span class="sidebar__user-designation text--secondary text-capitalize">@lang('Quản lý')</span>
+                <span class="sidebar__user-designation text--secondary text-capitalize">
+                    @if(auth()->user()->position_level)
+                        {{ auth()->user()->position_level }}
+                    @else
+                        @php
+                            $roleNames = [
+                                'sales_staff' => 'Nhân viên kinh doanh',
+                                'sales_manager' => 'Quản lý kinh doanh',
+                                'sales_director' => 'Giám đốc kinh doanh',
+                                'regional_director' => 'Giám đốc vùng',
+                            ];
+                            $displayRole = $roleNames[auth()->user()->role] ?? 'Quản lý';
+                        @endphp
+                        @lang($displayRole)
+                    @endif
+                </span>
             </div>
         </div>
 
