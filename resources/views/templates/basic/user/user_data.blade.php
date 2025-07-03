@@ -17,13 +17,23 @@
                                             <small class="text--danger usernameExist"></small>
                                         </div>
                                     </div>
+                                    <div class="col-md-12">
+                                        <div class="form-group">
+                                            <label class="form-label">@lang('Referral Code') <span class="text--danger">*</span></label>
+                                            <input type="text" class="form-control form--control checkReferralCode"
+                                                   name="referral_code" value="{{ old('referral_code') }}" required>
+                                            <small class="text--danger referralCodeError"></small>
+                                            <small class="text--success referralCodeSuccess"></small>
+                                        </div>
+                                    </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label class="form-label">@lang('Country')</label>
                                             <select name="country" class="form-control form--control select2" required>
                                                 @foreach ($countries as $key => $country)
                                                     <option data-mobile_code="{{ $country->dial_code }}"
-                                                            value="{{ $country->country }}" data-code="{{ $key }}">
+                                                            value="{{ $country->country }}" data-code="{{ $key }}"
+                                                            {{ $country->country == 'Vietnam' ? 'selected' : '' }}>
                                                         {{ __($country->country) }}
                                                     </option>
                                                 @endforeach
@@ -75,9 +85,7 @@
         "use strict";
         (function ($) {
 
-            @if ($mobileCode)
-            $(`option[data-code={{ $mobileCode }}]`).attr('selected', '');
-            @endif
+            // Vietnam will be selected by default through HTML attribute
 
             $('.select2').select2();
 
@@ -99,6 +107,13 @@
                 var value = $(this).val();
                 var name = $(this).attr('name')
                 checkUser(value, name);
+            });
+
+            $('.checkReferralCode').on('focusout', function (e) {
+                var value = $(this).val();
+                if (value) {
+                    checkReferralCode(value);
+                }
             });
 
             function checkUser(value, name) {
@@ -124,6 +139,35 @@
                         $(`.${response.type}Exist`).text(`${response.field} already exist`);
                     } else {
                         $(`.${response.type}Exist`).text('');
+                    }
+                });
+            }
+
+            function checkReferralCode(value) {
+                var url = '{{ route('user.checkReferralCode') }}';
+                var token = '{{ csrf_token() }}';
+
+                $('.referralCodeError').text('');
+                $('.referralCodeSuccess').text('');
+
+                $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: {
+                        referral_code: value,
+                        _token: token
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            $('.referralCodeSuccess').text(`Valid referral code from ${response.referrer_name}`);
+                        } else {
+                            $('.referralCodeError').text(response.message || 'Invalid referral code');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.log('AJAX Error:', xhr.responseText);
+                        $('.referralCodeError').text('Error checking referral code: ' + error);
                     }
                 });
             }

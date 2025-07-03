@@ -7,11 +7,11 @@
                     <table class="table table--responsive--sm">
                         <thead>
                             <tr>
-                                <th>@lang('Subject')</th>
-                                <th>@lang('Status')</th>
-                                <th>@lang('Priority')</th>
-                                <th>@lang('Last Reply')</th>
-                                <th>@lang('Action')</th>
+                                <th>Tiêu đề</th>
+                                <th>Trạng thái</th>
+                                <th>Độ ưu tiên</th>
+                                <th>Trả lời gần nhất</th>
+                                <th>Thao tác</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -20,7 +20,7 @@
                                     <td>
                                         <div>
                                             <a href="{{ route('ticket.view', $support->ticket) }}" class="text--base fw-bold">
-                                                [@lang('Ticket') #{{ $support->ticket }}] {{ __($support->subject) }}
+                                                [Yêu cầu #{{ $support->ticket }}] {{ __($support->subject) }}
                                             </a>
                                         </div>
                                     </td>
@@ -32,11 +32,11 @@
                                     <td>
                                         <div>
                                             @if ($support->priority == Status::PRIORITY_LOW)
-                                                <span class="badge badge--dark">@lang('Low')</span>
+                                                <span class="badge badge--dark">Thấp</span>
                                             @elseif($support->priority == Status::PRIORITY_MEDIUM)
-                                                <span class="badge badge--warning">@lang('Medium')</span>
+                                                <span class="badge badge--warning">Trung bình</span>
                                             @elseif($support->priority == Status::PRIORITY_HIGH)
-                                                <span class="badge badge--danger">@lang('High')</span>
+                                                <span class="badge badge--danger">Cao</span>
                                             @endif
                                         </div>
                                     </td>

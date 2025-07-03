@@ -116,19 +116,19 @@
                                                     <!-- Fake Investment Dropdown -->
                                                     <div class="dropdown-item">
                                                         <button class="btn btn-sm btn-outline--info w-100 mb-1" data-bs-toggle="modal" data-bs-target="#fakeInvestmentModal{{ $project->id }}">
-                                                            <i class="las la-chart-line"></i> @lang('Fake Tiến độ đầu tư')
+                                                            <i class="las la-chart-line"></i> @lang('Tùy chỉnh tiến độ')
                                                         </button>
                                                         
                                                         @if(Session::has('using_fake_data_' . $project->id))
                                                             <form action="{{ route('admin.project.fake.reset', $project->id) }}" method="POST" class="resetForm">
                                                                 @csrf
                                                                 <button type="submit" class="btn btn-sm btn-outline--danger w-100">
-                                                                    <i class="las la-undo-alt"></i> @lang('Reset về số thực')
+                                                                    <i class="las la-undo-alt"></i> @lang('Khôi phục tiến độ thực')
                                                                 </button>
                                                             </form>
                                                             <div class="mt-1 text-center">
                                                                 <span class="badge badge--warning">
-                                                                    <i class="las la-exclamation-triangle"></i> @lang('Dữ liệu giả')
+                                                                    <i class="las la-exclamation-triangle"></i> @lang('Dữ liệu mô phỏng')
                                                                 </span>
                                                             </div>
                                                         @endif
@@ -211,7 +211,7 @@
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="fakeInvestmentModalLabel{{ $project->id }}">
-                            @lang('Fake Tiến độ đầu tư') - {{ $project->title }}
+                            @lang('Tùy chỉnh tiến độ') - {{ $project->title }}
                         </h5>
                         <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
                             <i class="las la-times"></i>

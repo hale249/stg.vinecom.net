@@ -5,11 +5,11 @@
                 <h6 class="text-black mb-0 support-title">
                     <div class="d-flex align-items-center gap-2">
                         @php echo $myTicket->statusBadge; @endphp
-                        [@lang('Ticket')#{{ $myTicket->ticket }}] {{ $myTicket->subject }}
+                        [Yêu cầu #{{ $myTicket->ticket }}] {{ $myTicket->subject }}
                     </div>
                 </h6>
                 @if ($myTicket->status != Status::TICKET_CLOSE && $myTicket->user)
-                    <button class="confirmationBtn border-0" type="button" data-question="@lang('Are you sure to close this ticket?')"
+                    <button class="confirmationBtn border-0" type="button" data-question="Bạn có chắc chắn muốn đóng yêu cầu này?"
                         data-action="{{ route('ticket.close', $myTicket->id) }}" style="font-size: 1.2rem;">
                         <i class="fas fa-lg fa-times-circle text-danger"></i>
                     </button>
@@ -28,15 +28,15 @@
 
                         <div class="col-md-9">
                             <button type="button" class="btn btn-dark btn-sm addAttachment my-2"><i
-                                    class="fas fa-plus"></i> @lang('Add Attachment') </button>
-                            <p class="mb-2"><span class="text--base">@lang('Max 5 files can be uploaded | Maximum upload size is ' . convertToReadableSize(ini_get('upload_max_filesize')) . ' | Allowed File Extensions: .jpg, .jpeg, .png, .pdf, .doc, .docx')</span>
+                                    class="fas fa-plus"></i> Thêm tệp đính kèm </button>
+                            <p class="mb-2"><span class="text--base">Tối đa 5 tệp có thể được tải lên | Kích thước tải lên tối đa là {{ convertToReadableSize(ini_get('upload_max_filesize')) }} | Định dạng được phép: .jpg, .jpeg, .png, .pdf, .doc, .docx</span>
                             </p>
                             <div class="row fileUploadsContainer">
                             </div>
                         </div>
                         <div class="col-md-3">
                             <button class="btn btn--base w-100 my-2" type="submit"><i
-                                    class="la la-fw la-lg la-reply"></i> @lang('Reply')
+                                    class="la la-fw la-lg la-reply"></i> Phản hồi
                             </button>
                         </div>
 

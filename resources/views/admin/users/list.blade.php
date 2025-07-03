@@ -43,15 +43,26 @@
                                     </td>
                                     <td>
                                         @if($user->is_staff)
-                                            @if($user->role == 'sales_manager')
-                                                <span class="badge badge--success"
-                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Quản lý')</span>
-                                            @elseif($user->role == 'sales_staff')
+                                            @if($user->role == 'sales_staff')
                                                 <span class="badge badge--info"
-                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Nhân viên')</span>
+                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Quản lý kinh doanh')</span>
+                                            @elseif($user->role == 'sales_manager')
+                                                <span class="badge badge--primary"
+                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Giám đốc kinh doanh')</span>
+                                            @elseif($user->role == 'sales_director')
+                                                <span class="badge badge--warning"
+                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Giám đốc trung tâm')</span>
+                                            @elseif($user->role == 'regional_director')
+                                                <span class="badge badge--success"
+                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Giám đốc vùng')</span>
                                             @else
                                                 <span class="badge badge--success"
                                                       style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Staff')</span>
+                                            @endif
+                                            @if($user->position_level)
+                                                <div class="mt-2">
+                                                    <small class="text-muted">{{ $user->position_level }}</small>
+                                                </div>
                                             @endif
                                         @else
                                             <span class="badge badge--primary"
@@ -118,7 +129,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title" id="createStaffModalLabel">@lang('Tạo nhân viên hoặc quản lý')</h5>
+                    <h5 class="modal-title" id="createStaffModalLabel">@lang('Tạo Quản lý/Giám đốc')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.users.staff.create') }}" method="POST">
@@ -149,17 +160,23 @@
                         <div class="form-group mb-3">
                             <label for="role" class="required">@lang('Vai trò')</label>
                             <select class="form-control" id="role" name="role" required>
-                                <option value="sales_manager">@lang('Quản lý')</option>
-                                <option value="sales_staff">@lang('Nhân viên')</option>
+                                <option value="sales_staff">@lang('Quản lý kinh doanh')</option>
+                                <option value="sales_manager">@lang('Giám đốc kinh doanh')</option>
+                                <option value="sales_director">@lang('Giám đốc trung tâm')</option>
+                                <option value="regional_director">@lang('Giám đốc vùng')</option>
                             </select>
                         </div>
-                        <div class="form-group mb-3" id="manager-select-container" style="display: none;">
-                            <label for="manager_id">@lang('Chọn quản lý')</label>
-                            <select class="form-control" id="manager_id" name="manager_id">
-                                <option value="">@lang('Chọn một quản lý')</option>
-                                @foreach(\App\Models\User::salesManagers()->get() as $manager)
-                                    <option value="{{ $manager->id }}">{{ $manager->fullname }} ({{ $manager->email }})</option>
-                                @endforeach
+                        <div class="form-group mb-3">
+                            <label for="position_level" class="required">@lang('Chức danh')</label>
+                            <select class="form-control" id="position_level" name="position_level" required>
+                                <!-- Options will be dynamically populated based on role selection -->
+                            </select>
+                        </div>
+                        <div class="form-group mb-3" id="manager-select-container">
+                            <label for="manager_id" class="required">@lang('Cấp quản lý trực tiếp')</label>
+                            <select class="form-control" id="manager_id" name="manager_id" required>
+                                <option value="">@lang('Chọn quản lý trực tiếp')</option>
+                                <!-- Options will be dynamically populated based on position level -->
                             </select>
                         </div>
                     </div>
@@ -176,7 +193,7 @@
     <x-search-form placeholder="Username / Email"/>
     <button class="btn btn-sm btn-outline--primary float-sm-end" data-bs-toggle="modal"
             data-bs-target="#createStaffModal" type="button">
-        <i class="las la-plus"></i>@lang('Tạo nhân viên/quản lý')
+        <i class="las la-plus"></i>@lang('Tạo Quản lý/Giám đốc')
     </button>
 @endpush
 
@@ -185,14 +202,109 @@
         (function ($) {
             "use strict";
 
-            // Show/hide manager select based on role
-            $('#role').on('change', function() {
-                if ($(this).val() === 'sales_staff') {
-                    $('#manager-select-container').show();
-                } else {
-                    $('#manager-select-container').hide();
+            // Empty positions object to be filled from API
+            let positionsByRole = {
+                'sales_staff': [],
+                'sales_manager': [],
+                'sales_director': [],
+                'regional_director': []
+            };
+
+            // Fetch positions from KPI data
+            $.ajax({
+                url: '{{ route("admin.users.list.positions") }}',
+                type: 'GET',
+                success: function(response) {
+                    if (response.success && response.positionsByRole) {
+                        positionsByRole = response.positionsByRole;
+                        // If the form is already open, update the positions
+                        if ($('#createStaffModal').hasClass('show')) {
+                            loadPositions($('#role').val());
+                        }
+                    }
+                },
+                error: function(xhr) {
+                    console.error('Error fetching positions:', xhr);
                 }
             });
+
+            // Role hierarchy mapping (which roles can be managers of which roles)
+            const managerRoleMapping = {
+                'sales_staff': ['sales_manager'],
+                'sales_manager': ['sales_director'],
+                'sales_director': ['regional_director'],
+                'regional_director': []
+            };
+
+            // Load positions based on selected role
+            function loadPositions(roleValue) {
+                const $positionSelect = $('#position_level');
+                $positionSelect.empty();
+                
+                const positions = positionsByRole[roleValue] || [];
+                
+                $positionSelect.append('<option value="">-- Chọn chức danh --</option>');
+                
+                if (positions.length === 0) {
+                    $positionSelect.append('<option value="" disabled>Không có chức danh nào được định nghĩa trong KPI</option>');
+                } else {
+                    positions.forEach(position => {
+                        $positionSelect.append(`<option value="${position.value}">${position.label}</option>`);
+                    });
+                }
+            }
+
+            // Load potential managers based on selected role
+            function loadManagers(roleValue) {
+                const $managerContainer = $('#manager-select-container');
+                const $managerSelect = $('#manager_id');
+                $managerSelect.empty();
+                
+                // Get roles that can be managers for the selected role
+                const managerRoles = managerRoleMapping[roleValue] || [];
+                
+                if (managerRoles.length === 0) {
+                    // No managers for this role (regional_director), hide the select
+                    $managerContainer.hide();
+                    $managerSelect.prop('required', false);
+                    return;
+                }
+                
+                // Show the container and add a default option
+                $managerContainer.show();
+                $managerSelect.prop('required', true);
+                $managerSelect.append('<option value="">-- Chọn quản lý trực tiếp --</option>');
+                
+                // Load managers via AJAX based on the potential manager roles
+                $.ajax({
+                    url: '{{ route("admin.users.list.managers") }}',
+                    type: 'GET',
+                    data: {
+                        roles: managerRoles
+                    },
+                    success: function(response) {
+                        if (response.success && response.managers) {
+                            response.managers.forEach(manager => {
+                                $managerSelect.append(`<option value="${manager.id}">${manager.fullname} (${manager.position_level}) - ${manager.email}</option>`);
+                            });
+                        }
+                    },
+                    error: function() {
+                        // Show error if managers couldn't be loaded
+                        $managerSelect.append('<option value="">Error loading managers</option>');
+                    }
+                });
+            }
+
+            // Initialize position and manager options on role change
+            $('#role').on('change', function() {
+                const roleValue = $(this).val();
+                loadPositions(roleValue);
+                loadManagers(roleValue);
+            });
+
+            // Trigger on page load to initialize form
+            $('#role').trigger('change');
 
             // Handle form submission
             $('#createStaffModal form').on('submit', function (e) {
@@ -200,6 +312,33 @@
                 var form = $(this);
                 var submitBtn = form.find('button[type=submit]');
                 submitBtn.prop('disabled', true);
+                
+                // Validate form fields
+                let isValid = true;
+                
+                // Make sure position_level is selected
+                const positionValue = $('#position_level').val();
+                if (!positionValue) {
+                    form.find('.position_level-error').remove();
+                    $('#position_level').after('<div class="invalid-feedback position_level-error">Vui lòng chọn chức danh</div>');
+                    $('#position_level').addClass('is-invalid');
+                    isValid = false;
+                }
+                
+                // Make sure manager_id is selected if the field is visible and required
+                const managerField = $('#manager_id');
+                if ($('#manager-select-container').is(':visible') && managerField.prop('required') && !managerField.val()) {
+                    form.find('.manager_id-error').remove();
+                    $('#manager_id').after('<div class="invalid-feedback manager_id-error">Vui lòng chọn quản lý trực tiếp</div>');
+                    $('#manager_id').addClass('is-invalid');
+                    isValid = false;
+                }
+                
+                // Don't submit if validation fails
+                if (!isValid) {
+                    submitBtn.prop('disabled', false);
+                    return false;
+                }
 
                 $.ajax({
                     url: form.attr('action'),
@@ -235,7 +374,7 @@
                 form.trigger('reset');
                 form.find('.is-invalid').removeClass('is-invalid');
                 form.find('.invalid-feedback').remove();
-                $('#manager-select-container').hide();
+                $('#role').trigger('change');
             });
 
         })(jQuery);

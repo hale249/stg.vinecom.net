@@ -52,7 +52,7 @@
           $(this).find('[data-bs-toggle="collapse"]').removeClass("collapsed");
           $(this)
             .find('[data-bs-toggle="collapse"]')
-            .attr("aria-expanded", "false");
+            .attr("aria-expanded", "true");
         }
       });
 

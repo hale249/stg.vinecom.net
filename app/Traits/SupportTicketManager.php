@@ -27,7 +27,12 @@ trait SupportTicketManager
         if (!$user) {
             abort(404);
         }
-        $pageTitle = "Support Tickets";
+        
+        $activeTemplate = activeTemplate();
+        // Get titles from view()->shared() data or use default
+        $titles = app('view')->shared('support_ticket_titles') ?? [];
+        $pageTitle = $titles['index'] ?? "Yêu cầu hỗ trợ";
+        
         $supports = SupportTicket::where($this->column, $user->id)->orderBy('id', 'desc')->paginate(getPaginate());
         if($this->apiRequest){
             $notify[] = 'Support ticket data';
@@ -40,7 +45,7 @@ trait SupportTicketManager
                 ]
             ]);
         }
-        return view("Template::$this->userType" . '.support.index', compact('supports', 'pageTitle'));
+        return view($activeTemplate . "$this->userType.support.index", compact('supports', 'pageTitle'));
     }
 
     public function openSupportTicket()
@@ -50,8 +55,13 @@ trait SupportTicketManager
         if (!$user) {
             return to_route('home');
         }
-        $pageTitle = "Open Ticket";
-        return view("Template::$this->userType" . '.support.create', compact('pageTitle', 'user'));
+        
+        $activeTemplate = activeTemplate();
+        // Get titles from view()->shared() data or use default
+        $titles = app('view')->shared('support_ticket_titles') ?? [];
+        $pageTitle = $titles['create'] ?? "Tạo yêu cầu hỗ trợ mới";
+        
+        return view($activeTemplate . "$this->userType.support.create", compact('pageTitle', 'user'));
     }
 
     public function storeSupportTicket(Request $request)
@@ -139,7 +149,11 @@ trait SupportTicketManager
     {
         $user      = $this->user;
         $column    = $this->column;
-        $pageTitle = "View Ticket";
+        
+        $activeTemplate = activeTemplate();
+        // Get titles from view()->shared() data or use default
+        $titles = app('view')->shared('support_ticket_titles') ?? [];
+        $pageTitle = $titles['view'] ?? "Chi tiết yêu cầu hỗ trợ";
         $userId    = 0;
         $layout    = $this->layout;
 
@@ -200,7 +214,7 @@ trait SupportTicketManager
             ]);
         }
 
-        return view("Template::$this->userType" . '.support.view', compact('myTicket', 'messages', 'pageTitle', 'user', 'layout'));
+        return view($activeTemplate . "$this->userType.support.view", compact('myTicket', 'messages', 'pageTitle', 'user', 'layout'));
     }
 
 

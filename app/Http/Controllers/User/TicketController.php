@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\User;
 
+use App\Http\Controllers\Controller;
 use App\Traits\SupportTicketManager;
 
 class TicketController extends Controller
@@ -12,7 +13,7 @@ class TicketController extends Controller
     {
         parent::__construct();
         $this->layout = 'master';
-        $this->redirectLink = 'ticket.view';
+        $this->redirectLink = 'user.ticket.view';
         $this->userType     = 'user';
         $this->column       = 'user_id';
         $this->user = auth()->user();
@@ -24,4 +25,4 @@ class TicketController extends Controller
             'view' => 'Chi tiết yêu cầu hỗ trợ'
         ]);
     }
-}
+} 

@@ -30,4 +30,28 @@
     </main>
 
     @include($activeTemplate . 'partials.footer')
+
+    <script>
+        // Fix for ticket sidebar links
+        document.addEventListener('DOMContentLoaded', function() {
+            // Handle clicks on ticket menu items
+            document.querySelectorAll('.offcanvas-sidebar-submenu__item a').forEach(function(link) {
+                link.addEventListener('click', function(e) {
+                    if (this.getAttribute('href').includes('/ticket')) {
+                        e.preventDefault();
+                        window.location.href = this.getAttribute('href');
+                    }
+                });
+            });
+
+            // Ensure the collapse menu works properly
+            var supportCollapse = document.getElementById('offcanvas-sidebar-support-collapse');
+            if (supportCollapse) {
+                var currentPath = window.location.pathname;
+                if (currentPath.includes('/ticket')) {
+                    new bootstrap.Collapse(supportCollapse).show();
+                }
+            }
+        });
+    </script>
 @endsection

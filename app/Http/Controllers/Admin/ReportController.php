@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Exports\ContractRevenueExport;
+use App\Exports\TransactionExport;
 use App\Http\Controllers\Controller;
 use App\Models\Invest;
 use App\Models\NotificationLog;
@@ -23,6 +24,23 @@ class ReportController extends Controller
         if ($userId) {
             $transactions = $transactions->where('user_id', $userId);
         }
+        
+        // Check if export to Excel is requested
+        if ($request->has('export') && $request->export == 'excel') {
+            $allTransactions = $transactions->get();
+            $filterParams = [
+                'search' => $request->search,
+                'trx_type' => $request->trx_type,
+                'remark' => $request->remark,
+                'date' => $request->date
+            ];
+            
+            return Excel::download(
+                new TransactionExport($allTransactions, $filterParams),
+                'giao-dich-' . now()->format('d-m-Y') . '.xlsx'
+            );
+        }
+        
         $transactions = $transactions->paginate(getPaginate());
 
         return view('admin.reports.transactions', compact('pageTitle', 'transactions', 'remarks'));

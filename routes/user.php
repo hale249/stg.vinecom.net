@@ -37,6 +37,7 @@ Route::middleware('auth')->name('user.')->group(function () {
 
     Route::get('user-data', 'User\UserController@userData')->name('data');
     Route::post('user-data-submit', 'User\UserController@userDataSubmit')->name('data.submit');
+    Route::post('check-referral-code', 'User\UserController@checkReferralCode')->name('checkReferralCode');
 
     //authorization
     Route::middleware('registration.complete')->namespace('User')->controller('AuthorizationController')->group(function () {
@@ -45,6 +46,42 @@ Route::middleware('auth')->name('user.')->group(function () {
         Route::post('verify-email', 'emailVerification')->name('verify.email');
         Route::post('verify-mobile', 'mobileVerification')->name('verify.mobile');
         Route::post('verify-g2fa', 'g2faVerification')->name('2fa.verify');
+    });
+
+    // Sales Staff Role-Based Routes - Outside of registration.complete middleware
+    Route::middleware(['check.status', 'staff.role:sales_manager'])->name('staff.')->group(function () {
+        Route::controller('User\SalesManagerController')->prefix('manager')->name('manager.')->group(function () {
+            Route::get('/', 'dashboard')->name('dashboard');
+            Route::get('team-members', 'teamMembers')->name('team_members');
+            Route::post('create-staff', 'createStaffMember')->name('create_staff');
+            Route::get('contracts', 'teamContracts')->name('contracts');
+            Route::get('contract/details/ajax', 'getContractDetailsAjax')->name('contract.details.ajax');
+            Route::get('contract/{id}', 'viewContract')->name('contract');
+            Route::get('approval-requests', 'approvalRequests')->name('approval_requests');
+            Route::post('approve-contract/{id}', 'approveContract')->name('approve_contract');
+            Route::post('reject-contract/{id}', 'rejectContract')->name('reject_contract');
+            Route::get('alerts', 'alerts')->name('alerts');
+            Route::get('reports', 'reports')->name('reports');
+            Route::get('report/transactions', 'reportTransactions')->name('report.transactions');
+            Route::get('report/interests', 'reportInterests')->name('report.interests');
+            Route::get('report/commissions', 'reportCommissions')->name('report.commissions');
+            Route::get('hr/salary', 'salaryDashboard')->name('hr.salary');
+            Route::get('hr/kpi', 'kpiDashboard')->name('hr.kpi');
+            Route::post('hr/kpi', 'storeKPI')->name('hr.kpi.store');
+            Route::get('hr/kpi/export', 'exportKPI')->name('hr.kpi.export');
+            Route::get('hr/kpi/{id}', 'showKPI')->name('hr.kpi.show');
+            Route::get('hr/kpi/{id}/edit', 'editKPI')->name('hr.kpi.edit');
+            Route::put('hr/kpi/{id}', 'updateKPI')->name('hr.kpi.update');
+            Route::delete('hr/kpi/{id}', 'destroyKPI')->name('hr.kpi.destroy');
+            Route::get('hr/performance', 'performanceDashboard')->name('hr.performance');
+            
+            // Attendance Management Routes
+            Route::get('hr/attendance', 'attendanceDashboard')->name('hr.attendance');
+            Route::post('hr/attendance/store', 'storeAttendance')->name('hr.attendance.store');
+            Route::post('hr/attendance/delete/{id}', 'deleteAttendance')->name('hr.attendance.delete');
+            Route::get('hr/attendance/export', 'exportAttendance')->name('hr.attendance.export');
+            Route::post('hr/attendance/import', 'importAttendance')->name('hr.attendance.import');
+        });
     });
 
     Route::middleware(['check.status', 'registration.complete'])->group(function () {
@@ -76,6 +113,17 @@ Route::middleware('auth')->name('user.')->group(function () {
                 
                 // Investment Contract
                 Route::get('investment/contract', 'investmentContract')->name('investment.contract');
+            });
+
+            // Support Ticket
+            Route::controller('TicketController')->prefix('ticket')->name('ticket.')->group(function () {
+                Route::get('/', 'supportTicket')->name('index');
+                Route::get('new', 'openSupportTicket')->name('open');
+                Route::post('create', 'storeSupportTicket')->name('store');
+                Route::get('view/{ticket}', 'viewTicket')->name('view');
+                Route::post('reply/{ticket}', 'replyTicket')->name('reply');
+                Route::post('close/{ticket}', 'closeTicket')->name('close');
+                Route::get('download/{ticket}', 'ticketDownload')->name('download');
             });
 
             //Profile setting
@@ -121,40 +169,6 @@ Route::middleware('auth')->name('user.')->group(function () {
             Route::get('manual', 'manualDepositConfirm')->name('manual.confirm');
             Route::post('manual', 'manualDepositUpdate')->name('manual.update');
             Route::any('/{investId?}', 'deposit')->name('index');
-        });
-
-        // Sales Staff Role-Based Routes
-        Route::middleware('staff.role:sales_manager')->name('staff.')->group(function () {
-            Route::controller('User\SalesManagerController')->prefix('manager')->name('manager.')->group(function () {
-                Route::get('/', 'dashboard')->name('dashboard');
-                Route::get('team-members', 'teamMembers')->name('team_members');
-                Route::post('create-staff', 'createStaffMember')->name('create_staff');
-                Route::get('contracts', 'teamContracts')->name('contracts');
-                Route::get('approval-requests', 'approvalRequests')->name('approval_requests');
-                Route::post('approve-contract/{id}', 'approveContract')->name('approve_contract');
-                Route::post('reject-contract/{id}', 'rejectContract')->name('reject_contract');
-                Route::get('alerts', 'alerts')->name('alerts');
-                Route::get('reports', 'reports')->name('reports');
-                Route::get('report/transactions', 'reportTransactions')->name('report.transactions');
-                Route::get('report/interests', 'reportInterests')->name('report.interests');
-                Route::get('report/commissions', 'reportCommissions')->name('report.commissions');
-                Route::get('hr/salary', 'salaryDashboard')->name('hr.salary');
-                Route::get('hr/kpi', 'kpiDashboard')->name('hr.kpi');
-                Route::post('hr/kpi', 'storeKPI')->name('hr.kpi.store');
-                Route::get('hr/kpi/export', 'exportKPI')->name('hr.kpi.export');
-                Route::get('hr/kpi/{id}', 'showKPI')->name('hr.kpi.show');
-                Route::get('hr/kpi/{id}/edit', 'editKPI')->name('hr.kpi.edit');
-                Route::put('hr/kpi/{id}', 'updateKPI')->name('hr.kpi.update');
-                Route::delete('hr/kpi/{id}', 'destroyKPI')->name('hr.kpi.destroy');
-                Route::get('hr/performance', 'performanceDashboard')->name('hr.performance');
-                
-                // Attendance Management Routes
-                Route::get('hr/attendance', 'attendanceDashboard')->name('hr.attendance');
-                Route::post('hr/attendance/store', 'storeAttendance')->name('hr.attendance.store');
-                Route::post('hr/attendance/delete/{id}', 'deleteAttendance')->name('hr.attendance.delete');
-                Route::get('hr/attendance/export', 'exportAttendance')->name('hr.attendance.export');
-                Route::post('hr/attendance/import', 'importAttendance')->name('hr.attendance.import');
-            });
         });
         
         Route::middleware('staff.role:sales_staff')->name('staff.')->group(function () {

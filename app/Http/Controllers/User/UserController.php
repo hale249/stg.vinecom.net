@@ -9,6 +9,7 @@ use App\Lib\GoogleAuthenticator;
 use App\Models\DeviceToken;
 use App\Models\Form;
 use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\Rule;
@@ -262,6 +263,13 @@ class UserController extends Controller
             'mobile_code' => 'required|in:' . $mobileCodes,
             'username' => 'required|unique:users|min:6',
             'mobile' => ['required', 'regex:/^([0-9]*)$/', Rule::unique('users')->where('dial_code', $request->mobile_code)],
+            'referral_code' => [
+                'required',
+                Rule::exists('users', 'referral_code')->where('is_staff', true)
+            ],
+        ], [
+            'referral_code.required' => 'Mã giới thiệu là bắt buộc',
+            'referral_code.exists' => 'Mã giới thiệu không hợp lệ hoặc không phải của nhân viên/quản lý'
         ]);
 
         if (preg_match("/[^a-z0-9_]/", trim($request->username))) {
@@ -279,11 +287,41 @@ class UserController extends Controller
         $user->zip = $request->zip;
         $user->country_name = @$request->country;
         $user->dial_code = $request->mobile_code;
+        $user->referred_by = $request->referral_code;
 
         $user->profile_complete = Status::YES;
         $user->save();
 
         return to_route('user.home');
+    }
+
+    public function checkReferralCode(Request $request)
+    {
+        if (!$request->has('referral_code') || empty($request->referral_code)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Referral code is required'
+            ]);
+        }
+
+        $referralCode = $request->input('referral_code');
+
+        $referrer = User::where('referral_code', $referralCode)
+                       ->where('is_staff', true)
+                       ->first();
+
+        if ($referrer) {
+            return response()->json([
+                'success' => true,
+                'referrer_name' => $referrer->fullname,
+                'referrer_username' => $referrer->username
+            ]);
+        } else {
+            return response()->json([
+                'success' => false,
+                'message' => 'Mã giới thiệu không hợp lệ hoặc không phải của nhân viên/quản lý'
+            ]);
+        }
     }
 
     public function addDeviceToken(Request $request)
