@@ -48,50 +48,106 @@ class InvestReportController extends Controller
         if ($request->has('start_date') && $request->has('end_date')) {
             $startDate = \Carbon\Carbon::parse($request->start_date);
             $endDate = \Carbon\Carbon::parse($request->end_date);
-            
-            // Ensure we don't exceed 12 months to maintain chart readability
-            $monthDiff = $startDate->diffInMonths($endDate);
-            if ($monthDiff > 12) {
-                // If more than 12 months, limit to last 12 months from end date
-                $startDate = $endDate->copy()->subMonths(11)->startOfMonth();
-            }
-            
-            // Generate data for each month in the selected range
-            $currentDate = $startDate->copy()->startOfMonth();
-            while ($currentDate <= $endDate) {
-                $monthStart = $currentDate->copy()->startOfMonth();
-                $monthEnd = $currentDate->copy()->endOfMonth();
-                
-                // Format month for display
-                $months[] = $currentDate->format('M Y');
-                
-                // Count investments in this month - vẫn đếm tất cả hợp đồng (kể cả cancelled)
-                $count = Invest::whereBetween('created_at', [$monthStart, $monthEnd])->count();
+
+            // Check if it's the same date (single day selection)
+            $isSameDate = $startDate->isSameDay($endDate);
+
+            if ($isSameDate) {
+                // Single day selection - show data for that specific day
+                $dayStart = $startDate->copy()->startOfDay();
+                $dayEnd = $startDate->copy()->endOfDay();
+
+                // Format day for display
+                $months[] = $startDate->format('d/m/Y');
+
+                // Count investments on this specific day
+                $count = Invest::whereBetween('created_at', [$dayStart, $dayEnd])->count();
                 $investCounts[] = $count;
-                
-                // Sum investment amounts in this month - chỉ tính hợp đồng ĐANG CHẠY
+
+                // Sum investment amounts on this specific day
                 $amount = Invest::where('status', Status::INVEST_RUNNING)
-                            ->whereBetween('created_at', [$monthStart, $monthEnd])
+                            ->whereBetween('created_at', [$dayStart, $dayEnd])
                             ->sum('total_price');
                 $investAmounts[] = (float) $amount;
-                
-                // Move to next month
-                $currentDate->addMonth();
+
+            } else {
+                // Date range selection
+                $daysDiff = $startDate->diffInDays($endDate);
+
+                if ($daysDiff <= 31) {
+                    // If range is 31 days or less, show daily data
+                    $currentDate = $startDate->copy();
+                    while ($currentDate <= $endDate) {
+                        $dayStart = $currentDate->copy()->startOfDay();
+                        $dayEnd = $currentDate->copy()->endOfDay();
+
+                        // Format day for display
+                        $months[] = $currentDate->format('d/m');
+
+                        // Count investments on this day
+                        $count = Invest::whereBetween('created_at', [$dayStart, $dayEnd])->count();
+                        $investCounts[] = $count;
+
+                        // Sum investment amounts on this day
+                        $amount = Invest::where('status', Status::INVEST_RUNNING)
+                                    ->whereBetween('created_at', [$dayStart, $dayEnd])
+                                    ->sum('total_price');
+                        $investAmounts[] = (float) $amount;
+
+                        // Move to next day
+                        $currentDate->addDay();
+                    }
+                } else {
+                    // If range is more than 31 days, show monthly data
+                    $monthDiff = $startDate->diffInMonths($endDate);
+                    if ($monthDiff > 12) {
+                        // If more than 12 months, limit to last 12 months from end date
+                        $startDate = $endDate->copy()->subMonths(11)->startOfMonth();
+                    }
+
+                    // Generate data for each month in the selected range
+                    $currentDate = $startDate->copy()->startOfMonth();
+                    while ($currentDate <= $endDate) {
+                        $monthStart = $currentDate->copy()->startOfMonth();
+                        $monthEnd = $currentDate->copy()->endOfMonth();
+
+                        // Don't go beyond the selected end date
+                        if ($monthEnd > $endDate) {
+                            $monthEnd = $endDate->copy()->endOfDay();
+                        }
+
+                        // Format month for display
+                        $months[] = $currentDate->format('M Y');
+
+                        // Count investments in this month
+                        $count = Invest::whereBetween('created_at', [$monthStart, $monthEnd])->count();
+                        $investCounts[] = $count;
+
+                        // Sum investment amounts in this month
+                        $amount = Invest::where('status', Status::INVEST_RUNNING)
+                                    ->whereBetween('created_at', [$monthStart, $monthEnd])
+                                    ->sum('total_price');
+                        $investAmounts[] = (float) $amount;
+
+                        // Move to next month
+                        $currentDate->addMonth();
+                    }
+                }
             }
         } else {
             // Default behavior - last 12 months
             for ($i = 11; $i >= 0; $i--) {
                 $startDate = now()->subMonths($i)->startOfMonth();
                 $endDate = now()->subMonths($i)->endOfMonth();
-                
+
                 // Format month for display
                 $months[] = now()->subMonths($i)->format('M Y');
-                
-                // Count investments in this month - vẫn đếm tất cả hợp đồng (kể cả cancelled)
+
+                // Count investments in this month
                 $count = Invest::whereBetween('created_at', [$startDate, $endDate])->count();
                 $investCounts[] = $count;
-                
-                // Sum investment amounts in this month - chỉ tính hợp đồng ĐANG CHẠY
+
+                // Sum investment amounts in this month
                 $amount = Invest::where('status', Status::INVEST_RUNNING)
                             ->whereBetween('created_at', [$startDate, $endDate])
                             ->sum('total_price');
