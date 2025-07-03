@@ -188,6 +188,220 @@
             </div>
         </div>
     </div>
+
+    <!-- KPI Charts Section -->
+    <div class="kpi-charts-section mb-4">
+        <div class="row g-3">
+            <!-- Monthly KPI Chart -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="las la-chart-bar me-2 text-primary"></i>
+                            Biểu đồ KPI theo tháng
+                        </h5>
+                        <div class="chart-actions">
+                            <select class="form-select form-select-sm" id="kpiMonthlyChartYear">
+                                <option value="2024" selected>2024</option>
+                                <option value="2023">2023</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="kpiBarChart" style="display: block; width: 100%; height: 300px; border: 1px solid #f0f0f0;"></canvas>
+                        </div>
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Dữ liệu được lấy từ chi tiết KPI theo tháng</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- KPI Status Distribution Chart -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-transparent">
+                        <h5 class="mb-0">
+                            <i class="las la-chart-pie me-2 text-primary"></i>
+                            Phân bố trạng thái KPI
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container" style="height: 300px;">
+                            <canvas id="kpiPieChart" style="display: block; width: 100%; height: 300px; border: 1px solid #f0f0f0;"></canvas>
+                        </div>
+                        <div class="text-center mt-3">
+                            <small class="text-muted">Dữ liệu được lấy từ chi tiết KPI theo tháng</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Monthly KPI Details Section -->
+    <div class="kpi-details-section mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-transparent d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">
+                    <i class="las la-calendar-check me-2 text-primary"></i>
+                    Chi tiết KPI theo tháng
+                </h5>
+                <div class="d-flex gap-2">
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary btn-sm dropdown-toggle" type="button" id="exportOptionsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="las la-download me-1"></i> Xuất dữ liệu
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="exportOptionsDropdown">
+                            <li><a class="dropdown-item" href="#" onclick="exportToExcel()"><i class="las la-file-excel me-2 text-success"></i>Xuất Excel</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="printReport()"><i class="las la-print me-2 text-primary"></i>In báo cáo</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 50px;">STT</th>
+                                <th>Thời gian</th>
+                                <th>Nhân viên</th>
+                                <th>Chức danh</th>
+                                <th>Chỉ tiêu HĐ</th>
+                                <th>Đạt được</th>
+                                <th>% HĐ</th>
+                                <th>Chỉ tiêu DT</th>
+                                <th>Đạt được</th>
+                                <th>% DT</th>
+                                <th>KPI (%)</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @php
+                                // Tạo dữ liệu mẫu cho bảng và biểu đồ
+                                $kpiMonths = [];
+                                $kpiUsers = [
+                                    ['name' => 'Nguyễn Văn A', 'position' => 'QLKD 1'],
+                                    ['name' => 'Trần Thị B', 'position' => 'GĐKD 1'],
+                                    ['name' => 'Lê Văn C', 'position' => 'QLKD 2'],
+                                    ['name' => 'Phạm Thị D', 'position' => 'GDTT 1'],
+                                    ['name' => 'Hoàng Văn E', 'position' => 'GĐ Vùng 1']
+                                ];
+                                
+                                $kpiData = [];
+                                $monthlyKpiData = [
+                                    'T1/2024' => [],
+                                    'T2/2024' => [],
+                                    'T3/2024' => [],
+                                    'T4/2024' => [],
+                                    'T5/2024' => [],
+                                    'T6/2024' => []
+                                ];
+                                
+                                $kpiStatusCounts = [
+                                    'exceeded' => 0,
+                                    'achieved' => 0,
+                                    'near_achieved' => 0,
+                                    'not_achieved' => 0
+                                ];
+                                
+                                // Tạo dữ liệu giả
+                                $i = 1;
+                                foreach (array_keys($monthlyKpiData) as $month) {
+                                    foreach ($kpiUsers as $user) {
+                                        $targetContracts = rand(3, 10);
+                                        $actualContracts = rand(1, 15);
+                                        $targetSales = rand(200, 800) * 1000000;
+                                        $actualSales = rand(100, 1000) * 1000000;
+                                        
+                                        $contractPercentage = $targetContracts > 0 ? round(($actualContracts / $targetContracts) * 100, 1) : 0;
+                                        $salesPercentage = $targetSales > 0 ? round(($actualSales / $targetSales) * 100, 1) : 0;
+                                        $overallPercentage = round(($contractPercentage + $salesPercentage) / 2, 1);
+                                        
+                                        $status = 'not_achieved';
+                                        if ($overallPercentage >= 120) {
+                                            $status = 'exceeded';
+                                        } elseif ($overallPercentage >= 100) {
+                                            $status = 'achieved';
+                                        } elseif ($overallPercentage >= 85) {
+                                            $status = 'near_achieved';
+                                        }
+                                        
+                                        $kpiStatusCounts[$status]++;
+                                        $monthlyKpiData[$month][] = $overallPercentage;
+                                        
+                                        $kpiData[] = [
+                                            'id' => $i++,
+                                            'month' => $month,
+                                            'user' => $user['name'],
+                                            'position' => $user['position'],
+                                            'targetContracts' => $targetContracts,
+                                            'actualContracts' => $actualContracts,
+                                            'contractPercentage' => $contractPercentage,
+                                            'targetSales' => $targetSales,
+                                            'actualSales' => $actualSales,
+                                            'salesPercentage' => $salesPercentage,
+                                            'overallPercentage' => $overallPercentage,
+                                            'status' => $status
+                                        ];
+                                    }
+                                }
+                                
+                                // Tính trung bình KPI theo tháng cho biểu đồ
+                                $monthlyAverageKpi = [];
+                                foreach ($monthlyKpiData as $month => $values) {
+                                    if (count($values) > 0) {
+                                        $monthlyAverageKpi[$month] = array_sum($values) / count($values);
+                                    } else {
+                                        $monthlyAverageKpi[$month] = 0;
+                                    }
+                                }
+                            @endphp
+                            
+                            @foreach($kpiData as $item)
+                                <tr>
+                                    <td class="text-center">{{ $item['id'] }}</td>
+                                    <td>{{ $item['month'] }}</td>
+                                    <td>{{ $item['user'] }}</td>
+                                    <td>{{ $item['position'] }}</td>
+                                    <td class="text-end">{{ $item['targetContracts'] }}</td>
+                                    <td class="text-end">{{ $item['actualContracts'] }}</td>
+                                    <td class="text-end {{ $item['contractPercentage'] >= 100 ? 'text-success' : ($item['contractPercentage'] >= 85 ? 'text-warning' : 'text-danger') }} fw-bold">
+                                        {{ $item['contractPercentage'] }}%
+                                    </td>
+                                    <td class="text-end">{{ number_format($item['targetSales'], 0, ',', '.') }} ₫</td>
+                                    <td class="text-end">{{ number_format($item['actualSales'], 0, ',', '.') }} ₫</td>
+                                    <td class="text-end {{ $item['salesPercentage'] >= 100 ? 'text-success' : ($item['salesPercentage'] >= 85 ? 'text-warning' : 'text-danger') }} fw-bold">
+                                        {{ $item['salesPercentage'] }}%
+                                    </td>
+                                    <td class="text-end fw-bold 
+                                        {{ $item['overallPercentage'] >= 120 ? 'text-success' : ($item['overallPercentage'] >= 100 ? 'text-primary' : ($item['overallPercentage'] >= 85 ? 'text-warning' : 'text-danger')) }}">
+                                        {{ $item['overallPercentage'] }}%
+                                    </td>
+                                    <td class="text-center">
+                                        @php
+                                            $statusConfig = [
+                                                'exceeded' => ['text' => 'Vượt KPI', 'class' => 'success'],
+                                                'achieved' => ['text' => 'Đạt KPI', 'class' => 'primary'],
+                                                'near_achieved' => ['text' => 'Gần đạt', 'class' => 'warning'],
+                                                'not_achieved' => ['text' => 'Không đạt', 'class' => 'danger']
+                                            ];
+                                            $status = $statusConfig[$item['status']];
+                                        @endphp
+                                        <span class="badge bg-{{ $status['class'] }}">{{ $status['text'] }}</span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Summary Cards -->
     <div class="summary-cards mb-4">
         <div class="row g-3">
@@ -780,119 +994,313 @@
 
 @push('style')
 <style>
-.kpi-dashboard-modern {
-    background: #f8f9fa;
-}
-
-.bhxh-field {
-    color: #dc3545 !important;
-    font-weight: 500;
-}
-
-.bhxh-input {
-    border-color: #dc3545 !important;
-    color: #dc3545 !important;
-}
-
-.bhxh-note {
-    font-size: 0.75rem;
-    color: #dc3545;
-    font-style: italic;
-}
+    /* Chung */
+    .kpi-dashboard-modern {
+        font-family: 'Nunito', sans-serif;
+    }
+    .kpi-dashboard-modern .card {
+        box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15) !important;
+        border-radius: 0.5rem;
+    }
+    .kpi-dashboard-modern .card-header {
+        background-color: transparent;
+        padding: 1rem 1.25rem;
+        border-bottom: 1px solid rgba(0,0,0,.05);
+    }
+    
+    /* KPI Charts Section */
+    .kpi-charts-section .chart-container {
+        position: relative;
+        margin: auto;
+    }
+    .kpi-charts-section .card-header .form-select {
+        width: auto;
+        min-width: 100px;
+    }
+    
+    /* KPI Details Table */
+    .kpi-details-section .table th {
+        font-weight: 600;
+        white-space: nowrap;
+    }
+    .kpi-details-section .table td {
+        vertical-align: middle;
+    }
+    
+    /* Status Colors */
+    .status-indicator {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+    
+    /* Print Styles */
+    @media print {
+        .card {
+            box-shadow: none !important;
+            border: 1px solid #ddd;
+        }
+        .no-print {
+            display: none !important;
+        }
+        .chart-container {
+            page-break-inside: avoid;
+        }
+    }
+    
+    /* Chart Tooltips */
+    .chart-tooltip {
+        background-color: rgba(0, 0, 0, 0.8);
+        color: #fff;
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 13px;
+    }
+    
+    /* Summary Stats */
+    .summary-card {
+        border-radius: 0.5rem;
+        padding: 1rem;
+        height: 100%;
+    }
+    .summary-card .icon-wrapper {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: rgba(255,255,255,0.2);
+        margin-right: 1rem;
+    }
+    .summary-card .icon-wrapper i {
+        font-size: 24px;
+        color: #fff;
+    }
+    .summary-card.bg-gradient-primary {
+        background: linear-gradient(135deg, #4e73df 0%, #224abe 100%);
+        color: #fff;
+    }
+    .summary-card.bg-gradient-success {
+        background: linear-gradient(135deg, #1cc88a 0%, #13855c 100%);
+        color: #fff;
+    }
+    .summary-card.bg-gradient-warning {
+        background: linear-gradient(135deg, #f6c23e 0%, #dda20a 100%);
+        color: #fff;
+    }
+    .summary-card.bg-gradient-danger {
+        background: linear-gradient(135deg, #e74a3b 0%, #be2617 100%);
+        color: #fff;
+    }
+    
+    /* BHXH Styles (Original) */
+    .bhxh-field {
+        color: #dc3545 !important;
+        font-weight: 500;
+    }
+    
+    .bhxh-input {
+        border-color: #dc3545 !important;
+        color: #dc3545 !important;
+    }
+    
+    .bhxh-note {
+        font-size: 0.75rem;
+        color: #dc3545;
+        font-style: italic;
+    }
 </style>
 @endpush
 
 @push('script')
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Biểu đồ KPI theo tháng
-    const barCtx = document.getElementById('kpiBarChart').getContext('2d');
-    const barChart = new Chart(barCtx, {
-        type: 'bar',
-        data: {
-            labels: [], // Sẽ thay bằng dữ liệu thật
-            datasets: [
-                {
-                    label: 'KPI (%)',
-                    data: [], // Sẽ thay bằng dữ liệu thật
-                    backgroundColor: '#4e73df',
-                    borderWidth: 0,
-                    borderRadius: 4
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
+    console.log('DOM loaded, checking for Chart.js');
+    
+    // Kiểm tra xem Chart.js đã được tải chưa
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js chưa được tải, đang tải động');
+        var script = document.createElement('script');
+        script.src = 'https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js';
+        script.onload = initCharts;
+        document.head.appendChild(script);
+    } else {
+        console.log('Chart.js đã sẵn sàng, khởi tạo biểu đồ');
+        initCharts();
+    }
+    
+    function initCharts() {
+        console.log('Bắt đầu khởi tạo biểu đồ');
+        
+        // Kiểm tra các phần tử canvas
+        const barCtx = document.getElementById('kpiBarChart');
+        const pieCtx = document.getElementById('kpiPieChart');
+        
+        if (!barCtx || !pieCtx) {
+            console.error('Không tìm thấy phần tử canvas:', { 
+                barChart: barCtx ? 'OK' : 'Không tìm thấy', 
+                pieChart: pieCtx ? 'OK' : 'Không tìm thấy'
+            });
+            return;
+        }
+        
+        console.log('Đã tìm thấy phần tử canvas, tiếp tục khởi tạo');
+        
+        // Dữ liệu biểu đồ cột
+        const monthLabels = [
+            @foreach(array_keys($monthlyAverageKpi) as $month)
+                '{{ $month }}',
+            @endforeach
+        ];
+        
+        const kpiData = [
+            @foreach($monthlyAverageKpi as $average)
+                {{ round($average, 1) }},
+            @endforeach
+        ];
+        
+        console.log('Dữ liệu biểu đồ cột:', { labels: monthLabels, data: kpiData });
+        
+        // Dữ liệu biểu đồ tròn
+        const statusData = [
+            {{ $kpiStatusCounts['exceeded'] }},
+            {{ $kpiStatusCounts['achieved'] }},
+            {{ $kpiStatusCounts['near_achieved'] }},
+            {{ $kpiStatusCounts['not_achieved'] }}
+        ];
+        
+        console.log('Dữ liệu biểu đồ tròn:', statusData);
+        
+        // Biểu đồ KPI theo tháng
+        const barCtxObj = barCtx.getContext('2d');
+        const barChart = new Chart(barCtxObj, {
+            type: 'bar',
+            data: {
+                labels: monthLabels,
+                datasets: [
+                    {
+                        label: 'KPI (%)',
+                        data: kpiData,
+                        backgroundColor: '#4e73df',
+                        borderWidth: 0,
+                        borderRadius: 4
+                    }
+                ]
             },
-            scales: {
-                y: {
-                    beginAtZero: true,
-                    max: 150,
-                    grid: {
-                        drawBorder: false
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
                     },
-                    ticks: {
-                        font: {
-                            size: 12
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.raw + '%';
+                            }
                         }
                     }
                 },
-                x: {
-                    grid: {
-                        display: false,
-                        drawBorder: false
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 150,
+                        grid: {
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            },
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        }
                     },
-                    ticks: {
-                        font: {
-                            size: 12
+                    x: {
+                        grid: {
+                            display: false,
+                            drawBorder: false
+                        },
+                        ticks: {
+                            font: {
+                                size: 12
+                            }
                         }
                     }
                 }
             }
-        }
-    });
-    
-    // Biểu đồ tròn phân bố trạng thái KPI
-    const pieCtx = document.getElementById('kpiPieChart').getContext('2d');
-    const pieChart = new Chart(pieCtx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Vượt KPI', 'Đạt KPI', 'Gần đạt', 'Không đạt'],
-            datasets: [
-                {
-                    data: [0, 0, 0, 0], // Sẽ thay bằng dữ liệu thật
-                    backgroundColor: [
-                        '#1cc88a', // success
-                        '#4e73df', // primary
-                        '#f6c23e', // warning
-                        '#e74a3b', // danger
-                    ],
-                    borderWidth: 0
-                }
-            ]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        font: {
-                            size: 12
+        });
+        
+        console.log('Đã tạo biểu đồ cột');
+        
+        // Biểu đồ tròn phân bố trạng thái KPI
+        const pieCtxObj = pieCtx.getContext('2d');
+        const pieChart = new Chart(pieCtxObj, {
+            type: 'doughnut',
+            data: {
+                labels: ['Vượt KPI', 'Đạt KPI', 'Gần đạt', 'Không đạt'],
+                datasets: [
+                    {
+                        data: statusData,
+                        backgroundColor: [
+                            '#1cc88a', // success
+                            '#4e73df', // primary
+                            '#f6c23e', // warning
+                            '#e74a3b', // danger
+                        ],
+                        borderWidth: 0
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            padding: 20,
+                            font: {
+                                size: 12
+                            }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const label = context.label || '';
+                                const value = context.raw || 0;
+                                const total = context.dataset.data.reduce((acc, val) => acc + val, 0);
+                                const percentage = total > 0 ? Math.round((value / total) * 100) : 0;
+                                return `${label}: ${value} (${percentage}%)`;
+                            }
                         }
                     }
-                }
-            },
-            cutout: '70%'
-        }
-    });
+                },
+                cutout: '70%'
+            }
+        });
+        
+        console.log('Đã tạo biểu đồ tròn');
+        
+        // Xử lý thay đổi năm của biểu đồ KPI theo tháng
+        document.getElementById('kpiMonthlyChartYear').addEventListener('change', function() {
+            // Trong ứng dụng thực tế, sẽ gọi AJAX để lấy dữ liệu theo năm được chọn
+            console.log('Đã thay đổi năm: ' + this.value);
+            // Giả lập dữ liệu khác khi thay đổi năm
+            if (this.value === '2023') {
+                barChart.data.datasets[0].data = [78.5, 85.2, 92.8, 101.5, 110.2, 120.8];
+            } else {
+                barChart.data.datasets[0].data = kpiData;
+            }
+            barChart.update();
+        });
+    }
     
     // Export to Excel function
     window.exportToExcel = function() {
@@ -1190,5 +1598,30 @@ $(document).ready(function() {
         });
     @endif
 });
+</script>
+
+// Tạo nút khởi tạo lại biểu đồ khi có lỗi
+<script>
+    setTimeout(function() {
+        const chartContainers = document.querySelectorAll('.chart-container');
+        chartContainers.forEach(container => {
+            // Kiểm tra xem biểu đồ có hiển thị không
+            const canvas = container.querySelector('canvas');
+            if (canvas && (!canvas.__chartjs || canvas.height === 0)) {
+                // Biểu đồ không hiển thị, thêm nút khởi tạo lại
+                const refreshButton = document.createElement('button');
+                refreshButton.className = 'btn btn-sm btn-primary position-absolute';
+                refreshButton.style.top = '50%';
+                refreshButton.style.left = '50%';
+                refreshButton.style.transform = 'translate(-50%, -50%)';
+                refreshButton.innerHTML = '<i class="las la-sync"></i> Tải lại biểu đồ';
+                refreshButton.addEventListener('click', function() {
+                    location.reload();
+                });
+                container.style.position = 'relative';
+                container.appendChild(refreshButton);
+            }
+        });
+    }, 2000);
 </script>
 @endpush 
