@@ -306,8 +306,8 @@
                             <tbody>
                                 @forelse($interestAlerts->take(5) as $alert)
                                 <tr>
-                                    <td>{{ $alert->trx }}</td>
-                                    <td>{{ Str::limit($alert->project->name, 20) }}</td>
+                                    <td><span class="badge bg-primary">{{ $alert->invest_no }}</span></td>
+                                    <td>{{ Str::limit($alert->project->title ?? '-', 20) }}</td>
                                     <td>{{ showDateTime($alert->next_time) }}</td>
                                     <td>
                                         @php
@@ -328,7 +328,7 @@
                                         </span>
                                     </td>
                                     <td>
-                                        <a href="{{ route('user.staff.manager.contracts') }}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{{ route('user.staff.manager.contract', $alert->id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="las la-eye"></i>
                                         </a>
                                     </td>
@@ -361,12 +361,13 @@
                                     <th>@lang('Mã hợp đồng')</th>
                                     <th>@lang('Ngày đáo hạn')</th>
                                     <th>@lang('Còn lại')</th>
+                                    <th>@lang('Hành động')</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @forelse($maturityAlerts->take(5) as $alert)
                                 <tr>
-                                    <td>{{ $alert->trx }}</td>
+                                    <td><span class="badge bg-primary">{{ $alert->invest_no }}</span></td>
                                     <td>{{ showDateTime($alert->project_closed) }}</td>
                                     <td>
                                         @php
@@ -386,10 +387,15 @@
                                             {{ $daysRemaining }} @if(!$isPast) @lang('ngày') @endif
                                         </span>
                                     </td>
+                                    <td>
+                                        <a href="{{ route('user.staff.manager.contract', $alert->id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="las la-eye"></i>
+                                        </a>
+                                    </td>
                                 </tr>
                                 @empty
                                 <tr>
-                                    <td colspan="3" class="text-center">@lang('Không có dữ liệu')</td>
+                                    <td colspan="4" class="text-center">@lang('Không có dữ liệu')</td>
                                 </tr>
                                 @endforelse
                             </tbody>

@@ -138,3 +138,209 @@ Route::middleware(['auth'])->prefix('user/manager')->name('user.staff.manager.')
 
 // This catch-all route must be the last route
 Route::get('/{slug}', 'SiteController@pages')->name('pages');
+
+Route::get('admin/kpi-level', function () {
+    $pageTitle = 'Thiết lập cấp bậc & KPI';
+    
+    // Get KPI data from session for demo purposes
+    // In a real implementation, we would retrieve from the database
+    $kpis = session('kpis', collect([]));
+    
+    // Extract unique level names from KPIs for filtering
+    $uniqueLevelNames = $kpis->pluck('level_name')->unique()->values();
+    $levels = $uniqueLevelNames->map(function($levelName) {
+        return (object)['id' => $levelName, 'name' => $levelName];
+    });
+    
+    // Filter KPIs based on request parameters
+    $filteredKpis = $kpis;
+    
+    // Filter by level_name (job title)
+    if (request()->has('level_name') && !empty(request('level_name'))) {
+        $filteredKpis = $filteredKpis->filter(function($kpi) {
+            return $kpi->level_name == request('level_name');
+        });
+    }
+    
+    // Filter by KPI status
+    if (request()->has('kpi_status') && !empty(request('kpi_status'))) {
+        $filteredKpis = $filteredKpis->filter(function($kpi) {
+            return $kpi->kpi_status == request('kpi_status');
+        });
+    }
+    
+    // Filter by month
+    if (request()->has('month') && !empty(request('month'))) {
+        $month = request('month');
+        $filteredKpis = $filteredKpis->filter(function($kpi) use ($month) {
+            // If the KPI has a month property, filter by it
+            if (isset($kpi->month)) {
+                // Check if formats match or convert if needed
+                return $kpi->month == $month || 
+                       (strpos($kpi->month, '/') !== false && 
+                        substr($month, 0, 4) . '-' . substr($month, 5, 2) == 
+                        substr($kpi->month, 3, 4) . '-' . substr($kpi->month, 0, 2));
+            }
+            return true;
+        });
+    }
+    
+    // Add a level property to each KPI object for display purposes
+    $kpis = $filteredKpis->map(function($kpi) {
+        // Set level object based on level_name
+        $kpi->level = (object)['name' => $kpi->level_name ?? 'N/A'];
+        return $kpi;
+    });
+    
+    // Calculate summary statistics based on filtered KPIs
+    $summary = [
+        'avg_overall_kpi' => $kpis->avg('overall_kpi_percentage') ?? 0,
+        'exceeded_kpi_count' => $kpis->where('kpi_status', 'exceeded')->count(),
+        'achieved_kpi_count' => $kpis->where('kpi_status', 'achieved')->count(),
+        'total_actual_sales' => $kpis->sum('actual_sales') ?? 0,
+        'total_actual_contracts' => $kpis->sum('actual_contracts') ?? 0
+    ];
+    
+    return view('admin.kpi_level', compact('levels', 'kpis', 'summary', 'pageTitle'));
+})->name('admin.kpi.level.index');
+
+Route::post('admin/kpi-level', function (\Illuminate\Http\Request $request) {
+    // Validate request data
+    $validated = $request->validate([
+        'level_name' => 'required|string|max:255',
+        'role_level' => 'required|string|in:staff_level,mid_manager_level,senior_manager_level,regional_director_level',
+        'kpi_default' => 'required|numeric|min:0',
+        'kpi_month_1' => 'required|numeric|min:0',
+        'kpi_month_2' => 'required|numeric|min:0',
+        'kpi_tuyen_dung' => 'nullable|string',
+        'luong_bhxh' => 'required|numeric|min:0',
+        'luong_co_ban' => 'required|numeric|min:0',
+        'luong_kinh_doanh' => 'required|numeric|min:0',
+        'thuong_kinh_doanh' => 'nullable|numeric|min:0',
+        'hh_quan_ly' => 'nullable|numeric|min:0',
+        'hh_quan_ly_percent' => 'required|numeric|min:0',
+        'notes' => 'nullable|string',
+    ]);
+    
+    // Store in session for demo purposes
+    // In a real implementation, we would store in the database
+    $kpis = session('kpis', collect([]));
+    $validated['id'] = time(); // Use timestamp as a temporary ID
+    
+    // Set default values for actual data
+    $validated['actual_sales'] = $validated['actual_sales'] ?? 0;
+    $validated['actual_contracts'] = $validated['actual_contracts'] ?? 0;
+    
+    // Calculate overall KPI percentage
+    $targetSales = $validated['target_sales'] ?? $validated['kpi_default'] ?? 1; // Avoid division by zero
+    $actualSales = $validated['actual_sales'] ?? 0;
+    $validated['overall_kpi_percentage'] = $targetSales > 0 ? ($actualSales / $targetSales) * 100 : 0;
+    
+    // Calculate management commission based on percentage
+    $validated['hh_quan_ly'] = round($validated['kpi_default'] * ($validated['hh_quan_ly_percent'] / 100));
+    
+    $kpis->push((object)$validated);
+    session(['kpis' => $kpis]);
+    
+    return redirect()->route('admin.kpi.level.index')->with('success', 'KPI đã được tạo thành công!');
+})->name('admin.kpi.level.store');
+
+// Route handler for updating a KPI policy
+Route::put('admin/kpi-level/{id}', function (\Illuminate\Http\Request $request, $id) {
+    // Validate request data
+    $validated = $request->validate([
+        'level_name' => 'required|string|max:255',
+        'role_level' => 'required|string|in:staff_level,mid_manager_level,senior_manager_level,regional_director_level',
+        'kpi_default' => 'required|numeric|min:0',
+        'kpi_month_1' => 'required|numeric|min:0',
+        'kpi_month_2' => 'required|numeric|min:0',
+        'kpi_tuyen_dung' => 'nullable|string',
+        'luong_bhxh' => 'required|numeric|min:0',
+        'luong_co_ban' => 'required|numeric|min:0',
+        'luong_kinh_doanh' => 'required|numeric|min:0',
+        'thuong_kinh_doanh' => 'nullable|numeric|min:0',
+        'hh_quan_ly' => 'nullable|numeric|min:0',
+        'hh_quan_ly_percent' => 'required|numeric|min:0',
+        'notes' => 'nullable|string',
+    ]);
+    
+    // Update in session for demo purposes
+    // In a real implementation, we would update in the database
+    $kpis = session('kpis', collect([]));
+    
+    $index = $kpis->search(function($kpi) use ($id) {
+        return $kpi->id == $id;
+    });
+    
+    if ($index !== false) {
+        $validated['id'] = $id;
+        
+        // Preserve actual sales and contracts data if they exist
+        $existingKpi = $kpis[$index];
+        $validated['actual_sales'] = $existingKpi->actual_sales ?? 0;
+        $validated['actual_contracts'] = $existingKpi->actual_contracts ?? 0;
+        
+        // Calculate overall KPI percentage
+        $targetSales = $validated['target_sales'] ?? $validated['kpi_default'] ?? 1; // Avoid division by zero
+        $actualSales = $validated['actual_sales'] ?? 0;
+        $validated['overall_kpi_percentage'] = $targetSales > 0 ? ($actualSales / $targetSales) * 100 : 0;
+        
+        // Calculate management commission based on percentage
+        $validated['hh_quan_ly'] = round($validated['kpi_default'] * ($validated['hh_quan_ly_percent'] / 100));
+        
+        $kpis[$index] = (object)$validated;
+        session(['kpis' => $kpis]);
+        return redirect()->route('admin.kpi.level.index')->with('success', 'KPI đã được cập nhật thành công!');
+    }
+    
+    return redirect()->route('admin.kpi.level.index')->with('error', 'Không tìm thấy KPI!');
+})->name('admin.kpi.level.update');
+
+// Route handler for updating KPI details
+Route::put('admin/kpi-detail/{id}', function (\Illuminate\Http\Request $request, $id) {
+    // Validate request data
+    $validated = $request->validate([
+        'staff_name' => 'required|string|max:255',
+        'month' => 'required|string',
+        'target_contracts' => 'required|integer|min:0',
+        'actual_contracts' => 'nullable|integer|min:0',
+        'target_sales' => 'required|numeric|min:0',
+        'actual_sales' => 'nullable|numeric|min:0',
+        'contract_completion_rate' => 'nullable|numeric',
+        'sales_completion_rate' => 'nullable|numeric',
+        'overall_kpi_percentage' => 'nullable|numeric',
+        'kpi_status' => 'required|string|in:exceeded,achieved,near_achieved,not_achieved,pending',
+        'notes' => 'nullable|string',
+    ]);
+    
+    // Format month for display
+    $monthParts = explode('-', $validated['month']);
+    if (count($monthParts) === 2) {
+        $validated['month_display'] = $monthParts[1] . '/' . $monthParts[0];
+    } else {
+        $validated['month_display'] = $validated['month'];
+    }
+    
+    // In a real implementation, we would update in the database
+    // For now, we'll store in session to demonstrate functionality
+    $kpis = session('kpis', collect([]));
+    
+    // Check if KPI detail exists
+    $index = $kpis->search(function($kpi) use ($id) {
+        return $kpi->id == $id;
+    });
+    
+    if ($index !== false) {
+        // Update existing KPI detail
+        $validated['id'] = $id;
+        $kpis[$index] = (object)array_merge((array)$kpis[$index], $validated);
+    } else {
+        // Create new KPI detail
+        $validated['id'] = time(); // Use timestamp as a temporary ID
+        $kpis->push((object)$validated);
+    }
+    
+    session(['kpis' => $kpis]);
+    
+    return redirect()->route('admin.kpi.level.index')->with('success', 'Thông tin KPI theo tháng đã được cập nhật!');
+})->name('admin.kpi.detail.update');

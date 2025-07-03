@@ -264,6 +264,21 @@
                 "menu_active": "admin.documents*"
             }
         ]
+    }
+    ,
+    "kpi_level_management": {
+        "title": "Thiết lập cấp bậc và KPI",
+        "icon": "las la-layer-group",
+        "route_name": "admin.kpi.level.index",
+        "menu_active": "admin.kpi.level*",
+        "keyword": [
+            "KPI management",
+            "Level management",
+            "Thiết lập cấp bậc",
+            "Thiết lập KPI",
+            "KPI",
+            "Cấp bậc"
+        ]
     },
     "manage_users": {
         "title": "Quản lý người dùng",

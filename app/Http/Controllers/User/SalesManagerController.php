@@ -62,7 +62,7 @@ class SalesManagerController extends Controller
             'total_contracts' => $createdContractsCount + $referredContractsCount,
             'active_contracts' => $activeCreatedContracts + $activeReferredContracts,
             'team_members' => $staffMembers->count(),
-            'total_customers' => User::whereIn('id', function($query) use ($staffIds) {
+            'total_customers' => User::whereIn('id', function($query) use ($staffIds, $staffReferralCodes) {
                 $query->select('user_id')
                     ->from('invests')
                     ->where(function($q) use ($staffIds, $staffReferralCodes) {
@@ -261,17 +261,29 @@ class SalesManagerController extends Controller
      */
     public function alerts()
     {
+        $pageTitle = 'Cảnh báo hợp đồng';
         $user = auth()->user();
+        
+        // Get staff IDs
         $staffMembers = $user->staffMembers;
         $staffIds = $staffMembers->pluck('id')->toArray();
         $staffIds[] = $user->id;
+        
+        // Get referral codes
+        $staffReferralCodes = $staffMembers->pluck('referral_code')->toArray();
+        $staffReferralCodes[] = $user->referral_code;
 
         $alertPeriod = request('alert_period', 30);
         $today = \Carbon\Carbon::now();
         $alertDate = $today->copy()->addDays($alertPeriod);
 
-        // Lấy danh sách cảnh báo lãi suất
-        $interestAlerts = \App\Models\Invest::whereIn('user_id', $staffIds)
+        // Get interest alerts for contracts:
+        // 1. Created by staff member
+        // 2. Belonging to users referred by staff
+        $interestAlerts = \App\Models\Invest::where(function ($query) use ($staffIds, $staffReferralCodes) {
+                $query->whereIn('staff_id', $staffIds)
+                    ->orWhereIn('referral_code', $staffReferralCodes);
+            })
             ->where('status', \App\Constants\Status::INVEST_RUNNING)
             ->whereNotNull('next_time')
             ->where('next_time', '<=', $alertDate)
@@ -280,8 +292,11 @@ class SalesManagerController extends Controller
             ->limit(10)
             ->get();
 
-        // Lấy danh sách cảnh báo đáo hạn
-        $maturityAlerts = \App\Models\Invest::whereIn('user_id', $staffIds)
+        // Get maturity alerts
+        $maturityAlerts = \App\Models\Invest::where(function ($query) use ($staffIds, $staffReferralCodes) {
+                $query->whereIn('staff_id', $staffIds)
+                    ->orWhereIn('referral_code', $staffReferralCodes);
+            })
             ->where('status', \App\Constants\Status::INVEST_RUNNING)
             ->whereNotNull('project_closed')
             ->where('project_closed', '<=', $alertDate)
@@ -290,7 +305,7 @@ class SalesManagerController extends Controller
             ->limit(10)
             ->get();
 
-        return view('user.staff.manager.alerts', compact('alertPeriod', 'interestAlerts', 'maturityAlerts'));
+        return view('user.staff.manager.alerts', compact('pageTitle', 'alertPeriod', 'interestAlerts', 'maturityAlerts'));
     }
     
     /**
@@ -1134,5 +1149,118 @@ class SalesManagerController extends Controller
         ];
 
         return response($csv->getContent(), 200, $headers);
+    }
+
+    /**
+     * View contract details for manager
+     */
+    public function viewContract($id)
+    {
+        $pageTitle = 'Chi tiết hợp đồng';
+        $invest = \App\Models\Invest::with(['project', 'user'])->findOrFail($id);
+        
+        // Verify manager has access to this contract
+        $user = auth()->user();
+        $staffIds = $user->staffMembers()->pluck('id')->toArray();
+        $staffIds[] = $user->id;
+        
+        // Check if contract is related to this manager's team
+        $staffReferralCodes = $user->staffMembers()->pluck('referral_code')->toArray();
+        $staffReferralCodes[] = $user->referral_code;
+        
+        $hasAccess = in_array($invest->staff_id, $staffIds) || 
+                     in_array($invest->user_id, $staffIds) || 
+                     in_array($invest->referral_code, $staffReferralCodes);
+                     
+        if (!$hasAccess) {
+            $notify[] = ['error', 'Không có quyền truy cập hợp đồng này'];
+            return back()->withNotify($notify);
+        }
+        
+        $general = \App\Models\GeneralSetting::first();
+        
+        return view('user.staff.manager.contract_details', compact('pageTitle', 'invest', 'general'));
+    }
+
+    /**
+     * Get contract details via AJAX
+     */
+    public function getContractDetailsAjax(Request $request)
+    {
+        $id = $request->id;
+        
+        if (!$id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'ID hợp đồng không hợp lệ'
+            ]);
+        }
+        
+        $invest = \App\Models\Invest::with(['project', 'user'])->findOrFail($id);
+        
+        // Verify manager has access to this contract
+        $user = auth()->user();
+        $staffIds = $user->staffMembers()->pluck('id')->toArray();
+        $staffIds[] = $user->id;
+        
+        // Check if contract is related to this manager's team
+        $staffReferralCodes = $user->staffMembers()->pluck('referral_code')->toArray();
+        $staffReferralCodes[] = $user->referral_code;
+        
+        $hasAccess = in_array($invest->staff_id, $staffIds) || 
+                     in_array($invest->user_id, $staffIds) || 
+                     in_array($invest->referral_code, $staffReferralCodes);
+                     
+        if (!$hasAccess) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Không có quyền truy cập hợp đồng này'
+            ]);
+        }
+        
+        // Get status badge HTML
+        $statusClass = match($invest->status) {
+            \App\Constants\Status::INVEST_RUNNING => 'bg-success',
+            \App\Constants\Status::INVEST_PENDING => 'bg-warning',
+            \App\Constants\Status::INVEST_PENDING_ADMIN_REVIEW => 'bg-info',
+            \App\Constants\Status::INVEST_COMPLETED => 'bg-info',
+            \App\Constants\Status::INVEST_CLOSED => 'bg-secondary',
+            \App\Constants\Status::INVEST_CANCELED => 'bg-danger',
+            default => 'bg-secondary'
+        };
+        
+        $statusText = match($invest->status) {
+            \App\Constants\Status::INVEST_RUNNING => 'Đang hoạt động',
+            \App\Constants\Status::INVEST_PENDING => 'Chờ xử lý',
+            \App\Constants\Status::INVEST_PENDING_ADMIN_REVIEW => 'Chờ duyệt',
+            \App\Constants\Status::INVEST_COMPLETED => 'Hoàn thành',
+            \App\Constants\Status::INVEST_CLOSED => 'Đã đóng',
+            \App\Constants\Status::INVEST_CANCELED => 'Đã hủy',
+            default => 'Không xác định'
+        };
+        
+        $statusBadge = '<span class="badge ' . $statusClass . '">' . $statusText . '</span>';
+        
+        $general = \App\Models\GeneralSetting::first();
+        
+        // Format data for response
+        $data = [
+            'invest_no' => $invest->invest_no,
+            'project_title' => $invest->project->title ?? 'N/A',
+            'customer_name' => $invest->user->fullname ?? 'N/A',
+            'amount' => showAmount($invest->total_price) . ' ' . $general->cur_text,
+            'interest_rate' => $invest->profit_percentage . '%',
+            'duration' => $invest->project_duration . ' tháng',
+            'start_date' => showDateTime($invest->created_at),
+            'end_date' => $invest->project_closed ? showDateTime($invest->project_closed) : 'N/A',
+            'next_payment_date' => $invest->next_time ? showDateTime($invest->next_time) : 'N/A',
+            'status_badge' => $statusBadge,
+            'notes' => $invest->notes ?? ''
+        ];
+        
+        return response()->json([
+            'success' => true,
+            'data' => $data
+        ]);
     }
 } 

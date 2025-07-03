@@ -48,7 +48,7 @@
                                                       style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Quản lý')</span>
                                             @elseif($user->role == 'sales_staff')
                                                 <span class="badge badge--info"
-                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Nhân viên')</span>
+                                                      style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Giám đốc')</span>
                                             @else
                                                 <span class="badge badge--success"
                                                       style="font-size: 1.2em; padding: 0.5em 1em;">@lang('Staff')</span>
@@ -118,7 +118,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title" id="createStaffModalLabel">@lang('Tạo nhân viên hoặc quản lý')</h5>
+                    <h5 class="modal-title" id="createStaffModalLabel">@lang('Tạo Quản lý/Giám đốc')</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form action="{{ route('admin.users.staff.create') }}" method="POST">
@@ -150,7 +150,7 @@
                             <label for="role" class="required">@lang('Vai trò')</label>
                             <select class="form-control" id="role" name="role" required>
                                 <option value="sales_manager">@lang('Quản lý')</option>
-                                <option value="sales_staff">@lang('Nhân viên')</option>
+                                <option value="sales_staff">@lang('Giám đốc')</option>
                             </select>
                         </div>
                         <div class="form-group mb-3" id="manager-select-container" style="display: none;">
@@ -176,7 +176,7 @@
     <x-search-form placeholder="Username / Email"/>
     <button class="btn btn-sm btn-outline--primary float-sm-end" data-bs-toggle="modal"
             data-bs-target="#createStaffModal" type="button">
-        <i class="las la-plus"></i>@lang('Tạo nhân viên/quản lý')
+        <i class="las la-plus"></i>@lang('Tạo Quản lý/Giám đốc')
     </button>
 @endpush
 

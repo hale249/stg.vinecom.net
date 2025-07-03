@@ -14,12 +14,12 @@
                     <p class="text-muted mb-0">Theo dõi và đánh giá hiệu suất làm việc của nhân viên</p>
                 </div>
             </div>
-            <div class="col-lg-4 text-lg-end">
+            <!-- <div class="col-lg-4 text-lg-end">
                 <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#addKpiModal">
                     <i class="las la-plus me-2"></i>
                     Thêm KPI
                 </button>
-            </div>
+            </div> -->
         </div>
     </div>
 
@@ -289,10 +289,10 @@
                         </div>
                         <h5 class="text-muted">Không có dữ liệu KPI</h5>
                         <p class="text-muted">Chưa có dữ liệu KPI cho bộ lọc này. Hãy thử thay đổi bộ lọc hoặc thêm KPI mới.</p>
-                        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addKpiModal">
+                        <!-- <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addKpiModal">
                             <i class="las la-plus me-2"></i>
                             Thêm KPI đầu tiên
-                        </button>
+                        </button> -->
                     </div>
                 @endif
             </div>
@@ -305,68 +305,6 @@
             {{ $kpis->links() }}
         </div>
     @endif
-</div>
-
-<!-- Add KPI Modal -->
-<div class="modal fade" id="addKpiModal" tabindex="-1" aria-labelledby="addKpiModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addKpiModalLabel">
-                    <i class="las la-plus-circle me-2 text-primary"></i>
-                    Thêm KPI mới
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form action="{{ route('user.staff.manager.hr.kpi.store') }}" method="POST">
-                @csrf
-                <div class="modal-body">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Nhân viên <span class="text-danger">*</span></label>
-                            <select name="staff_id" class="form-select" required>
-                                <option value="">Chọn nhân viên</option>
-                                @foreach($staffMembers as $staff)
-                                    <option value="{{ $staff->id }}">{{ $staff->fullname }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Tháng/Năm <span class="text-danger">*</span></label>
-                            <input type="month" name="month_year" class="form-control" value="{{ now()->format('Y-m') }}" required>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Chỉ tiêu hợp đồng</label>
-                            <input type="number" name="target_contracts" class="form-control" placeholder="Nhập chỉ tiêu hợp đồng">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Thực tế hợp đồng</label>
-                            <input type="number" name="actual_contracts" class="form-control" placeholder="Nhập thực tế hợp đồng">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Chỉ tiêu doanh số (VNĐ)</label>
-                            <input type="number" name="target_sales" class="form-control" placeholder="Nhập chỉ tiêu doanh số">
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label fw-semibold">Thực tế doanh số (VNĐ)</label>
-                            <input type="number" name="actual_sales" class="form-control" placeholder="Nhập thực tế doanh số">
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label fw-semibold">Ghi chú</label>
-                            <textarea name="notes" class="form-control" rows="3" placeholder="Nhập ghi chú (nếu có)"></textarea>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="las la-save me-2"></i>
-                        Lưu KPI
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
 </div>
 
 <!-- Edit KPI Modal -->
