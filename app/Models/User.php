@@ -51,11 +51,14 @@ class User extends Authenticatable
         'id_number',
         'id_issue_date',
         'id_issue_place',
+        'id_card_front',
+        'id_card_back',
         'bank_account_number',
         'bank_name',
         'bank_branch',
         'bank_account_holder',
-        'tax_number'
+        'tax_number',
+        'referred_by'
     ];
 
     /**
@@ -120,6 +123,11 @@ class User extends Authenticatable
     public function staffMembers()
     {
         return $this->hasMany(User::class, 'manager_id');
+    }
+
+    public function referrer()
+    {
+        return $this->belongsTo(User::class, 'referred_by', 'referral_code');
     }
 
     public function fullname(): Attribute

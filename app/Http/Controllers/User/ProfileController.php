@@ -25,6 +25,8 @@ class ProfileController extends Controller
             'id_number' => 'nullable|string|max:50',
             'id_issue_date' => 'nullable|date_format:d/m/Y',
             'id_issue_place' => 'nullable|string|max:255',
+            'id_card_front_base64' => 'nullable|string',
+            'id_card_back_base64' => 'nullable|string',
             'bank_account_number' => 'nullable|string|max:50',
             'bank_name' => 'nullable|string|max:255',
             'bank_branch' => 'nullable|string|max:255',
@@ -45,6 +47,62 @@ class ProfileController extends Controller
                 $user->image = fileUploader($request->image, getFilePath('userProfile'), getFileSize('userProfile'), $old);
             } catch (\Exception $exp) {
                 $notify[] = ['error', 'Couldn\'t upload your image'];
+                return back()->withNotify($notify);
+            }
+        }
+        
+        // Handle ID card front image upload from base64
+        if ($request->id_card_front_base64) {
+            try {
+                $old = $user->id_card_front;
+                
+                // Remove data:image/jpeg;base64, from the beginning
+                $base64Image = preg_replace('/^data:image\/\w+;base64,/', '', $request->id_card_front_base64);
+                $imageData = base64_decode($base64Image);
+                
+                // Generate filename
+                $filename = uniqid() . '_front.jpg';
+                $filepath = getFilePath('idCards') . '/' . $filename;
+                
+                // Save file
+                file_put_contents(public_path($filepath), $imageData);
+                
+                // Remove old file if exists
+                if ($old) {
+                    @unlink(public_path(getFilePath('idCards') . '/' . $old));
+                }
+                
+                $user->id_card_front = $filename;
+            } catch (\Exception $exp) {
+                $notify[] = ['error', 'Couldn\'t upload ID card front image: ' . $exp->getMessage()];
+                return back()->withNotify($notify);
+            }
+        }
+        
+        // Handle ID card back image upload from base64
+        if ($request->id_card_back_base64) {
+            try {
+                $old = $user->id_card_back;
+                
+                // Remove data:image/jpeg;base64, from the beginning
+                $base64Image = preg_replace('/^data:image\/\w+;base64,/', '', $request->id_card_back_base64);
+                $imageData = base64_decode($base64Image);
+                
+                // Generate filename
+                $filename = uniqid() . '_back.jpg';
+                $filepath = getFilePath('idCards') . '/' . $filename;
+                
+                // Save file
+                file_put_contents(public_path($filepath), $imageData);
+                
+                // Remove old file if exists
+                if ($old) {
+                    @unlink(public_path(getFilePath('idCards') . '/' . $old));
+                }
+                
+                $user->id_card_back = $filename;
+            } catch (\Exception $exp) {
+                $notify[] = ['error', 'Couldn\'t upload ID card back image: ' . $exp->getMessage()];
                 return back()->withNotify($notify);
             }
         }

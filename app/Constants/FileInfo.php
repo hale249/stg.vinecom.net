@@ -86,6 +86,10 @@ class FileInfo {
             'path' => 'assets/images/honors',
             'size' => '800x600',
         ];
+        $data['idCards'] = [
+            'path' => 'assets/images/id_cards',
+            'size' => '400x250',
+        ];
         return $data;
     }
 }

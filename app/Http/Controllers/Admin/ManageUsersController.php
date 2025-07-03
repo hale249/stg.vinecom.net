@@ -102,7 +102,7 @@ class ManageUsersController extends Controller
 
     public function detail($id)
     {
-        $user = User::findOrFail($id);
+        $user = User::with('referrer')->findOrFail($id);
         $pageTitle = 'User Detail - ' . $user->username;
 
         $totalDeposit = Deposit::where('user_id', $user->id)->successful()->sum('amount');

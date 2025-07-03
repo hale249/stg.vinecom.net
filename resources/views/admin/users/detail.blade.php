@@ -103,6 +103,121 @@
             </div>
 
 
+            @if($user->referred_by)
+            <div class="card mt-30">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Thông tin giới thiệu</h5>
+                </div>
+                <div class="card-body">
+                    @if($user->referrer)
+                        <div class="row">
+                            <div class="col-md-6">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span><i class="las la-user text-primary me-2"></i>Được giới thiệu bởi</span>
+                                        <a href="{{ route('admin.users.detail', $user->referrer->id) }}" class="fw-bold text-primary">
+                                            {{ $user->referrer->username ?? $user->referrer->referral_code }}
+                                        </a>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span><i class="las la-user-tag text-primary me-2"></i>Tên người giới thiệu</span>
+                                        <span class="fw-bold">{{ $user->referrer->fullname }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                            <div class="col-md-6">
+                                <ul class="list-group list-group-flush">
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span><i class="las la-envelope text-primary me-2"></i>Email người giới thiệu</span>
+                                        <span class="fw-bold">{{ $user->referrer->email }}</span>
+                                    </li>
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        <span><i class="las la-code text-primary me-2"></i>Mã giới thiệu đã sử dụng</span>
+                                        <span class="fw-bold">{{ $user->referred_by }}</span>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    @else
+                        <div class="text-center py-3">
+                            <i class="las la-user-slash fa-3x text-muted"></i>
+                            <p class="mt-2">Không tìm thấy người giới thiệu</p>
+                            <p class="small text-muted">Mã giới thiệu: {{ $user->referred_by }}</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+            @endif
+
+            @if($user->id_card_front || $user->id_card_back)
+            <div class="card mt-30">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">CCCD/CMT Images</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        @if($user->id_card_front)
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0 text-primary">
+                                        <i class="las la-id-card me-2"></i>CCCD/CMT Mặt trước
+                                    </h6>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="position-relative">
+                                        <img src="{{ getImage(getFilePath('idCards') . '/' . $user->id_card_front, '300x180') }}"
+                                             alt="ID Card Front"
+                                             class="img-thumbnail w-100 id-card-thumbnail"
+                                             style="cursor: pointer; max-height: 150px; object-fit: cover;"
+                                             data-bs-toggle="modal"
+                                             data-bs-target="#idCardModal"
+                                             data-image-src="{{ getImage(getFilePath('idCards') . '/' . $user->id_card_front) }}"
+                                             data-image-title="CCCD/CMT Mặt trước">
+                                        <div class="position-absolute top-0 end-0 m-2">
+                                            <span class="badge bg-primary">
+                                                <i class="las la-expand-arrows-alt"></i> Click để phóng to
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+
+                        @if($user->id_card_back)
+                        <div class="col-md-6 mb-3">
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-header bg-light">
+                                    <h6 class="card-title mb-0 text-primary">
+                                        <i class="las la-id-card me-2"></i>CCCD/CMT Mặt sau
+                                    </h6>
+                                </div>
+                                <div class="card-body p-2">
+                                    <div class="position-relative">
+                                        <img src="{{ getImage(getFilePath('idCards') . '/' . $user->id_card_back, '300x180') }}"
+                                             alt="ID Card Back"
+                                             class="img-thumbnail w-100 id-card-thumbnail"
+                                             style="cursor: pointer; max-height: 150px; object-fit: cover;"
+                                             data-bs-toggle="modal"
+                                             data-bs-target="#idCardModal"
+                                             data-image-src="{{ getImage(getFilePath('idCards') . '/' . $user->id_card_back) }}"
+                                             data-image-title="CCCD/CMT Mặt sau">
+                                        <div class="position-absolute top-0 end-0 m-2">
+                                            <span class="badge bg-primary">
+                                                <i class="las la-expand-arrows-alt"></i> Click để phóng to
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            @endif
+            
             <div class="card mt-30">
                 <div class="card-header">
                     <h5 class="card-title mb-0">@lang('Information of') {{ $user->fullname }}</h5>
@@ -340,7 +455,83 @@
             </div>
         </div>
     </div>
+
+    <!-- ID Card Image Modal -->
+    <div class="modal fade" id="idCardModal" tabindex="-1" aria-labelledby="idCardModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="idCardModalLabel">
+                        <i class="las la-id-card me-2"></i>
+                        <span id="modalImageTitle">CCCD/CMT</span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center p-0">
+                    <img id="modalImage" src="" alt="ID Card" class="img-fluid w-100" style="max-height: 70vh; object-fit: contain;">
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="las la-times me-1"></i>Đóng
+                    </button>
+                    <a id="downloadImageBtn" href="" download class="btn btn-primary">
+                        <i class="las la-download me-1"></i>Tải xuống
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection
+
+@push('style')
+<style>
+    .id-card-thumbnail {
+        transition: all 0.3s ease;
+        border-radius: 8px;
+    }
+
+    .id-card-thumbnail:hover {
+        transform: scale(1.02);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    }
+
+    .position-relative .badge {
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .position-relative:hover .badge {
+        opacity: 1;
+    }
+
+    #modalImage {
+        border-radius: 8px;
+    }
+</style>
+@endpush
+
+@push('script')
+<script>
+    // Handle ID Card image modal
+    document.addEventListener('DOMContentLoaded', function() {
+        const idCardModal = document.getElementById('idCardModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalImageTitle = document.getElementById('modalImageTitle');
+        const downloadImageBtn = document.getElementById('downloadImageBtn');
+
+        // Handle modal show event
+        idCardModal.addEventListener('show.bs.modal', function(event) {
+            const button = event.relatedTarget;
+            const imageSrc = button.getAttribute('data-image-src');
+            const imageTitle = button.getAttribute('data-image-title');
+
+            modalImage.src = imageSrc;
+            modalImageTitle.textContent = imageTitle;
+            downloadImageBtn.href = imageSrc;
+        });
+    });
+</script>
+@endpush
 
 @push('breadcrumb-plugins')
     <a href="{{ route('admin.users.login', $user->id) }}" target="_blank" class="btn btn-sm btn-outline--primary"><i
