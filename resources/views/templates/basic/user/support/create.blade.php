@@ -10,36 +10,36 @@
                             @csrf
                             <div class="row">
                                 <div class="form-group col-md-6">
-                                    <label class="form-label">@lang('Subject')</label>
+                                    <label class="form-label">Tiêu đề</label>
                                     <input type="text" name="subject" value="{{ old('subject') }}"
                                         class="form-control form--control" required>
                                 </div>
                                 <div class="form-group col-md-6">
-                                    <label class="form-label">@lang('Priority')</label>
+                                    <label class="form-label">Độ ưu tiên</label>
                                     <select name="priority" class="form-select form--control select2-basic"
                                         data-minimum-results-for-search="-1" required>
-                                        <option value="3">@lang('High')</option>
-                                        <option value="2">@lang('Medium')</option>
-                                        <option value="1">@lang('Low')</option>
+                                        <option value="3">Cao</option>
+                                        <option value="2">Trung bình</option>
+                                        <option value="1">Thấp</option>
                                     </select>
                                 </div>
                                 <div class="col-12 form-group">
-                                    <label class="form-label">@lang('Message')</label>
+                                    <label class="form-label">Nội dung</label>
                                     <textarea name="message" id="inputMessage" rows="6" class="form-control form--control" required>{{ old('message') }}</textarea>
                                 </div>
 
 
                                 <div class="col-md-9">
                                     <button type="button" class="btn btn-dark btn-sm addAttachment my-2"><i
-                                            class="fas fa-plus"></i> @lang('Add Attachment') </button>
-                                    <p class="mb-2"><span class="text--base">@lang('Max 5 files can be uploaded | Maximum upload size is ' . convertToReadableSize(ini_get('upload_max_filesize')) . ' | Allowed File Extensions: .jpg, .jpeg, .png, .pdf, .doc, .docx')</span>
+                                            class="fas fa-plus"></i> Thêm tệp đính kèm </button>
+                                    <p class="mb-2"><span class="text--base">Tối đa 5 tệp có thể tải lên | Dung lượng tải lên tối đa là {{ convertToReadableSize(ini_get('upload_max_filesize')) }} | Định dạng tệp cho phép: .jpg, .jpeg, .png, .pdf, .doc, .docx</span>
                                     </p>
                                     <div class="row fileUploadsContainer">
                                     </div>
                                 </div>
                                 <div class="col-md-3">
                                     <button class="btn btn--base w-100 my-2" type="submit"><i
-                                            class="las la-paper-plane"></i> @lang('Submit')
+                                            class="las la-paper-plane"></i> Gửi yêu cầu
                                     </button>
                                 </div>
                             </div>

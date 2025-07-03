@@ -61,23 +61,23 @@
             </li>
             @endif
             
-            <li class="offcanvas-sidebar-menu__item {{ menuActive('ticket*') }}">
+            <li class="offcanvas-sidebar-menu__item {{ menuActive('user.ticket*') }}">
                 <button class="offcanvas-sidebar-menu__btn collapsed" data-bs-toggle="collapse"
                     data-bs-target="#offcanvas-sidebar-support-collapse" aria-expanded="false" type="button">
                     <i class="fas fa-headset"></i>
-                    <span>@lang('Support Ticket')</span>
+                    <span>Yêu cầu hỗ trợ</span>
                 </button>
 
                 <div class="collapse" id="offcanvas-sidebar-support-collapse">
                     <ul class="offcanvas-sidebar-submenu">
-                        <li class="offcanvas-sidebar-submenu__item {{ menuActive('ticket.open') }}">
-                            <a class="offcanvas-sidebar-submenu__link" href="{{ route('ticket.open') }}">
-                                @lang('Create New')
+                        <li class="offcanvas-sidebar-submenu__item {{ menuActive('user.ticket.open') }}">
+                            <a class="offcanvas-sidebar-submenu__link" href="{{ route('user.ticket.open') }}">
+                                Tạo mới
                             </a>
                         </li>
-                        <li class="offcanvas-sidebar-submenu__item {{ menuActive('ticket.index') }}">
-                            <a class="offcanvas-sidebar-submenu__link" href="{{ route('ticket.index') }}">
-                                @lang('My Tickets')
+                        <li class="offcanvas-sidebar-submenu__item {{ menuActive('user.ticket.index') }}">
+                            <a class="offcanvas-sidebar-submenu__link" href="{{ route('user.ticket.index') }}">
+                                Yêu cầu của tôi
                             </a>
                         </li>
                     </ul>

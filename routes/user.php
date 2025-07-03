@@ -79,6 +79,17 @@ Route::middleware('auth')->name('user.')->group(function () {
                 Route::get('investment/contract', 'investmentContract')->name('investment.contract');
             });
 
+            // Support Ticket
+            Route::controller('TicketController')->prefix('ticket')->name('ticket.')->group(function () {
+                Route::get('/', 'supportTicket')->name('index');
+                Route::get('new', 'openSupportTicket')->name('open');
+                Route::post('create', 'storeSupportTicket')->name('store');
+                Route::get('view/{ticket}', 'viewTicket')->name('view');
+                Route::post('reply/{ticket}', 'replyTicket')->name('reply');
+                Route::post('close/{ticket}', 'closeTicket')->name('close');
+                Route::get('download/{ticket}', 'ticketDownload')->name('download');
+            });
+
             //Profile setting
             Route::controller('ProfileController')->group(function () {
                 Route::get('profile-setting', 'profile')->name('profile.setting');

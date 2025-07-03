@@ -114,6 +114,12 @@
     </div>
 @endsection
 
+@push('breadcrumb-plugins')
+    <a href="{{ url()->current() }}{{ request()->query() ? '&export=excel' : '?export=excel' }}" class="btn btn-sm btn-outline--success">
+        <i class="la la-file-excel"></i> @lang('Export Excel')
+    </a>
+@endpush
+
 @push('script-lib')
     <script src="{{ asset('assets/admin/js/moment.min.js') }}"></script>
     <script src="{{ asset('assets/admin/js/daterangepicker.min.js') }}"></script>

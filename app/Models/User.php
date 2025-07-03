@@ -51,8 +51,6 @@ class User extends Authenticatable
         'id_number',
         'id_issue_date',
         'id_issue_place',
-        'id_card_front',
-        'id_card_back',
         'bank_account_number',
         'bank_name',
         'bank_branch',

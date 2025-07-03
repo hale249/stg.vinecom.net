@@ -11,18 +11,6 @@ Route::controller('CronController')->group(function () {
     Route::get('interest', 'interest')->name('interest');
 });
 
-// User Support Ticket
-Route::controller('TicketController')->prefix('ticket')->name('ticket.')->group(function () {
-    Route::get('/', 'supportTicket')->name('index');
-    Route::get('new', 'openSupportTicket')->name('open');
-    Route::post('create', 'storeSupportTicket')->name('store');
-    Route::get('view/{ticket}', 'viewTicket')->name('view');
-    Route::post('reply/{id}', 'replyTicket')->name('reply');
-    Route::post('close/{id}', 'closeTicket')->name('close');
-    Route::get('download/{attachment_id}', 'ticketDownload')->name('download');
-});
-
-
 Route::controller('ProjectController')->group(function () {
     Route::get('projects', 'projects')->name('projects');
     Route::post('check-quantity', 'checkQuantity')->name('check.quantity');
@@ -48,7 +36,6 @@ Route::controller('SiteController')->group(function () {
     Route::get('placeholder-image/{size}', 'placeholderImage')->withoutMiddleware('maintenance')->name('placeholder.image');
     Route::get('maintenance-mode', 'maintenance')->withoutMiddleware('maintenance')->name('maintenance');
 
-    Route::get('/{slug}', 'pages')->name('pages');
     Route::get('/', function() {
         return redirect()->route('projects');
     })->name('home');
@@ -148,3 +135,6 @@ Route::middleware(['auth'])->prefix('user/manager')->name('user.staff.manager.')
     Route::get('reports/interests', 'User\\SalesManagerController@reportInterests')->name('report.interests');
     Route::get('reports/commissions', 'User\\SalesManagerController@reportCommissions')->name('report.commissions');
 });
+
+// This catch-all route must be the last route
+Route::get('/{slug}', 'SiteController@pages')->name('pages');

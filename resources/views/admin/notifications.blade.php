@@ -9,6 +9,13 @@
                             <h6 class="title">{{ __($notification->title) }}</h6>
                             <span class="date"><i class="las la-clock"></i> {{ diffForHumans($notification->created_at) }}</span>
                         </div>
+                        <div>
+                            @if ($notification->is_read == Status::NO)
+                                <span class="badge badge--primary">@lang('Unread')</span>
+                            @else
+                                <span class="badge badge--dark">@lang('Read')</span>
+                            @endif
+                        </div>
                     </div>
                 </a>
                 <button type="button" class="btn btn-sm btn-outline--danger notify-delete-btn confirmationBtn" data-question="@lang('Are you sure to delete the notification?')" data-action="{{ route('admin.notifications.delete.single',$notification->id) }}"><i class="las la-trash me-0"></i></button>
